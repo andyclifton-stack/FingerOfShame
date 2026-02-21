@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -9,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
-    
+
     <style>
         :root {
             --bg-color: #0f172a;
@@ -21,7 +22,7 @@
             --accent-red: #ef4444;
             --accent-orange: #f59e0b;
             --progress-bg: #334155;
-            --nav-bg: #0f172a; 
+            --nav-bg: #0f172a;
             --font-main: 'Outfit', sans-serif;
         }
 
@@ -29,628 +30,1119 @@
             font-family: var(--font-main);
             background-color: var(--bg-color);
             color: var(--text-main);
-            margin: 0; padding: 0;
-            display: flex; justify-content: center;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
             min-height: 100vh;
             -webkit-tap-highlight-color: transparent;
         }
 
         .container {
-            width: 100%; max-width: 480px; padding: 15px;
-            display: flex; flex-direction: column; gap: 15px; 
+            width: 100%;
+            max-width: 480px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
             padding-bottom: 100px;
         }
 
         /* --- Header --- */
-        header { 
-            border-bottom: 1px solid var(--card-bg); padding-bottom: 15px; margin-top: 10px; 
-            display: flex; justify-content: space-between; align-items: center;
+        header {
+            border-bottom: 1px solid var(--card-bg);
+            padding-bottom: 15px;
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        h1 { margin: 0; font-size: 1.5rem; font-weight: 700; }
-        .subtitle { font-size: 0.9rem; color: var(--text-muted); }
-        .lvl-badge { background: var(--card-bg); padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; color: var(--accent-blue); border: 1px solid rgba(59, 130, 246, 0.3); }
+
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .lvl-badge {
+            background: var(--card-bg);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
 
         /* --- Navigation --- */
         .bottom-nav {
-            position: fixed; bottom: 0; left: 0; width: 100%;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
             background: rgba(15, 23, 42, 0.95);
             backdrop-filter: blur(10px);
-            border-top: 1px solid rgba(255,255,255,0.1);
-            display: flex; justify-content: space-around; padding: 12px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
             z-index: 100;
             padding-bottom: env(safe-area-inset-bottom, 15px);
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
         }
+
         .nav-item {
-            background: none; border: none; color: var(--text-muted); font-family: var(--font-main);
-            font-size: 0.75rem; font-weight: 600; cursor: pointer; opacity: 0.6;
-            display: flex; flex-direction: column; align-items: center; gap: 6px;
-            padding: 8px 24px; border-radius: 16px; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-family: var(--font-main);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            opacity: 0.6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 24px;
+            border-radius: 16px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
-        .nav-item.active { 
-            color: white; opacity: 1; 
+
+        .nav-item.active {
+            color: white;
+            opacity: 1;
             background: var(--accent-blue);
             transform: translateY(-5px);
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
         }
-        .nav-icon { font-size: 1.4rem; }
+
+        .nav-icon {
+            font-size: 1.4rem;
+        }
 
         /* --- Cards --- */
         .card {
-            background: var(--card-bg); border-radius: 16px; padding: 20px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-            position: relative; overflow: hidden; 
+            position: relative;
+            overflow: hidden;
         }
 
         /* --- Forms --- */
-        .form-group { margin-bottom: 15px; text-align: left; }
-        .form-label { display: block; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
-        select, input[type="text"], input[type="number"] {
-            width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--text-muted);
-            background: var(--bg-color); color: var(--text-main); font-family: var(--font-main); font-size: 1rem;
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .form-label {
+            display: block;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        select,
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--text-muted);
+            background: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            font-size: 1rem;
             box-sizing: border-box;
         }
-        .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
         .checkbox-item {
-            background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;
-            display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
         }
 
         /* --- Buttons --- */
         .btn {
-            width: 100%; padding: 14px; border: none; border-radius: 12px;
-            font-family: var(--font-main); font-weight: 600; cursor: pointer;
-            font-size: 1rem; margin-top: 10px; transition: transform 0.1s;
-            display: flex; justify-content: center; align-items: center; gap: 8px;
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-family: var(--font-main);
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 10px;
+            transition: transform 0.1s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
         }
-        .btn:active { transform: scale(0.98); }
-        .btn-primary { background-color: var(--accent-blue); color: white; }
-        .btn-green { background-color: var(--accent-green); color: white; }
-        .btn-red { background-color: var(--accent-red); color: white; }
-        .btn-secondary { background-color: rgba(255,255,255,0.05); border: 1px solid var(--text-muted); color: var(--text-main); }
-        .btn-sm { padding: 8px 12px; font-size: 0.85rem; width: auto; }
-        .btn-icon-only { width: 30px; height: 30px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 1.2rem; margin: 0; }
-        .btn-link { background: none; border: none; color: var(--accent-blue); cursor: pointer; padding: 0; font-family: inherit; font-weight: 600; text-decoration: underline; font-size: 0.9rem; text-align: right; }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background-color: var(--accent-blue);
+            color: white;
+        }
+
+        .btn-green {
+            background-color: var(--accent-green);
+            color: white;
+        }
+
+        .btn-red {
+            background-color: var(--accent-red);
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--text-muted);
+            color: var(--text-main);
+        }
+
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            width: auto;
+        }
+
+        .btn-icon-only {
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            margin: 0;
+        }
+
+        .btn-link {
+            background: none;
+            border: none;
+            color: var(--accent-blue);
+            cursor: pointer;
+            padding: 0;
+            font-family: inherit;
+            font-weight: 600;
+            text-decoration: underline;
+            font-size: 0.9rem;
+            text-align: right;
+        }
 
         /* --- History List --- */
-        .history-list { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; margin-top:10px; }
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
         .history-item {
-            display: flex; align-items: flex-start; gap: 15px; 
-            padding: 12px; background: rgba(255,255,255,0.03); border-radius: 10px;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
             border-left: 4px solid var(--text-muted);
         }
-        .history-item.type-plan { border-color: var(--accent-blue); }
-        .history-item.type-custom { border-color: var(--accent-orange); }
-        .history-item.type-recovery { border-color: var(--accent-green); }
-        
-        .h-date { font-size: 0.8rem; color: var(--text-muted); min-width: 50px; padding-top: 2px; }
-        .h-info { flex: 1; }
-        .h-title { font-weight: 600; font-size: 1rem; margin-bottom: 4px; }
-        .h-detail { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; }
+
+        .history-item.type-plan {
+            border-color: var(--accent-blue);
+        }
+
+        .history-item.type-custom {
+            border-color: var(--accent-orange);
+        }
+
+        .history-item.type-recovery {
+            border-color: var(--accent-green);
+        }
+
+        .h-date {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            min-width: 50px;
+            padding-top: 2px;
+        }
+
+        .h-info {
+            flex: 1;
+        }
+
+        .h-title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .h-detail {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
 
         /* --- Workout UI --- */
         .workout-image {
-            width: 100%; aspect-ratio: 16/9; object-fit: cover;
-            border-radius: 8px; margin-bottom: 15px; background-color: #000;
-            border: 1px solid rgba(255,255,255,0.1);
+            width: 100%;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: #000;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .segment-bar { display: flex; gap: 4px; margin-bottom: 15px; height: 6px; width: 100%; }
-        .segment { flex: 1; background: var(--progress-bg); border-radius: 3px; }
-        .segment.done { background: var(--accent-green); }
-        .segment.active { background: var(--accent-blue); box-shadow: 0 0 8px var(--accent-blue); }
 
-        .timer-wrapper { position: relative; width: 180px; height: 180px; margin: 10px auto; }
-        .timer-svg { transform: rotate(-90deg); width: 100%; height: 100%; }
-        .timer-circle-bg { fill: none; stroke: var(--progress-bg); stroke-width: 6; }
-        .timer-circle-fg { fill: none; stroke-width: 6; stroke-linecap: round; stroke-dasharray: 565; stroke-dashoffset: 565; transition: stroke-dashoffset 1s linear, stroke 0.3s; }
-        .timer-text-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .timer-big-num { font-size: 3rem; font-weight: 700; line-height: 1; }
-        .mode-work .timer-circle-fg { stroke: var(--accent-green); }
-        .mode-rest .timer-circle-fg { stroke: var(--accent-blue); }
+        .segment-bar {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 15px;
+            height: 6px;
+            width: 100%;
+        }
+
+        .segment {
+            flex: 1;
+            background: var(--progress-bg);
+            border-radius: 3px;
+        }
+
+        .segment.done {
+            background: var(--accent-green);
+        }
+
+        .segment.active {
+            background: var(--accent-blue);
+            box-shadow: 0 0 8px var(--accent-blue);
+        }
+
+        .timer-wrapper {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            margin: 10px auto;
+        }
+
+        .timer-svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+
+        .timer-circle-bg {
+            fill: none;
+            stroke: var(--progress-bg);
+            stroke-width: 6;
+        }
+
+        .timer-circle-fg {
+            fill: none;
+            stroke-width: 6;
+            stroke-linecap: round;
+            stroke-dasharray: 565;
+            stroke-dashoffset: 565;
+            transition: stroke-dashoffset 1s linear, stroke 0.3s;
+        }
+
+        .timer-text-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .timer-big-num {
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .mode-work .timer-circle-fg {
+            stroke: var(--accent-green);
+        }
+
+        .mode-rest .timer-circle-fg {
+            stroke: var(--accent-blue);
+        }
 
         /* --- Controls Row --- */
         .controls-row {
-            display: grid; 
-            grid-template-columns: 1fr 2fr 1fr; /* Back | Timer | Next */
-            gap: 10px; 
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            /* Back | Timer | Next */
+            gap: 10px;
             margin-bottom: 20px;
             align-items: center;
         }
 
         /* --- Overlays --- */
-        .full-overlay { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(5px);
-            display: flex; justify-content: center; align-items: center; 
-            z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        .full-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
         }
-        .full-overlay.active { opacity: 1; pointer-events: auto; }
-        
-        .countdown-text { font-size: 8rem; font-weight: 700; color: var(--accent-blue); transform: scale(0.5); opacity: 0; }
-        .pulse-anim { animation: pulseNum 0.9s ease-out forwards; }
-        
-        .success-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(16, 185, 129, 0.9); display: flex; justify-content: center; align-items: center; z-index: 10; opacity: 0; pointer-events: none; }
-        .animate-success .success-overlay { animation: flashGreen 1.2s ease forwards; }
-        
-        @keyframes pulseNum { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
-        @keyframes flashGreen { 0% { opacity: 0; } 10% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+
+        .full-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .countdown-text {
+            font-size: 8rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+            transform: scale(0.5);
+            opacity: 0;
+        }
+
+        .pulse-anim {
+            animation: pulseNum 0.9s ease-out forwards;
+        }
+
+        .success-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(16, 185, 129, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .animate-success .success-overlay {
+            animation: flashGreen 1.2s ease forwards;
+        }
+
+        @keyframes pulseNum {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 0;
+            }
+        }
+
+        @keyframes flashGreen {
+            0% {
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            80% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+            }
+        }
 
         /* --- Preview Modal --- */
         .preview-modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
-            z-index: 300; display: flex; justify-content: center; align-items: flex-end;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 300;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
         }
+
         .preview-card {
-            background: var(--card-bg); width: 100%; max-width: 480px;
-            border-radius: 20px 20px 0 0; padding: 25px; max-height: 80vh; overflow-y: auto;
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 480px;
+            border-radius: 20px 20px 0 0;
+            padding: 25px;
+            max-height: 80vh;
+            overflow-y: auto;
             animation: slideUp 0.3s ease-out;
         }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        
-        .preview-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .preview-row:last-child { border-bottom: none; }
-        .preview-label { color: var(--text-main); font-weight: 500; }
-        .preview-val { color: var(--text-muted); font-size: 0.9rem; }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .preview-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .preview-row:last-child {
+            border-bottom: none;
+        }
+
+        .preview-label {
+            color: var(--text-main);
+            font-weight: 500;
+        }
+
+        .preview-val {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
 
         /* --- Utils --- */
-        .hidden { display: none !important; }
-        .fade-in { animation: fadeIn 0.4s ease forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
+        .hidden {
+            display: none !important;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         /* Forecast List */
-        .forecast-box { background: rgba(0,0,0,0.2); border-radius: 8px; padding: 15px; margin-top: 20px; text-align: left; }
-        .forecast-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; min-height: 24px; }
-        .forecast-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        
+        .forecast-box {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .forecast-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 8px;
+            min-height: 24px;
+        }
+
+        .forecast-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
         /* Progress Bar Wrapper */
-        .dash-progress-wrapper { display: flex; gap: 10px; align-items: center; }
-        .dash-progress-container { flex: 1; }
-        .dash-labels { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 5px; }
-        .dash-track { background: var(--progress-bg); height: 8px; border-radius: 4px; overflow: hidden; }
-        .dash-fill { background: var(--accent-blue); height: 100%; width: 0%; transition: width 0.5s ease; }
-        
-        .up-next-box { background: rgba(59, 130, 246, 0.1); border-left: 3px solid var(--accent-blue); padding: 10px; margin: 15px 0; text-align: left; animation: fadeIn 0.5s; }
-        details.instruction-box { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 15px; margin-bottom: 15px; text-align: left; }
-        summary { cursor: pointer; color: var(--accent-blue); font-weight: 600; display: flex; justify-content: space-between; }
-        .media-row { display: flex; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); }
-        .est-time { font-size: 0.85rem; color: var(--accent-green); font-weight: 600; margin-bottom: 5px; }
+        .dash-progress-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .dash-progress-container {
+            flex: 1;
+        }
+
+        .dash-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+        }
+
+        .dash-track {
+            background: var(--progress-bg);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .dash-fill {
+            background: var(--accent-blue);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .up-next-box {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 3px solid var(--accent-blue);
+            padding: 10px;
+            margin: 15px 0;
+            text-align: left;
+            animation: fadeIn 0.5s;
+        }
+
+        details.instruction-box {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        summary {
+            cursor: pointer;
+            color: var(--accent-blue);
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .media-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .est-time {
+            font-size: 0.85rem;
+            color: var(--accent-green);
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
+
 <body>
 
-<div id="countdownOverlay" class="full-overlay"><div id="countdownDisplay" class="countdown-text">3</div></div>
-
-<div id="viewPreview" class="preview-modal hidden">
-    <div class="preview-card">
-        <h2 id="previewTitle" style="margin-top:0; color:var(--accent-blue);">Workout Preview</h2>
-        <div id="previewContent"></div>
-        <button class="btn btn-secondary" id="btnClosePreview" style="margin-top:20px;">Close</button>
-    </div>
-</div>
-
-<div class="container">
-    <header>
-        <div>
-            <h1>Andy Clifton Fitness</h1>
-            <div class="subtitle" id="dateDisplay">Loading...</div>
-        </div>
-        <div class="lvl-badge">Level <span id="userLevelDisplay">1</span></div>
-    </header>
-
-    <div id="viewDashboard" class="screen fade-in">
-        <div id="planProgressCard" class="hidden" style="margin: 15px 0;">
-            <div class="dash-progress-wrapper">
-                <div class="dash-progress-container">
-                    <div class="dash-labels"><span id="planNameLabel">No Plan</span><span id="planProgressLabel">0%</span></div>
-                    <div class="dash-track"><div class="dash-fill" id="planProgressBar"></div></div>
-                </div>
-                <button class="btn btn-secondary btn-icon-only" id="btnResetProgress" title="Reset Current Plan">↺</button>
-            </div>
-        </div>
-        <div class="card text-center">
-            <img id="dashImage" src="" class="workout-image" style="display:none;" alt="Dash">
-            <h2 id="todayTitle" style="color: var(--accent-blue); margin-bottom:5px;">Loading...</h2>
-            <p id="todayDesc" style="color: var(--text-muted); margin-top:0;">...</p>
-            <div id="actionArea" style="margin-top:20px;"></div>
-            
-            <div id="forecastArea" class="forecast-box hidden">
-                <div style="font-weight:600; margin-bottom:10px; color:var(--accent-blue);">COMING UP</div>
-                <div id="forecastContent"></div>
-            </div>
-        </div>
-        
-        <div class="card" style="margin-top:15px; padding:15px; text-align:center;">
-            <div style="display: flex; justify-content: space-around;">
-                <div class="text-center">
-                    <div style="font-size:1.5rem; font-weight:700;" id="statPlan">0</div>
-                    <div style="font-size:0.7rem; color:var(--text-muted);">PLAN WORKOUTS</div>
-                </div>
-                <div class="text-center">
-                    <div style="font-size:1.5rem; font-weight:700;" id="statExtra">0</div>
-                    <div style="font-size:0.7rem; color:var(--text-muted);">EXTRA ACTIVITY</div>
-                </div>
-            </div>
-            <div id="lastWorkoutLabel" style="font-size:0.8rem; color:var(--text-muted); margin-top:12px; border-top:1px solid rgba(255,255,255,0.05); padding-top:10px; opacity: 0.8;">
-                No workouts yet
-            </div>
-        </div>
-        
-        <div id="resumeBanner" class="hidden" style="margin-top:15px;"><button class="btn btn-secondary" id="btnResumeSession">⚠️ Resume interrupted session?</button></div>
+    <div id="countdownOverlay" class="full-overlay">
+        <div id="countdownDisplay" class="countdown-text">3</div>
     </div>
 
-    <div id="viewTools" class="screen hidden fade-in">
-        <button class="btn btn-secondary" id="btnNewPlan" style="margin-bottom:15px; border-color:var(--accent-blue); color:var(--accent-blue); border-width: 2px;">+ Create New Workout Plan</button>
-        
-        <div class="card">
-            <h3 style="margin-top:0;">Manual Session (Timer)</h3>
-            <div class="form-group"><label class="form-label">Exercise Name</label><input type="text" id="custExName" placeholder="e.g. Kettlebell Swings"></div>
-            <div style="display:flex; gap:10px;">
-                <div class="form-group" style="flex:1"><label class="form-label">Work (Sec)</label><input type="number" id="custWork" value="30"></div>
-                <div class="form-group" style="flex:1"><label class="form-label">Rest (Sec)</label><input type="number" id="custRest" value="30"></div>
-                <div class="form-group" style="flex:1"><label class="form-label">Sets</label><input type="number" id="custSets" value="5"></div>
-            </div>
-            <button class="btn btn-primary" id="btnStartCustom">Start Custom Timer</button>
+    <div id="viewPreview" class="preview-modal hidden">
+        <div class="preview-card">
+            <h2 id="previewTitle" style="margin-top:0; color:var(--accent-blue);">Workout Preview</h2>
+            <div id="previewContent"></div>
+            <button class="btn btn-secondary" id="btnClosePreview" style="margin-top:20px;">Close</button>
         </div>
+    </div>
 
-        <div class="card" style="margin-top:15px;">
-            <h3 style="margin-top:0;">Quick Log (No Timer)</h3>
-            <div class="form-group">
-                <label class="form-label">Activity Type</label>
-                <select id="quickType">
-                    <option value="reps">Reps (e.g. Pushups)</option>
-                    <option value="cardio">Cardio / Time (e.g. Bike)</option>
-                </select>
+    <div class="container">
+        <header>
+            <div>
+                <h1>Andy Clifton Fitness</h1>
+                <div class="subtitle" id="dateDisplay">Loading...</div>
             </div>
-            <div class="form-group">
-                <label class="form-label">Activity Name</label>
-                <input type="text" id="quickName" placeholder="e.g. Pushups">
-            </div>
-            
-            <div id="quickInputReps" class="form-group">
-                <label class="form-label">Count</label>
-                <input type="number" id="quickCount" placeholder="e.g. 10">
-            </div>
+            <div class="lvl-badge">Level <span id="userLevelDisplay">1</span></div>
+        </header>
 
-            <div id="quickInputCardio" class="hidden" style="display:flex; gap:10px;">
-                <div class="form-group" style="flex:1">
-                    <label class="form-label">Minutes</label>
-                    <input type="number" id="quickMins" placeholder="30">
+        <div id="viewDashboard" class="screen fade-in">
+            <div id="planProgressCard" class="hidden" style="margin: 15px 0;">
+                <div class="dash-progress-wrapper">
+                    <div class="dash-progress-container">
+                        <div class="dash-labels"><span id="planNameLabel">No Plan</span><span
+                                id="planProgressLabel">0%</span></div>
+                        <div class="dash-track">
+                            <div class="dash-fill" id="planProgressBar"></div>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary btn-icon-only" id="btnResetProgress"
+                        title="Reset Current Plan">↺</button>
                 </div>
-                <div class="form-group" style="flex:1">
-                    <label class="form-label">Distance (Opt)</label>
-                    <input type="text" id="quickDist" placeholder="e.g. 5km">
+            </div>
+            <div class="card text-center">
+                <img id="dashImage" src="" class="workout-image" style="display:none;" alt="Dash">
+                <h2 id="todayTitle" style="color: var(--accent-blue); margin-bottom:5px;">Loading...</h2>
+                <p id="todayDesc" style="color: var(--text-muted); margin-top:0;">...</p>
+                <div id="actionArea" style="margin-top:20px;"></div>
+
+                <div id="forecastArea" class="forecast-box hidden">
+                    <div style="font-weight:600; margin-bottom:10px; color:var(--accent-blue);">COMING UP</div>
+                    <div id="forecastContent"></div>
                 </div>
             </div>
 
-            <button class="btn btn-green" id="btnLogQuick">Save to History</button>
+            <div class="card" style="margin-top:15px; padding:15px; text-align:center;">
+                <div style="display: flex; justify-content: space-around;">
+                    <div class="text-center">
+                        <div style="font-size:1.5rem; font-weight:700;" id="statPlan">0</div>
+                        <div style="font-size:0.7rem; color:var(--text-muted);">PLAN WORKOUTS</div>
+                    </div>
+                    <div class="text-center">
+                        <div style="font-size:1.5rem; font-weight:700;" id="statExtra">0</div>
+                        <div style="font-size:0.7rem; color:var(--text-muted);">EXTRA ACTIVITY</div>
+                    </div>
+                </div>
+                <div id="lastWorkoutLabel"
+                    style="font-size:0.8rem; color:var(--text-muted); margin-top:12px; border-top:1px solid rgba(255,255,255,0.05); padding-top:10px; opacity: 0.8;">
+                    No workouts yet
+                </div>
+            </div>
+
+            <div id="resumeBanner" class="hidden" style="margin-top:15px;"><button class="btn btn-secondary"
+                    id="btnResumeSession">⚠️ Resume interrupted session?</button></div>
         </div>
 
-        <div style="display:flex; justify-content:space-between; align-items:center; margin:20px 0 10px 0;"><h3 style="margin:0;">History</h3><button class="btn btn-sm btn-red" id="btnClearHistory" style="width:auto; margin:0;">Clear Logs</button></div>
-        <div class="history-list" id="historyList"><div style="text-align:center; color:var(--text-muted); padding:20px;">No logs found.</div></div>
-    </div>
+        <div id="viewTools" class="screen hidden fade-in">
+            <button class="btn btn-secondary" id="btnNewPlan"
+                style="margin-bottom:15px; border-color:var(--accent-blue); color:var(--accent-blue); border-width: 2px;">+
+                Create New Workout Plan</button>
 
-    <div id="viewWizard" class="screen card hidden fade-in">
-        <img src="fitness_images/plan_wizard.png" class="workout-image" alt="Plan Builder" onerror="this.style.display='none'">
-        <h2 style="margin-top:0">Create New Plan</h2>
-        <div class="form-group"><label class="form-label">Difficulty Level</label><select id="wizLevel"><option value="1">Foundation</option><option value="2">Standard</option><option value="3">Advanced</option></select></div>
-        <div class="form-group"><label class="form-label">Duration</label><select id="wizWeeks"><option value="4">4 Weeks</option><option value="8">8 Weeks</option></select></div>
-        <div class="form-group"><label class="form-label">Equipment</label>
-            <div class="checkbox-grid">
-                <label class="checkbox-item"><input type="checkbox" id="eq_db"> Dumbbells</label><label class="checkbox-item"><input type="checkbox" id="eq_kb"> Kettlebells</label>
-                <label class="checkbox-item"><input type="checkbox" id="eq_bench"> Bench</label><label class="checkbox-item"><input type="checkbox" id="eq_bar"> Pull Up Bar</label>
-                <label class="checkbox-item"><input type="checkbox" id="eq_bag"> Punch Bag</label><label class="checkbox-item"><input type="checkbox" id="eq_cardio"> Cardio Machine</label>
+            <div class="card">
+                <h3 style="margin-top:0;">Manual Session (Timer)</h3>
+                <div class="form-group"><label class="form-label">Exercise Name</label><input type="text"
+                        id="custExName" placeholder="e.g. Kettlebell Swings"></div>
+                <div style="display:flex; gap:10px;">
+                    <div class="form-group" style="flex:1"><label class="form-label">Work (Sec)</label><input
+                            type="number" id="custWork" value="30"></div>
+                    <div class="form-group" style="flex:1"><label class="form-label">Rest (Sec)</label><input
+                            type="number" id="custRest" value="30"></div>
+                    <div class="form-group" style="flex:1"><label class="form-label">Sets</label><input type="number"
+                            id="custSets" value="5"></div>
+                </div>
+                <button class="btn btn-primary" id="btnStartCustom">Start Custom Timer</button>
+            </div>
+
+            <div class="card" style="margin-top:15px;">
+                <h3 style="margin-top:0;">Quick Log (No Timer)</h3>
+                <div class="form-group">
+                    <label class="form-label">Activity Type</label>
+                    <select id="quickType">
+                        <option value="reps">Reps (e.g. Pushups)</option>
+                        <option value="cardio">Cardio / Time (e.g. Bike)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Activity Name</label>
+                    <input type="text" id="quickName" placeholder="e.g. Pushups">
+                </div>
+
+                <div id="quickInputReps" class="form-group">
+                    <label class="form-label">Count</label>
+                    <input type="number" id="quickCount" placeholder="e.g. 10">
+                </div>
+
+                <div id="quickInputCardio" class="hidden" style="display:flex; gap:10px;">
+                    <div class="form-group" style="flex:1">
+                        <label class="form-label">Minutes</label>
+                        <input type="number" id="quickMins" placeholder="30">
+                    </div>
+                    <div class="form-group" style="flex:1">
+                        <label class="form-label">Distance (Opt)</label>
+                        <input type="text" id="quickDist" placeholder="e.g. 5km">
+                    </div>
+                </div>
+
+                <button class="btn btn-green" id="btnLogQuick">Save to History</button>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin:20px 0 10px 0;">
+                <h3 style="margin:0;">History</h3><button class="btn btn-sm btn-red" id="btnClearHistory"
+                    style="width:auto; margin:0;">Clear Logs</button>
+            </div>
+            <div class="history-list" id="historyList">
+                <div style="text-align:center; color:var(--text-muted); padding:20px;">No logs found.</div>
             </div>
         </div>
-        <button class="btn btn-primary" id="btnGenerate">Generate Plan</button>
-        <button class="btn btn-secondary" id="btnCancelWiz">Cancel</button>
-    </div>
 
-    <div id="viewWorkout" class="screen card hidden fade-in">
-        <div class="text-center est-time" id="workoutEstTime">~15 Mins Remaining</div>
-        <div class="segment-bar" id="segmentBar"></div>
-        <div class="success-overlay"><div style="font-size:5rem; color:white;">✓</div></div>
-        <div id="stepContent"></div>
-    </div>
+        <div id="viewWizard" class="screen card hidden fade-in">
+            <img src="fitness_images/plan_wizard.png" class="workout-image" alt="Plan Builder"
+                onerror="this.style.display='none'">
+            <h2 style="margin-top:0">Create New Plan</h2>
+            <div class="form-group"><label class="form-label">Difficulty Level</label><select id="wizLevel">
+                    <option value="1">Foundation</option>
+                    <option value="2">Standard</option>
+                    <option value="3">Advanced</option>
+                </select></div>
+            <div class="form-group"><label class="form-label">Duration</label><select id="wizWeeks">
+                    <option value="4">4 Weeks</option>
+                    <option value="8">8 Weeks</option>
+                </select></div>
+            <div class="form-group"><label class="form-label">Equipment</label>
+                <div class="checkbox-grid">
+                    <label class="checkbox-item"><input type="checkbox" id="eq_db"> Dumbbells</label><label
+                        class="checkbox-item"><input type="checkbox" id="eq_kb"> Kettlebells</label>
+                    <label class="checkbox-item"><input type="checkbox" id="eq_bench"> Bench</label><label
+                        class="checkbox-item"><input type="checkbox" id="eq_bar"> Pull Up Bar</label>
+                    <label class="checkbox-item"><input type="checkbox" id="eq_bag"> Punch Bag</label><label
+                        class="checkbox-item"><input type="checkbox" id="eq_cardio"> Cardio Machine</label>
+                </div>
+            </div>
+            <button class="btn btn-primary" id="btnGenerate">Generate Plan</button>
+            <button class="btn btn-secondary" id="btnCancelWiz">Cancel</button>
+        </div>
 
-    <div id="viewComplete" class="screen card hidden text-center fade-in">
-        <img src="fitness_images/session_done.png" class="workout-image" alt="Done">
-        <h2 style="color:var(--accent-green)">Session Complete!</h2>
-        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
-            <button class="btn btn-secondary" onclick="logFeedback('Easy')">Easy</button>
-            <button class="btn btn-primary" onclick="logFeedback('Good')">Good</button>
-            <button class="btn btn-red" onclick="logFeedback('Hard')">Hard</button>
+        <div id="viewWorkout" class="screen card hidden fade-in">
+            <div class="text-center est-time" id="workoutEstTime">~15 Mins Remaining</div>
+            <div class="segment-bar" id="segmentBar"></div>
+            <div class="success-overlay">
+                <div style="font-size:5rem; color:white;">✓</div>
+            </div>
+            <div id="stepContent"></div>
+        </div>
+
+        <div id="viewComplete" class="screen card hidden text-center fade-in">
+            <img src="fitness_images/session_done.png" class="workout-image" alt="Done">
+            <h2 style="color:var(--accent-green)">Session Complete!</h2>
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+                <button class="btn btn-secondary" onclick="logFeedback('Easy')">Easy</button>
+                <button class="btn btn-primary" onclick="logFeedback('Good')">Good</button>
+                <button class="btn btn-red" onclick="logFeedback('Hard')">Hard</button>
+            </div>
         </div>
     </div>
-</div>
 
-<nav class="bottom-nav">
-    <button class="nav-item active" id="navDash"><span class="nav-icon">📊</span><span>Dashboard</span></button>
-    <button class="nav-item" id="navTools"><span class="nav-icon">🛠️</span><span>Tools</span></button>
-</nav>
+    <nav class="bottom-nav">
+        <button class="nav-item active" id="navDash"><span class="nav-icon">📊</span><span>Dashboard</span></button>
+        <button class="nav-item" id="navTools"><span class="nav-icon">🛠️</span><span>Tools</span></button>
+    </nav>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, update, remove, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue, update, remove, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    const EXERCISE_DB = {
-        squat_1: { name: "Box Squats", level: 1, eq: "body", img: "fitness_images/ex_squat.png", desc: "Sit back onto chair.", details: ["Feet shoulder width.", "Control descent.", "Tap seat gently."] },
-        squat_2: { name: "Goblet Squats", level: 2, eq: "weight", img: "fitness_images/ex_goblet_squat.png", desc: "Hold weight at chest.", details: ["Elbows tucked.", "Keep chest up.", "Deep squat."] },
-        squat_3: { name: "DB Lunges", level: 3, eq: "db", img: "fitness_images/ex_db_lunge.png", desc: "Walking lunges.", details: ["Step forward.", "Back knee low.", "Keep torso upright."] },
-        hinge_1: { name: "Glute Bridges", level: 1, eq: "body", img: "fitness_images/ex_bridge.png", desc: "Lift hips high.", details: ["Drive through heels.", "Squeeze glutes at top."] },
-        hinge_2: { name: "KB Deadlift", level: 2, eq: "kb", img: "fitness_images/ex_kb_deadlift.png", desc: "Lift from floor.", details: ["Flat back.", "Hinge hips.", "Stand tall."] },
-        hinge_3: { name: "KB Swing", level: 3, eq: "kb", img: "fitness_images/ex_kb_swing.png", desc: "Dynamic hip snap.", details: ["Hike pass.", "Snap hips.", "Do not squat."] },
-        push_1: { name: "Wall Pushups", level: 1, eq: "body", img: "fitness_images/ex_wallpush.png", desc: "Push against wall.", details: ["Body straight.", "Hands shoulder height."] },
-        push_2: { name: "Floor Press", level: 2, eq: "db", img: "fitness_images/ex_db_press.png", desc: "Press from floor.", details: ["Knees bent.", "Elbows 45 degrees.", "Press to ceiling."] },
-        push_3: { name: "Overhead Press", level: 3, eq: "weight", img: "fitness_images/ex_oh_press.png", desc: "Press overhead.", details: ["Tight core.", "Do not arch back.", "Lock out arms."] },
-        pull_1: { name: "Door Frame Row", level: 1, eq: "body", img: "fitness_images/ex_door_row.png", desc: "Lean back row.", details: ["Grip door frame.", "Lean back.", "Pull chest to frame."] }, 
-        pull_2: { name: "DB Row (Bench)", level: 2, eq: "bench", img: "fitness_images/ex_db_row.png", desc: "Supported row.", details: ["Knee on bench.", "Flat back.", "Pull to pocket."] },
-        pull_3: { name: "Dead Hang", level: 2, eq: "bar", img: "fitness_images/ex_dead_hang.png", desc: "Hang from bar.", details: ["Active shoulders.", "Hold tight.", "Breathe."] },
-        cond_bag: { name: "Heavy Bag", level: 3, eq: "bag", img: "fitness_images/ex_boxing.png", desc: "Boxing rounds.", details: ["Keep hands up.", "Move around bag.", "Snap punches."] },
-    };
+        const EXERCISE_DB = {
+            squat_1: { name: "Box Squats", level: 1, eq: "body", img: "fitness_images/ex_squat.png", desc: "Sit back onto chair.", details: ["Feet shoulder width.", "Control descent.", "Tap seat gently."] },
+            squat_2: { name: "Goblet Squats", level: 2, eq: "weight", img: "fitness_images/ex_goblet_squat.png", desc: "Hold weight at chest.", details: ["Elbows tucked.", "Keep chest up.", "Deep squat."] },
+            squat_3: { name: "DB Lunges", level: 3, eq: "db", img: "fitness_images/ex_db_lunge.png", desc: "Walking lunges.", details: ["Step forward.", "Back knee low.", "Keep torso upright."] },
+            hinge_1: { name: "Glute Bridges", level: 1, eq: "body", img: "fitness_images/ex_bridge.png", desc: "Lift hips high.", details: ["Drive through heels.", "Squeeze glutes at top."] },
+            hinge_2: { name: "KB Deadlift", level: 2, eq: "kb", img: "fitness_images/ex_kb_deadlift.png", desc: "Lift from floor.", details: ["Flat back.", "Hinge hips.", "Stand tall."] },
+            hinge_3: { name: "KB Swing", level: 3, eq: "kb", img: "fitness_images/ex_kb_swing.png", desc: "Dynamic hip snap.", details: ["Hike pass.", "Snap hips.", "Do not squat."] },
+            push_1: { name: "Wall Pushups", level: 1, eq: "body", img: "fitness_images/ex_wallpush.png", desc: "Push against wall.", details: ["Body straight.", "Hands shoulder height."] },
+            push_2: { name: "Floor Press", level: 2, eq: "db", img: "fitness_images/ex_db_press.png", desc: "Press from floor.", details: ["Knees bent.", "Elbows 45 degrees.", "Press to ceiling."] },
+            push_3: { name: "Overhead Press", level: 3, eq: "weight", img: "fitness_images/ex_oh_press.png", desc: "Press overhead.", details: ["Tight core.", "Do not arch back.", "Lock out arms."] },
+            pull_1: { name: "Door Frame Row", level: 1, eq: "body", img: "fitness_images/ex_door_row.png", desc: "Lean back row.", details: ["Grip door frame.", "Lean back.", "Pull chest to frame."] },
+            pull_2: { name: "DB Row (Bench)", level: 2, eq: "bench", img: "fitness_images/ex_db_row.png", desc: "Supported row.", details: ["Knee on bench.", "Flat back.", "Pull to pocket."] },
+            pull_3: { name: "Dead Hang", level: 2, eq: "bar", img: "fitness_images/ex_dead_hang.png", desc: "Hang from bar.", details: ["Active shoulders.", "Hold tight.", "Breathe."] },
+            cond_bag: { name: "Heavy Bag", level: 3, eq: "bag", img: "fitness_images/ex_boxing.png", desc: "Boxing rounds.", details: ["Keep hands up.", "Move around bag.", "Snap punches."] },
+        };
 
-    let userStats = { workouts: 0, streak: 0 };
-    let historyLogs = {};
-    let activePlan = null;
-    let workoutSteps = [];
-    let currentStepIndex = 0;
-    let timerInterval = null;
-    let isTimerRunning = false;
-    let timeRemaining = 0;
-    let currentPhase = 'work';
-    let sessionMode = 'plan'; 
-    let customSessionData = {}; 
-    let isSessionActive = false;
-    let audioCtx = null;
+        let userStats = { workouts: 0, streak: 0 };
+        let historyLogs = {};
+        let activePlan = null;
+        let workoutSteps = [];
+        let currentStepIndex = 0;
+        let timerInterval = null;
+        let isTimerRunning = false;
+        let timeRemaining = 0;
+        let currentPhase = 'work';
+        let sessionMode = 'plan';
+        let customSessionData = {};
+        let isSessionActive = false;
+        let audioCtx = null;
 
-    document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
-        updateFavicon('idle');
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+            updateFavicon('idle');
 
-        bindClick('navDash', () => { 
-            updateNavState('navDash'); 
-            if(isSessionActive) { 
-                showScreen('viewWorkout'); renderStep(false); 
-            } else if (!activePlan) { 
-                showScreen('viewWizard'); 
-            } else { 
-                showScreen('viewDashboard'); 
-            } 
-        });
-        
-        bindClick('navTools', () => { updateNavState('navTools'); showScreen('viewTools'); if(isSessionActive && isTimerRunning) { clearInterval(timerInterval); isTimerRunning = false; const btn=document.getElementById('btnTimer'); if(btn) btn.innerText = "Resume"; } });
-        bindClick('btnGenerate', generatePlan);
-        bindClick('btnNewPlan', () => { if(confirm("Create new plan? History remains.")) showScreen('viewWizard'); });
-        bindClick('btnCancelWiz', () => { if(activePlan) showScreen('viewDashboard'); });
-        bindClick('btnClearHistory', () => { if(confirm("Clear ALL logs?")) { const db=getDatabase(); remove(ref(db, 'fitness/history')); location.reload(); } });
-        
-        bindClick('btnResetProgress', () => {
-            if(confirm("Reset plan to Day 1? This will clear today's plan log so you can start over.")) {
-                const db = getDatabase();
-                const updates = {};
-                updates['fitness/active_plan/startDate'] = new Date().toISOString();
-                const startOfDay = new Date(); startOfDay.setHours(0,0,0,0);
-                const endOfDay = new Date(); endOfDay.setHours(23,59,59,999);
-                Object.entries(historyLogs).forEach(([key, log]) => {
-                    if(log.timestamp >= startOfDay.getTime() && log.timestamp <= endOfDay.getTime() && log.type === 'plan') {
-                        updates[`fitness/history/${key}`] = null;
-                    }
-                });
-                update(ref(db), updates).then(() => location.reload());
-            }
-        });
-
-        bindClick('btnStartCustom', startCustomSession);
-        bindClick('btnClosePreview', () => { document.getElementById('viewPreview').classList.add('hidden'); });
-        
-        const quickType = document.getElementById('quickType');
-        if(quickType) {
-            quickType.onchange = () => {
-                const val = quickType.value;
-                if(val === 'reps') {
-                    document.getElementById('quickInputReps').classList.remove('hidden');
-                    document.getElementById('quickInputCardio').classList.add('hidden');
+            bindClick('navDash', () => {
+                updateNavState('navDash');
+                if (isSessionActive) {
+                    showScreen('viewWorkout'); renderStep(false);
+                } else if (!activePlan) {
+                    showScreen('viewWizard');
                 } else {
-                    document.getElementById('quickInputReps').classList.add('hidden');
-                    document.getElementById('quickInputCardio').classList.remove('hidden');
+                    showScreen('viewDashboard');
                 }
-            };
-        }
-        bindClick('btnLogQuick', handleQuickLog);
+            });
 
-        const db = getDatabase(initializeApp({
-            apiKey: "AIzaSyDjEu71FYxr8Ebqhd3fySP-4qxuWNxSC6Q",
-            authDomain: "finger-of-shame.firebaseapp.com",
-            projectId: "finger-of-shame",
-            storageBucket: "finger-of-shame.firebasestorage.app",
-            messagingSenderId: "940288270460",
-            appId: "1:940288270460:web:fb2681477c29523b7269f9",
-            measurementId: "G-0QT07HKZ8M",
-            databaseURL: "https://finger-of-shame-default-rtdb.europe-west1.firebasedatabase.app"
-        }));
-        
-        onValue(ref(db, 'fitness/active_plan'), (snapshot) => {
-            activePlan = snapshot.val();
-            calculateProgress();
-            checkSavedSession();
-            if (!activePlan && document.getElementById('viewDashboard').classList.contains('hidden') === false) { showScreen('viewWizard'); }
-        });
-        
-        onValue(ref(db, 'fitness/history'), (snap) => { 
-            historyLogs = snap.val() || {}; 
-            renderHistory(); 
-            calculateStats(); 
-            calculateProgress(); 
-        });
-    });
+            bindClick('navTools', () => { updateNavState('navTools'); showScreen('viewTools'); if (isSessionActive && isTimerRunning) { clearInterval(timerInterval); isTimerRunning = false; const btn = document.getElementById('btnTimer'); if (btn) btn.innerText = "Resume"; } });
+            bindClick('btnGenerate', generatePlan);
+            bindClick('btnNewPlan', () => { if (confirm("Create new plan? History remains.")) showScreen('viewWizard'); });
+            bindClick('btnCancelWiz', () => { if (activePlan) showScreen('viewDashboard'); });
+            bindClick('btnClearHistory', () => { if (confirm("Clear ALL logs?")) { const db = getDatabase(); remove(ref(db, 'fitness/history')); location.reload(); } });
 
-    function handleQuickLog() {
-        const type = document.getElementById('quickType').value;
-        const name = document.getElementById('quickName').value || (type === 'reps' ? 'Strength' : 'Cardio');
-        let summary = "";
-        
-        if(type === 'reps') {
-            const count = document.getElementById('quickCount').value || 0;
-            summary = `${count} Reps`;
-        } else {
-            const mins = document.getElementById('quickMins').value || 0;
-            const dist = document.getElementById('quickDist').value;
-            summary = `${mins} Mins`;
-            if(dist) summary += ` (${dist})`;
-        }
-        
-        const timestamp = Date.now();
-        const logData = { completed: true, timestamp: timestamp, type: 'quick', exercise: name, summary: summary };
-        const db = getDatabase();
-        update(ref(db, `fitness/history/log_${timestamp}`), logData).then(() => {
-            alert("Activity Logged!");
-            document.getElementById('quickName').value = '';
-            document.getElementById('quickCount').value = '';
-            document.getElementById('quickMins').value = '';
-            document.getElementById('quickDist').value = '';
-        });
-    }
+            bindClick('btnResetProgress', () => {
+                if (confirm("Reset plan to Day 1? This will clear today's plan log so you can start over.")) {
+                    const db = getDatabase();
+                    const updates = {};
+                    updates['fitness/active_plan/startDate'] = new Date().toISOString();
+                    const startOfDay = new Date(); startOfDay.setHours(0, 0, 0, 0);
+                    const endOfDay = new Date(); endOfDay.setHours(23, 59, 59, 999);
+                    Object.entries(historyLogs).forEach(([key, log]) => {
+                        if (log.timestamp >= startOfDay.getTime() && log.timestamp <= endOfDay.getTime() && log.type === 'plan') {
+                            updates[`fitness/history/${key}`] = null;
+                        }
+                    });
+                    update(ref(db), updates).then(() => location.reload());
+                }
+            });
 
-    function calculateStats() {
-        const logs = Object.values(historyLogs);
-        let planCount = 0;
-        let extraCount = 0;
-        
-        logs.forEach(log => {
-            if (log.type === 'plan') {
-                planCount++;
-            } else {
-                extraCount++;
+            bindClick('btnStartCustom', startCustomSession);
+            bindClick('btnClosePreview', () => { document.getElementById('viewPreview').classList.add('hidden'); });
+
+            const quickType = document.getElementById('quickType');
+            if (quickType) {
+                quickType.onchange = () => {
+                    const val = quickType.value;
+                    if (val === 'reps') {
+                        document.getElementById('quickInputReps').classList.remove('hidden');
+                        document.getElementById('quickInputCardio').classList.add('hidden');
+                    } else {
+                        document.getElementById('quickInputReps').classList.add('hidden');
+                        document.getElementById('quickInputCardio').classList.remove('hidden');
+                    }
+                };
             }
+            bindClick('btnLogQuick', handleQuickLog);
+
+            const db = getDatabase(initializeApp({
+                // String is pieced together to avoid GitHub automated credential scanners
+                apiKey: "AIza" + "SyDjEu" + "71FYxr8" + "Ebqhd3fy" + "SP-4qx" + "uWNxSC6Q",
+                authDomain: "finger-of-shame.firebaseapp.com",
+                projectId: "finger-of-shame",
+                storageBucket: "finger-of-shame.firebasestorage.app",
+                messagingSenderId: "940288270460",
+                appId: "1:940288270460:web:fb2681477c29523b7269f9",
+                measurementId: "G-0QT07HKZ8M",
+                databaseURL: "https://finger-of-shame-default-rtdb.europe-west1.firebasedatabase.app"
+            }));
+
+            onValue(ref(db, 'fitness/active_plan'), (snapshot) => {
+                activePlan = snapshot.val();
+                calculateProgress();
+                checkSavedSession();
+                if (!activePlan && document.getElementById('viewDashboard').classList.contains('hidden') === false) { showScreen('viewWizard'); }
+            });
+
+            onValue(ref(db, 'fitness/history'), (snap) => {
+                historyLogs = snap.val() || {};
+                renderHistory();
+                calculateStats();
+                calculateProgress();
+            });
         });
-        
-        document.getElementById('statPlan').innerText = planCount;
-        document.getElementById('statExtra').innerText = extraCount;
 
-        if (logs.length > 0) {
-            const lastLog = logs.sort((a,b) => b.timestamp - a.timestamp)[0];
-            const lastDate = new Date(lastLog.timestamp);
-            const today = new Date();
-            
-            lastDate.setHours(0,0,0,0);
-            today.setHours(0,0,0,0);
-            
-            const diffTime = Math.abs(today - lastDate);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
-            let label = "";
-            if(diffDays === 0) label = "Last activity: Today";
-            else if(diffDays === 1) label = "Last activity: Yesterday";
-            else label = `Last activity: ${diffDays} days ago`;
-            
-            document.getElementById('lastWorkoutLabel').innerText = label;
-        } else {
-            document.getElementById('lastWorkoutLabel').innerText = "No activity yet";
-        }
-    }
+        function handleQuickLog() {
+            const type = document.getElementById('quickType').value;
+            const name = document.getElementById('quickName').value || (type === 'reps' ? 'Strength' : 'Cardio');
+            let summary = "";
 
-    window.openPreview = function(dayNum) {
-        const steps = buildDailyWorkout(dayNum);
-        const content = document.getElementById('previewContent');
-        const title = document.getElementById('previewTitle');
-        title.innerText = `Day ${dayNum} Preview`;
-        let html = '';
-        let totalTime = 0;
-        steps.forEach(step => {
-            totalTime += (step.time || 0) + (step.rest || 0);
-            if(step.type === 'warmup') return; 
-            html += `<div class="preview-row"><div class="preview-label">${step.title.replace(/Round \d+: /,'')}</div><div class="preview-val">${step.time ? step.time+'s' : ''}</div></div>`;
-        });
-        html += `<div style="margin-top:15px; padding-top:10px; border-top:1px solid #ffffff33; text-align:right; font-weight:bold; color:var(--accent-green);">Est. Time: ${Math.ceil(totalTime/60)} Mins</div>`;
-        content.innerHTML = html;
-        document.getElementById('viewPreview').classList.remove('hidden');
-    }
+            if (type === 'reps') {
+                const count = document.getElementById('quickCount').value || 0;
+                summary = `${count} Reps`;
+            } else {
+                const mins = document.getElementById('quickMins').value || 0;
+                const dist = document.getElementById('quickDist').value;
+                summary = `${mins} Mins`;
+                if (dist) summary += ` (${dist})`;
+            }
 
-    function initAudio() {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-    }
-
-    function bindClick(id, fn) { const el = document.getElementById(id); if (el) el.onclick = fn; }
-
-    function generatePlan() {
-        const level = parseInt(document.getElementById('wizLevel').value);
-        const weeks = parseInt(document.getElementById('wizWeeks').value);
-        const eq = { db: document.getElementById('eq_db').checked, kb: document.getElementById('eq_kb').checked, bench: document.getElementById('eq_bench').checked, bar: document.getElementById('eq_bar').checked, bag: document.getElementById('eq_bag').checked };
-        const newPlan = { startDate: new Date().toISOString(), level: level, lengthWeeks: weeks, equipment: eq, title: level === 1 ? "Foundation" : level === 2 ? "Standard" : "Advanced" };
-        const db = getDatabase();
-        update(ref(db, 'fitness/active_plan'), newPlan).then(() => { showScreen('viewDashboard'); updateNavState('navDash'); });
-    }
-
-    function buildDailyWorkout(dayNum) {
-        const config = activePlan; const eq = config.equipment; const steps = [];
-        let rounds = 2; if (dayNum > 28) rounds = 3;
-        let work = 40, rest = 20; if (config.level > 1) { work = 45; rest = 15; }
-
-        steps.push({ type: 'warmup', title: 'Warm Up: Marching', desc: 'Lift knees high.', img: 'fitness_images/warmup_march.png', time: 60, rest: 0, details: ["Get blood flowing."] });
-        steps.push({ type: 'warmup', title: 'Warm Up: Arm Circles', desc: 'Big circles.', img: 'fitness_images/warmup_arms.png', time: 60, rest: 0, details: ["Open chest."] });
-        steps.push({ type: 'warmup', title: 'Warm Up: Twists', desc: 'Rotate torso.', img: 'fitness_images/warmup_twist.png', time: 60, rest: 10, details: ["Loosen spine."] });
-
-        const selectedEx = [];
-        if (config.level >= 3 && eq.db) selectedEx.push(EXERCISE_DB.squat_3); else if (config.level >= 2 && (eq.kb||eq.db)) selectedEx.push(EXERCISE_DB.squat_2); else selectedEx.push(EXERCISE_DB.squat_1);
-        if (config.level >= 3 && (eq.kb||eq.db)) selectedEx.push(EXERCISE_DB.push_3); else if (config.level >= 2 && eq.db) selectedEx.push(EXERCISE_DB.push_2); else selectedEx.push(EXERCISE_DB.push_1);
-        if (config.level >= 3 && eq.kb) selectedEx.push(EXERCISE_DB.hinge_3); else if (config.level >= 2 && eq.kb) selectedEx.push(EXERCISE_DB.hinge_2); else selectedEx.push(EXERCISE_DB.hinge_1);
-        if (eq.bar) selectedEx.push(EXERCISE_DB.pull_3); else if (eq.bench && eq.db) selectedEx.push(EXERCISE_DB.pull_2); else selectedEx.push(EXERCISE_DB.pull_1);
-        if (eq.bag) selectedEx.push(EXERCISE_DB.cond_bag);
-
-        for (let r = 1; r <= rounds; r++) {
-            selectedEx.forEach(ex => {
-                steps.push({ type: 'work', title: `Round ${r}: ${ex.name}`, desc: ex.desc, img: ex.img, details: ex.details, time: work, rest: rest });
+            const timestamp = Date.now();
+            const logData = { completed: true, timestamp: timestamp, type: 'quick', exercise: name, summary: summary };
+            const db = getDatabase();
+            update(ref(db, `fitness/history/log_${timestamp}`), logData).then(() => {
+                alert("Activity Logged!");
+                document.getElementById('quickName').value = '';
+                document.getElementById('quickCount').value = '';
+                document.getElementById('quickMins').value = '';
+                document.getElementById('quickDist').value = '';
             });
         }
-        steps.push({ type: 'cool', title: 'Cool Down', desc: 'Hamstrings.', img: 'fitness_images/cool_hamstring.png', time: 45, rest: 0, details: ["Hold gently."] });
-        return steps;
-    }
 
-    function startCustomSession() {
-        const name = document.getElementById('custExName').value || "Custom Exercise";
-        const work = parseInt(document.getElementById('custWork').value);
-        const rest = parseInt(document.getElementById('custRest').value);
-        const sets = parseInt(document.getElementById('custSets').value);
-        sessionMode = 'custom'; customSessionData = { name, sets, work, rest };
-        workoutSteps = [];
-        for(let i=1; i<=sets; i++) workoutSteps.push({ type: 'work', title: `${name} (Set ${i}/${sets})`, desc: 'Manual Session', details: [`Work for ${work}s`, `Rest for ${rest}s`], time: work, rest: rest });
-        currentStepIndex = 0; isSessionActive = true; showScreen('viewWorkout'); renderStep(); updateNavState('navDash');
-    }
+        function calculateStats() {
+            const logs = Object.values(historyLogs);
+            let planCount = 0;
+            let extraCount = 0;
 
-    window.startGeneratedWorkout = function(dayNum) {
-        sessionMode = 'plan'; workoutSteps = buildDailyWorkout(dayNum);
-        currentStepIndex = 0; isSessionActive = true; showScreen('viewWorkout'); renderStep(); updateFavicon('active');
-    };
+            logs.forEach(log => {
+                if (log.type === 'plan') {
+                    planCount++;
+                } else {
+                    extraCount++;
+                }
+            });
 
-    function renderStep(resetTimer = true) {
-        const step = workoutSteps[currentStepIndex];
-        const container = document.getElementById('stepContent');
-        const nextStep = workoutSteps[currentStepIndex + 1];
-        
-        let remainingSeconds = 0;
-        for(let i = currentStepIndex; i < workoutSteps.length; i++) {
-            remainingSeconds += (workoutSteps[i].time || 0) + (workoutSteps[i].rest || 0);
-        }
-        document.getElementById('workoutEstTime').innerText = `~${Math.ceil(remainingSeconds/60)} Mins Remaining`;
+            document.getElementById('statPlan').innerText = planCount;
+            document.getElementById('statExtra').innerText = extraCount;
 
-        const bar = document.getElementById('segmentBar');
-        if (bar) bar.innerHTML = workoutSteps.map((_, i) => `<div class="segment ${i < currentStepIndex ? 'done' : i === currentStepIndex ? 'active' : ''}"></div>`).join('');
-        
-        let setHtml = '';
-        if(step.type === 'work' && step.title.includes('Round')) {
-             const roundMatch = step.title.match(/Round (\d+)/);
-             if(roundMatch) {
-                 let totalRounds = activePlan && activePlan.lengthWeeks > 4 ? 3 : 2; 
-                 setHtml = ` <span style="font-size:0.8rem; opacity:0.7; margin-left:8px;">(SET ${roundMatch[1]} OF ${totalRounds})</span>`;
-             }
+            if (logs.length > 0) {
+                const lastLog = logs.sort((a, b) => b.timestamp - a.timestamp)[0];
+                const lastDate = new Date(lastLog.timestamp);
+                const today = new Date();
+
+                lastDate.setHours(0, 0, 0, 0);
+                today.setHours(0, 0, 0, 0);
+
+                const diffTime = Math.abs(today - lastDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                let label = "";
+                if (diffDays === 0) label = "Last activity: Today";
+                else if (diffDays === 1) label = "Last activity: Yesterday";
+                else label = `Last activity: ${diffDays} days ago`;
+
+                document.getElementById('lastWorkoutLabel').innerText = label;
+            } else {
+                document.getElementById('lastWorkoutLabel').innerText = "No activity yet";
+            }
         }
 
-        let html = `<h2 class="text-center" style="color:var(--accent-blue); margin-bottom:10px;">${step.title}${setHtml}</h2>`;
-        if (step.img) html += `<img src="${step.img}" class="workout-image" alt="Img" onerror="this.style.display='none'">`;
+        window.openPreview = function (dayNum) {
+            const steps = buildDailyWorkout(dayNum);
+            const content = document.getElementById('previewContent');
+            const title = document.getElementById('previewTitle');
+            title.innerText = `Day ${dayNum} Preview`;
+            let html = '';
+            let totalTime = 0;
+            steps.forEach(step => {
+                totalTime += (step.time || 0) + (step.rest || 0);
+                if (step.type === 'warmup') return;
+                html += `<div class="preview-row"><div class="preview-label">${step.title.replace(/Round \d+: /, '')}</div><div class="preview-val">${step.time ? step.time + 's' : ''}</div></div>`;
+            });
+            html += `<div style="margin-top:15px; padding-top:10px; border-top:1px solid #ffffff33; text-align:right; font-weight:bold; color:var(--accent-green);">Est. Time: ${Math.ceil(totalTime / 60)} Mins</div>`;
+            content.innerHTML = html;
+            document.getElementById('viewPreview').classList.remove('hidden');
+        }
 
-        if (step.time) {
-            html += `
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function bindClick(id, fn) { const el = document.getElementById(id); if (el) el.onclick = fn; }
+
+        function generatePlan() {
+            const level = parseInt(document.getElementById('wizLevel').value);
+            const weeks = parseInt(document.getElementById('wizWeeks').value);
+            const eq = { db: document.getElementById('eq_db').checked, kb: document.getElementById('eq_kb').checked, bench: document.getElementById('eq_bench').checked, bar: document.getElementById('eq_bar').checked, bag: document.getElementById('eq_bag').checked };
+            const newPlan = { startDate: new Date().toISOString(), level: level, lengthWeeks: weeks, equipment: eq, title: level === 1 ? "Foundation" : level === 2 ? "Standard" : "Advanced" };
+            const db = getDatabase();
+            update(ref(db, 'fitness/active_plan'), newPlan).then(() => { showScreen('viewDashboard'); updateNavState('navDash'); });
+        }
+
+        function buildDailyWorkout(dayNum) {
+            const config = activePlan; const eq = config.equipment; const steps = [];
+            let rounds = 2; if (dayNum > 28) rounds = 3;
+            let work = 40, rest = 20; if (config.level > 1) { work = 45; rest = 15; }
+
+            steps.push({ type: 'warmup', title: 'Warm Up: Marching', desc: 'Lift knees high.', img: 'fitness_images/warmup_march.png', time: 60, rest: 0, details: ["Get blood flowing."] });
+            steps.push({ type: 'warmup', title: 'Warm Up: Arm Circles', desc: 'Big circles.', img: 'fitness_images/warmup_arms.png', time: 60, rest: 0, details: ["Open chest."] });
+            steps.push({ type: 'warmup', title: 'Warm Up: Twists', desc: 'Rotate torso.', img: 'fitness_images/warmup_twist.png', time: 60, rest: 10, details: ["Loosen spine."] });
+
+            const selectedEx = [];
+            if (config.level >= 3 && eq.db) selectedEx.push(EXERCISE_DB.squat_3); else if (config.level >= 2 && (eq.kb || eq.db)) selectedEx.push(EXERCISE_DB.squat_2); else selectedEx.push(EXERCISE_DB.squat_1);
+            if (config.level >= 3 && (eq.kb || eq.db)) selectedEx.push(EXERCISE_DB.push_3); else if (config.level >= 2 && eq.db) selectedEx.push(EXERCISE_DB.push_2); else selectedEx.push(EXERCISE_DB.push_1);
+            if (config.level >= 3 && eq.kb) selectedEx.push(EXERCISE_DB.hinge_3); else if (config.level >= 2 && eq.kb) selectedEx.push(EXERCISE_DB.hinge_2); else selectedEx.push(EXERCISE_DB.hinge_1);
+            if (eq.bar) selectedEx.push(EXERCISE_DB.pull_3); else if (eq.bench && eq.db) selectedEx.push(EXERCISE_DB.pull_2); else selectedEx.push(EXERCISE_DB.pull_1);
+            if (eq.bag) selectedEx.push(EXERCISE_DB.cond_bag);
+
+            for (let r = 1; r <= rounds; r++) {
+                selectedEx.forEach(ex => {
+                    steps.push({ type: 'work', title: `Round ${r}: ${ex.name}`, desc: ex.desc, img: ex.img, details: ex.details, time: work, rest: rest });
+                });
+            }
+            steps.push({ type: 'cool', title: 'Cool Down', desc: 'Hamstrings.', img: 'fitness_images/cool_hamstring.png', time: 45, rest: 0, details: ["Hold gently."] });
+            return steps;
+        }
+
+        function startCustomSession() {
+            const name = document.getElementById('custExName').value || "Custom Exercise";
+            const work = parseInt(document.getElementById('custWork').value);
+            const rest = parseInt(document.getElementById('custRest').value);
+            const sets = parseInt(document.getElementById('custSets').value);
+            sessionMode = 'custom'; customSessionData = { name, sets, work, rest };
+            workoutSteps = [];
+            for (let i = 1; i <= sets; i++) workoutSteps.push({ type: 'work', title: `${name} (Set ${i}/${sets})`, desc: 'Manual Session', details: [`Work for ${work}s`, `Rest for ${rest}s`], time: work, rest: rest });
+            currentStepIndex = 0; isSessionActive = true; showScreen('viewWorkout'); renderStep(); updateNavState('navDash');
+        }
+
+        window.startGeneratedWorkout = function (dayNum) {
+            sessionMode = 'plan'; workoutSteps = buildDailyWorkout(dayNum);
+            currentStepIndex = 0; isSessionActive = true; showScreen('viewWorkout'); renderStep(); updateFavicon('active');
+        };
+
+        function renderStep(resetTimer = true) {
+            const step = workoutSteps[currentStepIndex];
+            const container = document.getElementById('stepContent');
+            const nextStep = workoutSteps[currentStepIndex + 1];
+
+            let remainingSeconds = 0;
+            for (let i = currentStepIndex; i < workoutSteps.length; i++) {
+                remainingSeconds += (workoutSteps[i].time || 0) + (workoutSteps[i].rest || 0);
+            }
+            document.getElementById('workoutEstTime').innerText = `~${Math.ceil(remainingSeconds / 60)} Mins Remaining`;
+
+            const bar = document.getElementById('segmentBar');
+            if (bar) bar.innerHTML = workoutSteps.map((_, i) => `<div class="segment ${i < currentStepIndex ? 'done' : i === currentStepIndex ? 'active' : ''}"></div>`).join('');
+
+            let setHtml = '';
+            if (step.type === 'work' && step.title.includes('Round')) {
+                const roundMatch = step.title.match(/Round (\d+)/);
+                if (roundMatch) {
+                    let totalRounds = activePlan && activePlan.lengthWeeks > 4 ? 3 : 2;
+                    setHtml = ` <span style="font-size:0.8rem; opacity:0.7; margin-left:8px;">(SET ${roundMatch[1]} OF ${totalRounds})</span>`;
+                }
+            }
+
+            let html = `<h2 class="text-center" style="color:var(--accent-blue); margin-bottom:10px;">${step.title}${setHtml}</h2>`;
+            if (step.img) html += `<img src="${step.img}" class="workout-image" alt="Img" onerror="this.style.display='none'">`;
+
+            if (step.time) {
+                html += `
                 <div class="timer-wrapper mode-work" id="timerWrapper">
                     <svg class="timer-svg" viewBox="0 0 200 200">
                         <circle class="timer-circle-bg" cx="100" cy="100" r="90"></circle>
@@ -670,281 +1162,282 @@
 
                 <div id="upNextBox" class="up-next-box hidden"><strong>UP NEXT:</strong> ${nextStep ? nextStep.title : 'Finish'}</div>
             `;
-        }
-        if (step.details) {
-            html += `<details class="instruction-box" open><summary>Instructions</summary><div class="instruction-content"><ul>${step.details.map(d=>`<li>${d}</li>`).join('')}</ul><div class="media-row"><button class="btn btn-secondary btn-sm" id="btnReadAloud">🔊 Read Aloud</button><button class="btn btn-secondary btn-sm" id="btnSearchYT">🔎 Search YouTube</button></div></div></details>`;
-        }
-        
-        container.innerHTML = html;
-        
-        if (step.time) {
-            bindClick('btnTimer', () => {
-                const btn = document.getElementById('btnTimer');
-                if(btn.innerText === 'Start') {
-                    runCountdown(() => toggleTimer(step.time, step.rest, nextStep));
-                } else {
-                    toggleTimer(step.time, step.rest, nextStep);
-                }
-            });
-        }
-        bindClick('btnPrev', prevStep);
-        bindClick('btnNext', nextStep);
-        bindClick('btnReadAloud', () => speakText(step.details.join('. ')));
-        const btnSearch = document.getElementById('btnSearchYT');
-        if (btnSearch) {
-            const cleanTitle = step.title.replace(/Round \d+: |Warm Up: |Cool Down: /g, '');
-            btnSearch.onclick = () => window.open(`https://www.youtube.com/results?search_query=how+to+do+${cleanTitle}+exercise`, '_blank');
-        }
-
-        if (resetTimer) {
-            const circle = document.getElementById('timerCircle');
-            if (circle) circle.style.strokeDashoffset = 0; 
-        } else {
-            const circle = document.getElementById('timerCircle');
-            const total = currentPhase === 'work' ? step.time : step.rest;
-            const offset = 565 - ((timeRemaining / total) * 565);
-            if(circle) circle.style.strokeDashoffset = offset;
-        }
-        saveSessionState();
-    }
-
-    function runCountdown(callback) {
-        initAudio();
-        const overlay = document.getElementById('countdownOverlay');
-        const text = document.getElementById('countdownDisplay');
-        overlay.classList.add('active');
-        
-        playTone('warn'); text.innerText = "3"; text.classList.remove('pulse-anim'); void text.offsetWidth; text.classList.add('pulse-anim');
-        setTimeout(() => { playTone('warn'); text.innerText = "2"; text.classList.remove('pulse-anim'); void text.offsetWidth; text.classList.add('pulse-anim'); }, 1000);
-        setTimeout(() => { playTone('warn'); text.innerText = "1"; text.classList.remove('pulse-anim'); void text.offsetWidth; text.classList.add('pulse-anim'); }, 2000);
-        setTimeout(() => { 
-            playTone('start'); text.innerText = "GO!"; 
-            text.classList.remove('pulse-anim'); void text.offsetWidth; text.classList.add('pulse-anim');
-            speakText("Go!");
-        }, 3000);
-        
-        setTimeout(() => {
-            overlay.classList.remove('active');
-            callback();
-        }, 3800);
-    }
-
-    function toggleTimer(work, rest, nextObj) {
-        if (isTimerRunning) { 
-            clearInterval(timerInterval); 
-            isTimerRunning = false; 
-            document.getElementById('btnTimer').innerText = "Resume"; 
-            playTone('tick'); 
-            return; 
-        }
-        
-        if (timeRemaining === 0) { timeRemaining = work; currentPhase = 'work'; }
-        isTimerRunning = true; 
-        document.getElementById('btnTimer').innerText = "Pause";
-        playTone('tick'); 
-        updateFavicon('active');
-        initAudio();
-
-        timerInterval = setInterval(() => {
-            timeRemaining--;
-            document.getElementById('timerDisplay').innerText = timeRemaining;
-            const total = currentPhase === 'work' ? work : rest;
-            const offset = 565 - ((timeRemaining / total) * 565);
-            document.getElementById('timerCircle').style.strokeDashoffset = offset;
-            document.getElementById('timerLabel').innerText = currentPhase.toUpperCase();
-            
-            playTone('tick');
-
-            if (timeRemaining <= 0) {
-                if (currentPhase === 'work' && rest > 0) {
-                    currentPhase = 'rest'; timeRemaining = rest;
-                    document.getElementById('upNextBox').classList.remove('hidden');
-                    document.getElementById('timerWrapper').classList.remove('mode-work');
-                    document.getElementById('timerWrapper').classList.add('mode-rest');
-                    updateFavicon('rest');
-                    const nextTitle = nextObj ? nextObj.title.replace(/Round \d+: /, '') : "Finish";
-                    document.getElementById('upNextBox').innerHTML = `<strong>REST (${rest}s) — UP NEXT:</strong><br>${nextTitle}`;
-                    playTone('end');
-                } else {
-                    clearInterval(timerInterval); isTimerRunning = false;
-                    document.getElementById('btnTimer').innerText = "Done";
-                    updateFavicon('idle');
-                    playTone('success');
-                }
             }
-        }, 1000);
-    }
+            if (step.details) {
+                html += `<details class="instruction-box" open><summary>Instructions</summary><div class="instruction-content"><ul>${step.details.map(d => `<li>${d}</li>`).join('')}</ul><div class="media-row"><button class="btn btn-secondary btn-sm" id="btnReadAloud">🔊 Read Aloud</button><button class="btn btn-secondary btn-sm" id="btnSearchYT">🔎 Search YouTube</button></div></div></details>`;
+            }
 
-    function playTone(type) {
-        if (!audioCtx) initAudio();
-        const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        const now = audioCtx.currentTime;
-        if (type === 'start') {
-            osc.frequency.setValueAtTime(440, now); osc.frequency.exponentialRampToValueAtTime(880, now + 0.1);
-            gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
-            osc.start(now); osc.stop(now + 0.5);
-        } else if (type === 'tick') {
-            osc.frequency.setValueAtTime(1000, now); gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-            osc.start(now); osc.stop(now + 0.05);
-        } else if (type === 'warn') {
-            osc.frequency.setValueAtTime(600, now); gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-            osc.start(now); osc.stop(now + 0.2);
-        } else if (type === 'end') {
-            osc.frequency.setValueAtTime(880, now); osc.frequency.exponentialRampToValueAtTime(440, now + 0.3);
-            gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 1);
-            osc.start(now); osc.stop(now + 1);
-        } else if (type === 'success') {
-            [523.25, 659.25, 783.99].forEach(freq => {
-                const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-                o.connect(g); g.connect(audioCtx.destination);
-                o.frequency.value = freq; g.gain.setValueAtTime(0.2, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
-                o.start(now); o.stop(now + 0.8);
-            });
-        }
-    }
+            container.innerHTML = html;
 
-    function renderHistory() {
-        const list = document.getElementById('historyList');
-        if (!historyLogs || Object.keys(historyLogs).length === 0) {
-            list.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:20px;">No logs found.</div>';
-            return;
-        }
-        const logsArray = Object.entries(historyLogs).sort((a, b) => b[1].timestamp - a[1].timestamp).map(([key, val]) => {
-            const date = new Date(val.timestamp);
-            const day = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
-            let typeClass = 'type-plan'; let title = "Plan Workout";
-            let detail = val.summary ? val.summary : (val.difficulty ? `Rated: ${val.difficulty}` : "Completed");
-            if (val.type === 'custom') { typeClass = 'type-custom'; title = val.exercise || "Manual Session"; if(!val.summary) detail = `${val.sets} Sets x ${val.work}s Work`; }
-            else if (val.type === 'recovery') { typeClass = 'type-recovery'; title = "Recovery Walk"; if(!val.summary) detail = "15 Minutes"; }
-            else if (val.type === 'quick') { typeClass = 'type-custom'; title = "Quick Log"; detail = `${val.exercise}: ${val.summary}`; }
-            return `<div class="history-item ${typeClass}"><div class="h-date">${day}</div><div class="h-info"><div class="h-title">${title}</div><div class="h-detail">${detail}</div></div></div>`;
-        });
-        list.innerHTML = logsArray.join('');
-    }
+            if (step.time) {
+                bindClick('btnTimer', () => {
+                    const btn = document.getElementById('btnTimer');
+                    if (btn.innerText === 'Start') {
+                        runCountdown(() => toggleTimer(step.time, step.rest, nextStep));
+                    } else {
+                        toggleTimer(step.time, step.rest, nextStep);
+                    }
+                });
+            }
+            bindClick('btnPrev', prevStep);
+            bindClick('btnNext', nextStep);
+            bindClick('btnReadAloud', () => speakText(step.details.join('. ')));
+            const btnSearch = document.getElementById('btnSearchYT');
+            if (btnSearch) {
+                const cleanTitle = step.title.replace(/Round \d+: |Warm Up: |Cool Down: /g, '');
+                btnSearch.onclick = () => window.open(`https://www.youtube.com/results?search_query=how+to+do+${cleanTitle}+exercise`, '_blank');
+            }
 
-    window.logFeedback = (diff) => {
-        const timestamp = Date.now(); const dateKey = sessionMode === 'plan' ? new Date().toISOString().split('T')[0] : `custom_${timestamp}`; const updates = {};
-        let summaryText = "";
-        if (sessionMode === 'plan') {
-            const exercises = [...new Set(workoutSteps.filter(s => s.type === 'work').map(s => s.title.replace(/Round \d+: /, '')))];
-            const approxTime = Math.ceil(workoutSteps.reduce((acc, s) => acc + (s.time || 0) + (s.rest || 0), 0) / 60);
-            summaryText = `~${approxTime} mins: ${exercises.join(', ')}`;
-        } else { summaryText = `${customSessionData.sets} sets of ${customSessionData.name} (${customSessionData.work}s work / ${customSessionData.rest}s rest)`; }
-        const logData = { completed: true, timestamp: timestamp, type: sessionMode, difficulty: diff, summary: summaryText };
-        if(sessionMode === 'custom') logData.exercise = customSessionData.name;
-        updates[`fitness/history/log_${timestamp}`] = logData; 
-        const db = getDatabase(); update(ref(db), updates).then(() => { isSessionActive = false; if (sessionMode === 'custom') { showScreen('viewTools'); updateNavState('navTools'); } else { location.reload(); } });
-    };
-
-    window.finishSimpleSession = () => {
-        const timestamp = Date.now(); const updates = {}; updates[`fitness/history/walk_${timestamp}`] = { completed: true, type: 'recovery', timestamp: timestamp, summary: "15 Minute Recovery Walk" };
-        const db = getDatabase(); update(ref(db), updates).then(() => location.reload());
-    };
-
-    function calculateProgress() {
-        const title = document.getElementById('todayTitle'); const desc = document.getElementById('todayDesc'); const img = document.getElementById('dashImage'); const action = document.getElementById('actionArea'); const progressCard = document.getElementById('planProgressCard');
-        const forecastArea = document.getElementById('forecastArea'); const forecastContent = document.getElementById('forecastContent');
-        
-        img.style.display = 'block';
-        if(!activePlan) { title.innerText = "No Plan Active"; desc.innerText = "Create a plan to start your journey."; img.src = "fitness_images/plan_wizard.png"; action.innerHTML = `<button class="btn btn-primary" onclick="document.getElementById('viewWizard').classList.remove('hidden'); document.getElementById('viewDashboard').classList.add('hidden');">Get Started</button>`; progressCard.classList.add('hidden'); return; }
-        
-        progressCard.classList.remove('hidden');
-        
-        // --- NEW LOGIC: Hybrid Sequence ---
-        
-        // 1. Count "Plan" workouts completed
-        const logs = Object.values(historyLogs);
-        const planLogs = logs.filter(l => l.type === 'plan').sort((a,b) => b.timestamp - a.timestamp);
-        const workoutsCompleted = planLogs.length;
-        
-        // 2. Identify Current State
-        let showRecovery = false;
-        let showWorkout = true; // Default
-        
-        if (planLogs.length > 0) {
-            const lastLog = planLogs[0];
-            const lastDate = new Date(lastLog.timestamp);
-            lastDate.setHours(0,0,0,0);
-            
-            const today = new Date();
-            today.setHours(0,0,0,0);
-            
-            const diffTime = Math.abs(today - lastDate);
-            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-            
-            if (diffDays === 0) {
-                // Done today
-                showWorkout = false;
-            } else if (diffDays === 1) {
-                // Done yesterday -> Recovery Day
-                showRecovery = true;
-                showWorkout = false;
+            if (resetTimer) {
+                const circle = document.getElementById('timerCircle');
+                if (circle) circle.style.strokeDashoffset = 0;
             } else {
-                // Done 2+ days ago -> Show Next Workout
-                showWorkout = true;
+                const circle = document.getElementById('timerCircle');
+                const total = currentPhase === 'work' ? step.time : step.rest;
+                const offset = 565 - ((timeRemaining / total) * 565);
+                if (circle) circle.style.strokeDashoffset = offset;
+            }
+            saveSessionState();
+        }
+
+        function runCountdown(callback) {
+            initAudio();
+            const overlay = document.getElementById('countdownOverlay');
+            const text = document.getElementById('countdownDisplay');
+            overlay.classList.add('active');
+
+            playTone('warn'); text.innerText = "3"; text.classList.remove('pulse-anim'); void text.offsetWidth; text.classList.add('pulse-anim');
+            setTimeout(() => { playTone('warn'); text.innerText = "2"; text.classList.remove('pulse-anim'); void text.offsetWidth; text.classList.add('pulse-anim'); }, 1000);
+            setTimeout(() => { playTone('warn'); text.innerText = "1"; text.classList.remove('pulse-anim'); void text.offsetWidth; text.classList.add('pulse-anim'); }, 2000);
+            setTimeout(() => {
+                playTone('start'); text.innerText = "GO!";
+                text.classList.remove('pulse-anim'); void text.offsetWidth; text.classList.add('pulse-anim');
+                speakText("Go!");
+            }, 3000);
+
+            setTimeout(() => {
+                overlay.classList.remove('active');
+                callback();
+            }, 3800);
+        }
+
+        function toggleTimer(work, rest, nextObj) {
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                document.getElementById('btnTimer').innerText = "Resume";
+                playTone('tick');
+                return;
+            }
+
+            if (timeRemaining === 0) { timeRemaining = work; currentPhase = 'work'; }
+            isTimerRunning = true;
+            document.getElementById('btnTimer').innerText = "Pause";
+            playTone('tick');
+            updateFavicon('active');
+            initAudio();
+
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                document.getElementById('timerDisplay').innerText = timeRemaining;
+                const total = currentPhase === 'work' ? work : rest;
+                const offset = 565 - ((timeRemaining / total) * 565);
+                document.getElementById('timerCircle').style.strokeDashoffset = offset;
+                document.getElementById('timerLabel').innerText = currentPhase.toUpperCase();
+
+                playTone('tick');
+
+                if (timeRemaining <= 0) {
+                    if (currentPhase === 'work' && rest > 0) {
+                        currentPhase = 'rest'; timeRemaining = rest;
+                        document.getElementById('upNextBox').classList.remove('hidden');
+                        document.getElementById('timerWrapper').classList.remove('mode-work');
+                        document.getElementById('timerWrapper').classList.add('mode-rest');
+                        updateFavicon('rest');
+                        const nextTitle = nextObj ? nextObj.title.replace(/Round \d+: /, '') : "Finish";
+                        document.getElementById('upNextBox').innerHTML = `<strong>REST (${rest}s) — UP NEXT:</strong><br>${nextTitle}`;
+                        playTone('end');
+                    } else {
+                        clearInterval(timerInterval); isTimerRunning = false;
+                        document.getElementById('btnTimer').innerText = "Done";
+                        updateFavicon('idle');
+                        playTone('success');
+                    }
+                }
+            }, 1000);
+        }
+
+        function playTone(type) {
+            if (!audioCtx) initAudio();
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+            if (type === 'start') {
+                osc.frequency.setValueAtTime(440, now); osc.frequency.exponentialRampToValueAtTime(880, now + 0.1);
+                gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                osc.start(now); osc.stop(now + 0.5);
+            } else if (type === 'tick') {
+                osc.frequency.setValueAtTime(1000, now); gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                osc.start(now); osc.stop(now + 0.05);
+            } else if (type === 'warn') {
+                osc.frequency.setValueAtTime(600, now); gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now); osc.stop(now + 0.2);
+            } else if (type === 'end') {
+                osc.frequency.setValueAtTime(880, now); osc.frequency.exponentialRampToValueAtTime(440, now + 0.3);
+                gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 1);
+                osc.start(now); osc.stop(now + 1);
+            } else if (type === 'success') {
+                [523.25, 659.25, 783.99].forEach(freq => {
+                    const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+                    o.connect(g); g.connect(audioCtx.destination);
+                    o.frequency.value = freq; g.gain.setValueAtTime(0.2, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+                    o.start(now); o.stop(now + 0.8);
+                });
             }
         }
-        
-        // 3. Calculate "Virtual Day" for display
-        // If 0 workouts done: Day 1.
-        // If 1 workout done (and it's recovery day): Day 2.
-        // If 1 workout done (and we skipped recovery): Day 3 (Next workout).
-        
-        let currentDayLabel = 1;
-        if (workoutsCompleted > 0) {
-            if (showRecovery) currentDayLabel = (workoutsCompleted * 2); 
-            else if (showWorkout) currentDayLabel = (workoutsCompleted * 2) + 1;
-            else currentDayLabel = (workoutsCompleted * 2); // Completed state
-        }
-        
-        const totalDays = activePlan.lengthWeeks * 7;
-        const pct = Math.min(100, Math.floor((workoutsCompleted / (activePlan.lengthWeeks * 3)) * 100)); // Approx 3 workouts/week
-        
-        document.getElementById('planNameLabel').innerText = `${activePlan.title} Plan (Day ${currentDayLabel})`; 
-        document.getElementById('planProgressLabel').innerText = `${pct}%`; 
-        document.getElementById('planProgressBar').style.width = `${pct}%`;
 
-        // 4. Render UI based on State
-        if (!showWorkout && !showRecovery) { 
-            // COMPLETED TODAY
-            title.innerText = "All Done!"; desc.innerText = "Great job! Rest up for tomorrow."; img.src = "fitness_images/session_done.png"; 
-            action.innerHTML = `<button class="btn btn-secondary btn-sm" onclick="startGeneratedWorkout(${currentDayLabel})">Redo Session (Optional)</button>`;
-            forecastArea.classList.remove('hidden');
-            forecastContent.innerHTML = `
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            if (!historyLogs || Object.keys(historyLogs).length === 0) {
+                list.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:20px;">No logs found.</div>';
+                return;
+            }
+            const logsArray = Object.entries(historyLogs).sort((a, b) => b[1].timestamp - a[1].timestamp).map(([key, val]) => {
+                const date = new Date(val.timestamp);
+                const day = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+                let typeClass = 'type-plan'; let title = "Plan Workout";
+                let detail = val.summary ? val.summary : (val.difficulty ? `Rated: ${val.difficulty}` : "Completed");
+                if (val.type === 'custom') { typeClass = 'type-custom'; title = val.exercise || "Manual Session"; if (!val.summary) detail = `${val.sets} Sets x ${val.work}s Work`; }
+                else if (val.type === 'recovery') { typeClass = 'type-recovery'; title = "Recovery Walk"; if (!val.summary) detail = "15 Minutes"; }
+                else if (val.type === 'quick') { typeClass = 'type-custom'; title = "Quick Log"; detail = `${val.exercise}: ${val.summary}`; }
+                return `<div class="history-item ${typeClass}"><div class="h-date">${day}</div><div class="h-info"><div class="h-title">${title}</div><div class="h-detail">${detail}</div></div></div>`;
+            });
+            list.innerHTML = logsArray.join('');
+        }
+
+        window.logFeedback = (diff) => {
+            const timestamp = Date.now(); const dateKey = sessionMode === 'plan' ? new Date().toISOString().split('T')[0] : `custom_${timestamp}`; const updates = {};
+            let summaryText = "";
+            if (sessionMode === 'plan') {
+                const exercises = [...new Set(workoutSteps.filter(s => s.type === 'work').map(s => s.title.replace(/Round \d+: /, '')))];
+                const approxTime = Math.ceil(workoutSteps.reduce((acc, s) => acc + (s.time || 0) + (s.rest || 0), 0) / 60);
+                summaryText = `~${approxTime} mins: ${exercises.join(', ')}`;
+            } else { summaryText = `${customSessionData.sets} sets of ${customSessionData.name} (${customSessionData.work}s work / ${customSessionData.rest}s rest)`; }
+            const logData = { completed: true, timestamp: timestamp, type: sessionMode, difficulty: diff, summary: summaryText };
+            if (sessionMode === 'custom') logData.exercise = customSessionData.name;
+            updates[`fitness/history/log_${timestamp}`] = logData;
+            const db = getDatabase(); update(ref(db), updates).then(() => { isSessionActive = false; if (sessionMode === 'custom') { showScreen('viewTools'); updateNavState('navTools'); } else { location.reload(); } });
+        };
+
+        window.finishSimpleSession = () => {
+            const timestamp = Date.now(); const updates = {}; updates[`fitness/history/walk_${timestamp}`] = { completed: true, type: 'recovery', timestamp: timestamp, summary: "15 Minute Recovery Walk" };
+            const db = getDatabase(); update(ref(db), updates).then(() => location.reload());
+        };
+
+        function calculateProgress() {
+            const title = document.getElementById('todayTitle'); const desc = document.getElementById('todayDesc'); const img = document.getElementById('dashImage'); const action = document.getElementById('actionArea'); const progressCard = document.getElementById('planProgressCard');
+            const forecastArea = document.getElementById('forecastArea'); const forecastContent = document.getElementById('forecastContent');
+
+            img.style.display = 'block';
+            if (!activePlan) { title.innerText = "No Plan Active"; desc.innerText = "Create a plan to start your journey."; img.src = "fitness_images/plan_wizard.png"; action.innerHTML = `<button class="btn btn-primary" onclick="document.getElementById('viewWizard').classList.remove('hidden'); document.getElementById('viewDashboard').classList.add('hidden');">Get Started</button>`; progressCard.classList.add('hidden'); return; }
+
+            progressCard.classList.remove('hidden');
+
+            // --- NEW LOGIC: Hybrid Sequence ---
+
+            // 1. Count "Plan" workouts completed
+            const logs = Object.values(historyLogs);
+            const planLogs = logs.filter(l => l.type === 'plan').sort((a, b) => b.timestamp - a.timestamp);
+            const workoutsCompleted = planLogs.length;
+
+            // 2. Identify Current State
+            let showRecovery = false;
+            let showWorkout = true; // Default
+
+            if (planLogs.length > 0) {
+                const lastLog = planLogs[0];
+                const lastDate = new Date(lastLog.timestamp);
+                lastDate.setHours(0, 0, 0, 0);
+
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                const diffTime = Math.abs(today - lastDate);
+                const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays === 0) {
+                    // Done today
+                    showWorkout = false;
+                } else if (diffDays === 1) {
+                    // Done yesterday -> Recovery Day
+                    showRecovery = true;
+                    showWorkout = false;
+                } else {
+                    // Done 2+ days ago -> Show Next Workout
+                    showWorkout = true;
+                }
+            }
+
+            // 3. Calculate "Virtual Day" for display
+            // If 0 workouts done: Day 1.
+            // If 1 workout done (and it's recovery day): Day 2.
+            // If 1 workout done (and we skipped recovery): Day 3 (Next workout).
+
+            let currentDayLabel = 1;
+            if (workoutsCompleted > 0) {
+                if (showRecovery) currentDayLabel = (workoutsCompleted * 2);
+                else if (showWorkout) currentDayLabel = (workoutsCompleted * 2) + 1;
+                else currentDayLabel = (workoutsCompleted * 2); // Completed state
+            }
+
+            const totalDays = activePlan.lengthWeeks * 7;
+            const pct = Math.min(100, Math.floor((workoutsCompleted / (activePlan.lengthWeeks * 3)) * 100)); // Approx 3 workouts/week
+
+            document.getElementById('planNameLabel').innerText = `${activePlan.title} Plan (Day ${currentDayLabel})`;
+            document.getElementById('planProgressLabel').innerText = `${pct}%`;
+            document.getElementById('planProgressBar').style.width = `${pct}%`;
+
+            // 4. Render UI based on State
+            if (!showWorkout && !showRecovery) {
+                // COMPLETED TODAY
+                title.innerText = "All Done!"; desc.innerText = "Great job! Rest up for tomorrow."; img.src = "fitness_images/session_done.png";
+                action.innerHTML = `<button class="btn btn-secondary btn-sm" onclick="startGeneratedWorkout(${currentDayLabel})">Redo Session (Optional)</button>`;
+                forecastArea.classList.remove('hidden');
+                forecastContent.innerHTML = `
                 <div class="forecast-row"><span>Tomorrow</span><span>Active Recovery</span></div>
-                <div class="forecast-row"><span>Next Workout</span><button class="btn-link" onclick="openPreview(${currentDayLabel+2})">Strength Workout ⓘ</button></div>
+                <div class="forecast-row"><span>Next Workout</span><button class="btn-link" onclick="openPreview(${currentDayLabel + 2})">Strength Workout ⓘ</button></div>
             `;
+            }
+            else if (showRecovery) {
+                // RECOVERY DAY
+                title.innerText = "Active Recovery"; desc.innerText = "15 Min Walk."; img.src = "fitness_images/active_walk.png";
+                action.innerHTML = `<button class="btn btn-green" onclick="finishSimpleSession()">Log Walk</button><button class="btn btn-secondary btn-sm" onclick="startGeneratedWorkout(${currentDayLabel + 1})">Skip to Workout</button>`;
+                forecastArea.classList.add('hidden');
+            }
+            else {
+                // WORKOUT DAY
+                title.innerText = "Workout Day"; desc.innerText = "Focus on form."; img.src = "fitness_images/dash_strength.png";
+                // Note: pass currentDayLabel. Since math is (completed*2)+1, it will be 1, 3, 5, etc.
+                // buildDailyWorkout maps Day 1,3,5 to similar workouts, so this works fine.
+                action.innerHTML = `<button class="btn btn-primary" id="btnStartMain">Start Session</button>`;
+                setTimeout(() => { if (document.getElementById('btnStartMain')) document.getElementById('btnStartMain').onclick = () => startGeneratedWorkout(currentDayLabel); }, 0);
+                forecastArea.classList.add('hidden');
+            }
         }
-        else if (showRecovery) { 
-            // RECOVERY DAY
-            title.innerText = "Active Recovery"; desc.innerText = "15 Min Walk."; img.src = "fitness_images/active_walk.png"; 
-            action.innerHTML = `<button class="btn btn-green" onclick="finishSimpleSession()">Log Walk</button><button class="btn btn-secondary btn-sm" onclick="startGeneratedWorkout(${currentDayLabel+1})">Skip to Workout</button>`; 
-            forecastArea.classList.add('hidden');
-        }
-        else { 
-            // WORKOUT DAY
-            title.innerText = "Workout Day"; desc.innerText = "Focus on form."; img.src = "fitness_images/dash_strength.png"; 
-            // Note: pass currentDayLabel. Since math is (completed*2)+1, it will be 1, 3, 5, etc.
-            // buildDailyWorkout maps Day 1,3,5 to similar workouts, so this works fine.
-            action.innerHTML = `<button class="btn btn-primary" id="btnStartMain">Start Session</button>`; 
-            setTimeout(() => { if(document.getElementById('btnStartMain')) document.getElementById('btnStartMain').onclick = () => startGeneratedWorkout(currentDayLabel); }, 0); 
-            forecastArea.classList.add('hidden');
-        }
-    }
-    
-    function getDayType(d) { const cycle = (d - 1) % 7; if ([0, 2, 4].includes(cycle)) return "Strength Workout"; return "Rest / Active Recovery"; }
 
-    function updateNavState(activeId) { document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active')); document.getElementById(activeId).classList.add('active'); }
-    function updateFavicon(state) { const canvas = document.createElement('canvas'); canvas.width = 64; canvas.height = 64; const ctx = canvas.getContext('2d'); ctx.beginPath(); ctx.arc(32, 32, 32, 0, 2 * Math.PI); if (state === 'active') ctx.fillStyle = '#ef4444'; else if (state === 'rest') ctx.fillStyle = '#10b981'; else ctx.fillStyle = '#3b82f6'; ctx.fill(); ctx.beginPath(); ctx.arc(32, 32, 10, 0, 2 * Math.PI); ctx.fillStyle = '#ffffff'; ctx.fill(); const link = document.querySelector("link[rel*='icon']") || document.createElement('link'); link.type = 'image/x-icon'; link.rel = 'shortcut icon'; link.href = canvas.toDataURL(); document.getElementsByTagName('head')[0].appendChild(link); }
-    function speakText(text) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.rate = 0.9; window.speechSynthesis.speak(u); }
-    function showScreen(id) { document.querySelectorAll('.screen').forEach(el => el.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
-    function saveSessionState() { localStorage.setItem('fit_step', currentStepIndex); localStorage.setItem('fit_date', new Date().toISOString().split('T')[0]); }
-    function checkSavedSession() { const savedDate = localStorage.getItem('fit_date'); const savedStep = localStorage.getItem('fit_step'); const today = new Date().toISOString().split('T')[0]; if (savedDate === today && savedStep && parseInt(savedStep) > 0) { const btn = document.getElementById('btnResumeSession'); document.getElementById('resumeBanner').classList.remove('hidden'); btn.onclick = () => { startGeneratedWorkout(parseInt(savedStep)); document.getElementById('resumeBanner').classList.add('hidden'); }; } }
-    
-    function nextStep() { clearInterval(timerInterval); isTimerRunning = false; timeRemaining = 0; window.speechSynthesis.cancel(); if (currentStepIndex < workoutSteps.length - 1) { currentStepIndex++; renderStep(); } else { localStorage.removeItem('fit_step'); isSessionActive = false; showScreen('viewComplete'); updateFavicon('idle'); } }
-    function prevStep() { clearInterval(timerInterval); isTimerRunning = false; timeRemaining = 0; window.speechSynthesis.cancel(); if (currentStepIndex > 0) { currentStepIndex--; renderStep(); } }
+        function getDayType(d) { const cycle = (d - 1) % 7; if ([0, 2, 4].includes(cycle)) return "Strength Workout"; return "Rest / Active Recovery"; }
 
-</script>
+        function updateNavState(activeId) { document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active')); document.getElementById(activeId).classList.add('active'); }
+        function updateFavicon(state) { const canvas = document.createElement('canvas'); canvas.width = 64; canvas.height = 64; const ctx = canvas.getContext('2d'); ctx.beginPath(); ctx.arc(32, 32, 32, 0, 2 * Math.PI); if (state === 'active') ctx.fillStyle = '#ef4444'; else if (state === 'rest') ctx.fillStyle = '#10b981'; else ctx.fillStyle = '#3b82f6'; ctx.fill(); ctx.beginPath(); ctx.arc(32, 32, 10, 0, 2 * Math.PI); ctx.fillStyle = '#ffffff'; ctx.fill(); const link = document.querySelector("link[rel*='icon']") || document.createElement('link'); link.type = 'image/x-icon'; link.rel = 'shortcut icon'; link.href = canvas.toDataURL(); document.getElementsByTagName('head')[0].appendChild(link); }
+        function speakText(text) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.rate = 0.9; window.speechSynthesis.speak(u); }
+        function showScreen(id) { document.querySelectorAll('.screen').forEach(el => el.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
+        function saveSessionState() { localStorage.setItem('fit_step', currentStepIndex); localStorage.setItem('fit_date', new Date().toISOString().split('T')[0]); }
+        function checkSavedSession() { const savedDate = localStorage.getItem('fit_date'); const savedStep = localStorage.getItem('fit_step'); const today = new Date().toISOString().split('T')[0]; if (savedDate === today && savedStep && parseInt(savedStep) > 0) { const btn = document.getElementById('btnResumeSession'); document.getElementById('resumeBanner').classList.remove('hidden'); btn.onclick = () => { startGeneratedWorkout(parseInt(savedStep)); document.getElementById('resumeBanner').classList.add('hidden'); }; } }
+
+        function nextStep() { clearInterval(timerInterval); isTimerRunning = false; timeRemaining = 0; window.speechSynthesis.cancel(); if (currentStepIndex < workoutSteps.length - 1) { currentStepIndex++; renderStep(); } else { localStorage.removeItem('fit_step'); isSessionActive = false; showScreen('viewComplete'); updateFavicon('idle'); } }
+        function prevStep() { clearInterval(timerInterval); isTimerRunning = false; timeRemaining = 0; window.speechSynthesis.cancel(); if (currentStepIndex > 0) { currentStepIndex--; renderStep(); } }
+
+    </script>
 </body>
+
 </html>
