@@ -337,6 +337,16 @@
             <div class="play-btn">Play Now</div>
         </a>
 
+        <a id="alibucks-link" href="/AliBucks/" class="game-card">
+            <div class="game-avatar" style="background: white; padding: 5px;">
+                <img src="alibucks-logo.png" alt="AliBucks"
+                    style="width: 100%; height: 100%; object-fit: contain; border-radius: 12px;">
+            </div>
+            <h2 class="game-title">AliBucks</h2>
+            <p class="game-desc">The official Alice Starbucks app.</p>
+            <div class="play-btn">Launch App</div>
+        </a>
+
         <div class="game-card placeholder-card">
             <div class="game-avatar" style="background: rgba(255,255,255,0.05); color: #64748b;">🔜</div>
             <h2 class="game-title" style="color: #64748b;">Coming Soon</h2>
@@ -367,6 +377,9 @@
                 // Reroute WheelSpin link to its native local Vite server 
                 const wsLink = document.getElementById("wheelspin-link");
                 if (wsLink) wsLink.href = 'http://localhost:5173/';
+
+                const aliLink = document.getElementById("alibucks-link");
+                if (aliLink) aliLink.href = 'http://localhost:8080/';
             }
         });
 
