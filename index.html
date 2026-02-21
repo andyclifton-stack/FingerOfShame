@@ -330,7 +330,7 @@
             <div class="play-btn">PLAY NOW 🔒</div>
         </div>
 
-        <a href="/WheelSpin/" class="game-card">
+        <a id="wheelspin-link" href="/WheelSpin/" class="game-card">
             <div class="game-avatar" style="background: linear-gradient(135deg, #14b8a6, #0f766e);">🎡</div>
             <h2 class="game-title">Wheel Spin</h2>
             <p class="game-desc">A customizable, interactive prize wheel with realistic physics and social sharing.</p>
@@ -360,6 +360,16 @@
     </footer>
 
     <script>
+        // --- Local Dev Routing Settings ---
+        document.addEventListener("DOMContentLoaded", () => {
+            // Detect if we are running locally (127.0.0.1 or localhost)
+            if (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') {
+                // Reroute WheelSpin link to its native local Vite server 
+                const wsLink = document.getElementById("wheelspin-link");
+                if (wsLink) wsLink.href = 'http://localhost:5173/';
+            }
+        });
+
         // --- Password Logic for Couples ---
         function unlockCouples() {
             const code = prompt("Enter Password to Unlock:");
