@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Finger of Shame</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🫵</text></svg>">
+	<link rel="manifest" href="finger-manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;800&display=swap" rel="stylesheet">
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <script src="questions.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="splash-screen">
+        <img src="splash.png" alt="The Finger of Shame - It Could Be You!">
+    </div>
+
+    <div class="header-container">
+        <div class="controls-top">
+            <select class="glass-btn" id="theme-selector" onchange="changeTheme(this.value)">
+                <option value="standard">Theme: Standard</option>
+                <option value="clean">Theme: Clean 👔</option>
+                <option value="pizza">Theme: Pizza Party 🍕</option>
+                <option value="christmas">Theme: Christmas</option>
+                <option value="nye">Theme: New Year's</option>
+                <option value="birthday">Theme: Birthday</option>
+            </select>
+            
+            <div style="display:flex; gap:10px; align-items:center;">
+                <button class="glass-btn" id="mute-btn" onclick="toggleMute()">🔊</button>
+                <button class="glass-btn" onclick="showIdentities()">👥</button>
+                <button class="glass-btn" onclick="handleRulesClick(event)">How to Play</button>
+            </div>
+        </div>
+
+        <h1 onclick="triggerGodMode(event)">The Finger of Shame 🫵</h1>
+        <div class="subtitle" id="main-subtitle">Game Lobby</div>
+        
+        <div style="display:flex; gap:10px; justify-content:center; margin-top:10px;">
+            <div id="identity-display" style="text-align:center; color:var(--success-gradient); font-weight:bold;"></div>
+        </div>
+    </div>
+
+    <div id="screen-landing" class="screen active-screen" style="max-width:1000px;">
+        <div class="landing-dashboard">
+            <div class="glass-panel landing-panel">
+                <div class="hero-icon">🫵</div>
+                <h3 style="margin-top:0; color:var(--text-muted); text-transform:uppercase;">Select Mode</h3>
+                
+                <button class="btn-main btn-start" onclick="createRoom()">Host New Game 🏠</button>
+                <button class="btn-main" style="margin-top:15px; background: #666;" onclick="startSpectator()">📺 Spectator Mode</button>
+
+                <div class="join-card">
+                    <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px; text-transform:uppercase; letter-spacing:2px; font-weight:800;">Have a Code?</div>
+                    <div class="join-group" style="display:flex; gap:10px;">
+                        <input type="text" id="join-code-input" placeholder="CODE" maxlength="4" style="text-transform:uppercase; margin:0; text-align:center; letter-spacing: 5px;">
+                        <button class="btn-main btn-add" style="margin:0;" onclick="joinRoomManually()">JOIN</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel landing-panel info-panel">
+                <h3 style="color:var(--judge-highlight); margin-top:0; letter-spacing:3px;">HOW IT WORKS</h3>
+                <ul class="lobby-rules">
+                    <li><span class="rule-icon">⚖️</span><div><strong>The Charge</strong><br><span style="font-size:0.9rem; color:#ccc;">The Judge reads the question.</span></div></li>
+                    <li><span class="rule-icon">🤫</span><div><strong>The Secret</strong><br><span style="font-size:0.9rem; color:#ccc;">Judge taps the guilty face on screen.</span></div></li>
+                    <li><span class="rule-icon">🫵</span><div><strong>The Point</strong><br><span style="font-size:0.9rem; color:#ccc;">3-2-1... Point at who YOU think it is!</span></div></li>
+                    <li><span class="rule-icon">🏆</span><div><strong>The Verdict</strong><br><span style="font-size:0.9rem; color:#ccc;">Match the Judge to win +2 Points!</span></div></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-setup" class="screen">
+        <div class="glass-panel">
+            <h4 style="margin:0 0 20px 0; font-size:1.5rem;">Add Players</h4>
+            
+            <div class="player-input-group">
+                <div id="host-emoji-badge" class="emoji-badge" onclick="openEmojiPicker('host-emoji-badge')">🦁</div>
+                <input type="text" id="new-player-name" placeholder="Enter Name..." onkeypress="handleEnter(event)" style="margin:0; text-align:left;">
+                <button class="btn-main btn-add" id="btn-host-add" onclick="addPlayer()">Add</button>
+            </div>
+            <div style="text-align:left; margin-bottom:5px; margin-top:20px; font-size:0.8rem; color:var(--text-muted);">TAP WHO YOU ARE:</div>
+            <ul id="player-list-ul" class="player-list"></ul>
+            
+            <button class="btn-main btn-start" onclick="startGame()">Start Game for Everyone</button>
+            <button class="btn-main btn-whatsapp" onclick="shareGameUrl()" style="margin-top:20px;">Invite via WhatsApp 🔗</button>
+        </div>
+    </div>
+
+    <div id="screen-join-pick" class="screen">
+        <div class="glass-panel">
+            <h3>Who are you?</h3>
+            <p style="color:var(--text-muted);">Tap names to control them on this device.</p>
+            <ul id="join-list-ul" class="player-list"></ul>
+            <div style="margin-top:20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:20px;">
+                <p style="font-size:0.8rem;">Not on the list?</p>
+                <div class="player-input-group">
+                    <div id="join-emoji-badge" class="emoji-badge" onclick="openEmojiPicker('join-emoji-badge')">🦁</div>
+                    <input type="text" id="late-join-name" placeholder="Enter Name..." style="margin:0; text-align:left;">
+                    <button class="btn-main btn-add" onclick="addLatePlayer()">Join</button>
+                </div>
+            </div>
+            <button class="glass-btn" style="margin-top:20px;" onclick="closeIdentities()">Back to Game</button>
+        </div>
+    </div>
+
+    <div id="screen-game" class="screen">
+        <div id="spec-room-display" style="display:none;"></div>
+        
+        <div id="recap-ticker" style="width:100%; text-align:center; padding:10px; background:rgba(255,255,255,0.1); border-radius:10px; margin-bottom:20px; font-size:0.9rem; display:none;">
+            Last Round: <span id="recap-text" style="color:var(--judge-highlight); font-weight:bold;">-</span>
+        </div>
+
+        <div class="game-layout-wrapper">
+            <div class="glass-panel court-card">
+                <div class="question-container">
+                    <div class="question-box" id="question-display">Loading...</div>
+                    <input type="text" id="custom-q-input" placeholder="Type your own charge..." onblur="saveCustomQuestion()">
+                    <button class="edit-btn" onclick="editQuestion()" title="Write Custom Charge">✏️</button>
+                </div>
+                
+                <div id="judge-waiting-msg" style="display:none;" class="judge-status-pulse">Waiting for the Judge...</div>
+
+                <div class="judge-section" id="judge-controls-area">
+                    <label class="judge-label" id="lbl-secret-verdict">The Judge's Secret Verdict</label>
+                    <div id="judge-pick-container" style="margin-bottom:20px;"></div>
+                    <div id="verdict-status" style="font-size: 0.9rem; color: #ff4757; height: 20px; font-weight: bold; margin-bottom:10px;"></div>
+                    
+                    <button class="btn-main btn-lock" id="btn-lock" onclick="lockVerdict()">Lock Verdict 🔒</button>
+                    <button class="btn-main btn-vote" id="btn-vote" onclick="triggerGlobalCountdown()">3-2-1 VOTE! 👉</button>
+                    <button class="btn-main btn-reveal" id="btn-reveal" onclick="triggerGlobalReveal()">Reveal Choice 👀</button>
+                    <button class="btn-main btn-defense" id="btn-defense" style="display:none;">Start Defense 🛡️</button>
+                    
+                    <div class="action-row">
+                        <button class="btn-main btn-forfeit" id="btn-forfeit" style="display:none;">SPIN FORFEIT</button>
+                    </div>
+                </div>
+                
+                <div id="admin-controls" style="display:flex; gap:10px;">
+                    <button class="btn-main btn-reset" onclick="nextRound(this)">Next Round ➡️</button>
+                    <button class="btn-main btn-end" onclick="finishGame(this)">End Game 🏁</button>
+                </div>
+                
+                <div id="mob-status-text" style="display:none; text-align:center; color:#aaa; margin-top:20px; font-style:italic;">
+                    Waiting for the Judge to continue...
+                </div>
+            </div>
+            
+            <div class="scoreboard" id="scoreboard-container"></div>
+        </div>
+    </div>
+
+    <div id="timer-overlay" class="overlay">
+        <div id="timer-text">3</div>
+        <div id="timer-sub">POINT!</div>
+        <div id="reveal-container" style="display:none; flex-direction:column; align-items:center;">
+            <div id="reveal-name"></div>
+            <div id="reveal-label">THE JUDGE'S CHOICE</div>
+            <div id="reveal-hint">(Tap to continue)</div>
+        </div>
+    </div>
+    
+    <div id="flash-reaction" class="flash-overlay"><div class="flash-content" id="flash-content"></div></div>
+
+    <div id="alert-overlay" class="overlay" style="display:none;">
+        <div id="alert-title">GAME UPDATE</div>
+        <div id="alert-msg"></div>
+    </div>
+
+    <div id="qr-overlay" class="overlay" onclick="document.getElementById('qr-overlay').style.display='none'">
+        <h2 style="color:white; margin-bottom:20px;">Scan to Join</h2>
+        <img id="large-qr-img" style="border-radius:10px; border:5px solid white;" width="250" height="250">
+        <div id="big-room-code" style="color:var(--judge-highlight); font-size:4rem; letter-spacing:10px; font-weight:800; margin-top:20px;">----</div>
+        <p style="color:rgba(255,255,255,0.7); margin-top:10px;">(Tap anywhere to close)</p>
+    </div>
+
+    <div id="pause-overlay" class="overlay" style="background:rgba(0,0,0,0.98);">
+        <div style="font-size:3rem; color:red; font-weight:bold;">PAUSED</div>
+        <p style="color:#aaa;">By Moderator</p>
+    </div>
+
+    <div id="god-menu-overlay" class="overlay" style="display:none; justify-content: flex-start; padding-top: 50px; overflow-y:auto;">
+        <h2 style="color:var(--judge-highlight);">ADMIN PANEL</h2>
+        <div class="glass-panel" style="max-width:400px; width:90%; padding:20px;">
+            <h4 style="margin-top:0;">Game Control</h4>
+            <div style="display:flex; gap:10px; margin-bottom:20px;">
+                <button class="glass-btn" onclick="adminTogglePause()" style="flex:1;">Play/Pause</button>
+                <button class="glass-btn" onclick="adminSkipQuestion()" style="flex:1;">New Question</button>
+            </div>
+            <button class="glass-btn btn-whatsapp" onclick="shareGameUrl()" style="width:100%; margin-bottom:20px;">Invite via WhatsApp 🔗</button>
+
+            <h4>Set Next Judge</h4>
+            <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:20px;" id="admin-judge-list"></div>
+            <h4>Edit Total Scores</h4>
+            <div id="admin-score-list"></div>
+            <h4 style="color:#ff4757; margin-top:20px;">Manage Players</h4>
+            <div id="admin-kick-list" style="display:flex; flex-direction:column; gap:5px; margin-bottom:20px;"></div>
+            <button class="btn-main btn-end" onclick="document.getElementById('god-menu-overlay').style.display='none'">Close Admin</button>
+        </div>
+    </div>
+
+    <div id="defendant-picker-overlay" class="overlay">
+        <h2 style="color:white; margin-bottom:10px;">Who is the Accused?</h2>
+        <div style="color:#ccc; margin-bottom:20px; font-size:0.9rem;">(Select multiple if it's a draw)</div>
+        <div id="picker-grid"></div>
+        <div style="margin-top:20px; display:flex; gap:10px;">
+            <button class="glass-btn" onclick="document.getElementById('defendant-picker-overlay').style.display='none'">Cancel</button>
+            <button class="btn-main btn-add" style="width:auto; padding:10px 30px; margin:0;" onclick="confirmDefense()">Begin Defense</button>
+        </div>
+    </div>
+
+    <div id="defense-overlay" class="overlay">
+        <div style="text-transform:uppercase; letter-spacing:2px; font-size:1.2rem; color:#fff;">Defense Time</div>
+        <div id="defense-question"></div> 
+        <div id="defense-target">Player Name</div>
+        <div class="defense-sub">Why should you not be charged?</div>
+        
+        <div id="defense-stats">
+            <div class="stat-box"><span class="stat-val" style="color:#42e695" id="val-agree">0</span><span class="stat-label">Not Guilty</span></div>
+            <div class="stat-box"><span class="stat-val" style="color:#ffaf40" id="val-hmmm">0</span><span class="stat-label">Hmmm</span></div>
+            <div class="stat-box"><span class="stat-val" style="color:#ff4757" id="val-obj">0</span><span class="stat-label">Guilty</span></div>
+        </div>
+
+        <div id="defense-timer-val">30</div>
+        
+        <div class="reaction-row" id="jury-controls">
+            <button class="reaction-btn btn-react-agree" onclick="triggerReaction('agree', event)"><span>😇</span> Not Guilty</button>
+            <button class="reaction-btn btn-react-hmmm" onclick="triggerReaction('hmmm', event)"><span>🤔</span> Hmmm</button>
+            <button class="reaction-btn btn-react-object" onclick="triggerReaction('objection', event)"><span>😈</span> GUILTY</button>
+        </div>
+
+        <div id="judge-ruling-area" style="display:none; flex-direction:column; align-items:center; gap:15px; margin-top:20px; width: 100%;">
+            <div style="display:flex; gap:20px; justify-content:center; width: 100%;">
+                <button class="btn-main" style="background:#42e695; color:#0f2027; width:auto;" onclick="rulingNotGuilty(event)">NOT GUILTY 😇</button>
+                <button class="btn-main" style="background:#ff4757; width:auto;" onclick="rulingGuilty(event)">GUILTY 😈</button>
+            </div>
+        </div>
+
+        <div id="sentencing-controls" style="display:none; flex-direction:column; align-items:center; width:100%;">
+            <h4 style="color:#ff4757; margin:0 0 10px 0;">WHO TAKES THE FALL?</h4>
+            <div id="sentencing-grid" style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;"></div>
+            <button class="glass-btn" style="margin-top:15px;" onclick="cancelSentencing(event)">Back</button>
+        </div>
+
+        <button id="btn-judge-spin" class="btn-main btn-forfeit" style="width:auto; padding:20px 40px; margin-top:20px; display:none;" onclick="triggerForfeitFromDefense(event)">🎰 SPIN THE WHEEL OF SHAME 🎰</button>
+
+        <div id="close-hint-text" style="margin-top:30px; font-size:0.9rem; opacity:0.7; display:none;">(Only Judge can close)</div>
+        <div id="judge-lock-text" style="margin-top:30px; font-size:1.2rem; color:#ff4757; font-weight:bold; display:none;">⚠️ JUDGE MUST RULE ⚠️</div>
+    </div>
+
+    <div id="scoring-reminder-overlay" class="overlay" style="background:rgba(0,0,0,0.95);">
+        <div style="font-size:4rem;">📝</div>
+        <h2 style="color:var(--judge-highlight); text-transform:uppercase; letter-spacing:3px;">Judge's Duty</h2>
+        <p style="font-size:1.5rem; text-align:center; max-width:80%;">Don't forget to adjust the scores on the scoreboard!</p>
+        <button class="btn-main btn-start" onclick="closeScoringReminder()">I'm on it!</button>
+    </div>
+
+    <div id="winner-overlay" class="overlay">
+        <canvas id="confetti-canvas"></canvas>
+        <div style="z-index: 101; text-align: center; width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <div class="winner-title">And the winner is...</div>
+            <div class="winner-name" id="winner-display">Name</div>
+            <div class="winner-actions"><button class="glass-btn" onclick="toggleDetails()">Show/Hide Scores</button><button class="btn-main btn-start" style="width: auto; padding: 15px 40px;" onclick="resetGame()">New Game 🔄</button></div>
+            <div id="final-scores-table"></div>
+        </div>
+    </div>
+
+    <div id="forfeit-overlay" class="overlay">
+        <div id="forfeit-spinner">🎡</div>
+        <div style="font-size:1.5rem; text-transform:uppercase; letter-spacing:2px; color:rgba(255,255,255,0.7);">The Court Sentences You To:</div>
+        <div id="forfeit-text">Spinning...</div>
+        <button id="btn-judge-close-forfeit" class="btn-main" style="margin-top:30px; width:auto; display:none;" onclick="closeForfeit()">Next Round ➡️</button>
+        <div id="mob-forfeit-msg" style="margin-top:30px; font-size:0.9rem; opacity:0.7;">(Waiting for Judge...)</div>
+    </div>
+
+    <div id="rules-overlay" class="overlay">
+        <div class="rules-content">
+            <h2>The Finger of Shame 🫵</h2>
+            <p style="text-align:center; color:#aaa; margin-bottom:20px;">Official Court Rulebook (Vol. 11)</p>
+            <h3 style="color:var(--judge-highlight);">⚡ QUICK START</h3>
+            <ul class="quick-start-list">
+                <li><strong>1. Charge:</strong> Judge reads question.</li>
+                <li><strong>2. Secret:</strong> Judge taps face & locks verdict.</li>
+                <li><strong>3. Vote:</strong> 3-2-1... Mob points!</li>
+                <li><strong>4. Verdict:</strong> +2 if Judge matches Mob. -1 if Out of Touch.</li>
+                <li><strong>5. Sentence:</strong> Accused defends. Judge rules.</li>
+            </ul>
+            <hr style="border:0; border-top:1px solid rgba(255,255,255,0.2); margin:20px 0;">
+            <details><summary>📜 The Constitution</summary><div class="rules-text"><h4>The Judge</h4><p>Reads the charge and secretly determines the "Correct" answer.</p><h4>The Mob</h4><p>Everyone else. Goal is to identify the person who best fits the description.</p></div></details>
+            <details><summary>🧐 Case Law</summary><div class="rules-text"><h4>Case A: Clean Sweep</h4><p>Mob unanimous + Judge match = +2 Judge, -1 Accused.</p><h4>Case B: Hung Jury</h4><p>Split Mob + Judge matches one = +2 Judge.</p></div></details>
+            <details><summary>🎡 Code of Conduct</summary><div class="rules-text"><p>1. Honesty in Pointing.<br>2. Respect the Wheel.<br>3. Judicial Supremacy.</p></div></details>
+            <div style="text-align: center;"><button class="btn-main" onclick="hideRules()" style="margin-top:20px; width:auto; padding: 15px 40px;">Close</button></div>
+        </div>
+    </div>
+    
+    <div id="emoji-picker-overlay" class="overlay" onclick="closeEmojiPicker()">
+        <h3 style="color:white; margin-bottom:20px;">Pick Your Emoji</h3>
+        <div id="emoji-picker-grid"></div>
+        <p style="color:rgba(255,255,255,0.7); margin-top:20px;">(Tap background to cancel)</p>
+    </div>
+
+    <footer class="app-footer">
+        <span>Created by Judge Andy</span>
+        <div style="display:flex; gap:10px;">
+            <span id="footer-room-code" onclick="showRoomQR()" style="cursor:pointer; color:var(--judge-highlight); font-weight:800; letter-spacing:1px; border:1px solid rgba(255,255,255,0.2); padding:5px 10px; border-radius:8px;">ROOM: ----</span>
+            <button class="glass-btn" onclick="shareGameUrl()" style="padding:5px 10px;">🔗</button>
+        </div>
+        <span>V11.9</span>
+    </footer>
+
+    <div id="lobby-corner-panel" class="spec-corner-panel" style="display:none;">
+        <div class="spec-code-group"><div class="spec-label">JOIN GAME</div><div class="spec-code-val" id="lobby-corner-code">----</div></div>
+        <img id="lobby-corner-qr" width="70" height="70" style="border-radius: 5px;">
+    </div>
+
+    <div id="spectator-controls">
+        <button id="spec-mute-btn" onclick="toggleMute()">🔊</button>
+        <div class="spec-corner-panel">
+            <div class="spec-code-group"><div class="spec-label">JOIN GAME</div><div class="spec-code-val" id="spec-corner-code">----</div></div>
+            <img id="spec-corner-qr" width="70" height="70" style="border-radius: 5px;">
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,1710 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <title>Dice Duel</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --primary-blue: #3b82f6;
+            --accent-blue: #60a5fa;
+            --text-main: #f1f5f9;
+            --card-club: #000000;
+            --card-heart: #dc2626;
+            --card-bg: #ffffff;
+            --font-main: 'Outfit', sans-serif;
+            --font-card: 'Crimson Text', serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: radial-gradient(circle at center center, #1e293b 0%, #0f172a 80%);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        /* --- Splash Screen --- */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #0f172a;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease-out;
+            padding: 20px;
+        }
+
+        #splash-screen img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        #splash-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* --- Header --- */
+        header {
+            flex: 0 0 auto;
+            width: 100%;
+            padding: 10px 15px 5px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            position: relative;
+            z-index: 100;
+            background: linear-gradient(to bottom, rgba(15, 23, 42, 0.95), transparent);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            width: 100%;
+        }
+
+        #main-title {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        #settings-btn {
+            position: absolute;
+            right: 0;
+            top: 0;
+            font-size: 1.4rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        #settings-btn:hover {
+            opacity: 1;
+            transform: rotate(90deg);
+            transition: transform 0.3s;
+        }
+
+        .header-mid {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-top: 5px;
+        }
+
+        /* Icons */
+        .player-icon {
+            font-size: 2.5rem;
+            transition: all 0.3s;
+            transform: scale(1);
+            opacity: 0.3;
+            filter: grayscale(1);
+        }
+
+        .player-icon.active {
+            opacity: 1;
+            filter: grayscale(0);
+            transform: scale(1.1);
+        }
+
+        .icon-club {
+            color: var(--accent-blue);
+            filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.5));
+        }
+
+        .icon-heart {
+            color: var(--card-heart);
+            filter: drop-shadow(0 0 10px rgba(220, 38, 38, 0.5));
+        }
+
+        .pulse {
+            animation: pulseIcon 1.5s infinite;
+        }
+
+        @keyframes pulseIcon {
+            0% {
+                transform: scale(1.1);
+            }
+
+            50% {
+                transform: scale(1.25);
+            }
+
+            100% {
+                transform: scale(1.1);
+            }
+        }
+
+        /* 3D Dice */
+        .scene {
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            perspective: 800px;
+            transition: transform 0.3s;
+        }
+
+        /* Purple Glow Pulse */
+        .scene.dice-pulse {
+            animation: diceBreath 2s infinite ease-in-out;
+        }
+
+        @keyframes diceBreath {
+            0% {
+                transform: scale(1);
+                filter: drop-shadow(0 0 0px rgba(168, 85, 247, 0));
+            }
+
+            50% {
+                transform: scale(1.15);
+                filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.8));
+            }
+
+            100% {
+                transform: scale(1);
+                filter: drop-shadow(0 0 0px rgba(168, 85, 247, 0));
+            }
+        }
+
+        .cube {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        .cube.rolling {
+            animation: spin 0.6s linear infinite;
+        }
+
+        /* Slower spin */
+        .cube__face {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: #f8fafc;
+            border: 1px solid #94a3b8;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+            backface-visibility: hidden;
+        }
+
+        .cube__face--1 {
+            transform: rotateY(0deg) translateZ(25px);
+        }
+
+        .cube__face--2 {
+            transform: rotateY(90deg) translateZ(25px);
+        }
+
+        .cube__face--3 {
+            transform: rotateY(180deg) translateZ(25px);
+        }
+
+        .cube__face--4 {
+            transform: rotateY(-90deg) translateZ(25px);
+        }
+
+        .cube__face--5 {
+            transform: rotateX(90deg) translateZ(25px);
+        }
+
+        .cube__face--6 {
+            transform: rotateX(-90deg) translateZ(25px);
+        }
+
+        .dot-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            width: 60%;
+            height: 60%;
+        }
+
+        .dot {
+            background: #1e293b;
+            border-radius: 50%;
+            width: 8px;
+            height: 8px;
+            place-self: center;
+            box-shadow: inset 1px 1px 2px rgba(255, 255, 255, 0.2);
+        }
+
+        .header-bottom {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        #instruction-text {
+            margin: 5px 0 2px;
+            font-size: 0.85rem;
+            opacity: 0.9;
+            text-align: center;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            min-height: 1.2em;
+        }
+
+        #skip-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid #475569;
+            color: #94a3b8;
+            padding: 6px 20px;
+            border-radius: 15px;
+            margin-top: 5px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            opacity: 0;
+            pointer-events: none;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            z-index: 500;
+            /* Ensure clickable */
+        }
+
+        #skip-btn.show {
+            opacity: 1;
+            pointer-events: all;
+            border-color: rgba(255, 255, 255, 0.5);
+            /* Brighter border when active */
+            color: white;
+            /* Brighter text when active */
+        }
+
+        #skip-btn:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* --- Game Board --- */
+        #game-board {
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            padding: 5px 10px 10px 10px;
+            gap: 0;
+            align-items: stretch;
+            position: relative;
+            align-items: stretch;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .column {
+            flex: 1;
+            display: flex;
+            z-index: 1;
+            flex-direction: column;
+            justify-content: flex-start;
+            height: auto;
+            min-height: 100%;
+            position: relative;
+            padding-top: 0;
+        }
+
+        .header-slot {
+            flex: 0 0 auto;
+            width: 100%;
+            height: auto;
+            min-height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 5px;
+        }
+
+        .col-header {
+            width: 100%;
+            max-width: 90px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.9;
+            margin-bottom: 0;
+            font-weight: 700;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            text-shadow: 0 2px 4px #0f172a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .stats-sub {
+            font-size: 0.55rem;
+            opacity: 0.7;
+            font-weight: 400;
+            margin-top: 2px;
+            letter-spacing: 0px;
+            white-space: nowrap;
+        }
+
+        #col-p1 {
+            align-items: flex-end;
+            padding-right: 5px;
+        }
+
+        #col-p2 {
+            align-items: flex-start;
+            padding-left: 5px;
+        }
+
+        #col-center {
+            align-items: center;
+            flex: 0.8;
+        }
+
+        #col-p1 .col-header {
+            color: var(--accent-blue);
+        }
+
+        #col-p2 .col-header {
+            color: var(--card-heart);
+        }
+
+        .turn-glow {
+            position: absolute;
+            width: 50%;
+            height: 100%;
+            top: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        #glow-p1 {
+            left: 0;
+            background: radial-gradient(ellipse at center, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+        }
+
+        #glow-p2 {
+            right: 0;
+            background: radial-gradient(ellipse at center, rgba(225, 29, 72, 0.15) 0%, transparent 70%);
+        }
+
+        /* --- Cards --- */
+        .card-slot {
+            flex: 1 1 0;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2px;
+            min-height: 0;
+        }
+
+        .card {
+            height: 94%;
+            width: auto;
+            aspect-ratio: 2.5/3.5;
+            max-width: 90px;
+            background: var(--card-bg);
+            border-radius: 6px;
+            box-shadow: 0 3px 0 #cbd5e1, 0 3px 6px rgba(0, 0, 0, 0.3);
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s, opacity 0.3s, filter 0.3s;
+            font-family: var(--font-card);
+            transform-origin: center;
+        }
+
+        .card.poked {
+            animation: pokeClick 0.2s ease-in-out;
+        }
+
+        @keyframes pokeClick {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(0.92) translateY(2px);
+                box-shadow: 0 0 0 #cbd5e1;
+                filter: brightness(0.95);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        body.theme-classic .card.clubs {
+            color: var(--card-club);
+            border: 2px solid #94a3b8;
+            font-weight: bold;
+        }
+
+        body.theme-classic .card.hearts {
+            color: var(--card-heart);
+            border: 2px solid #fda4af;
+            font-weight: bold;
+        }
+
+        body.theme-classic .card.selected {
+            box-shadow: 0 8px 0 #cbd5e1, 0 10px 15px rgba(0, 0, 0, 0.4);
+            z-index: 10;
+            transform: translateY(-5px);
+            border-color: var(--primary-blue);
+        }
+
+        body.theme-classic .card.disabled {
+            opacity: 0.25;
+            filter: grayscale(0.8);
+            cursor: default;
+            box-shadow: none;
+            border-color: #64748b;
+        }
+
+        .card.in-center {
+            opacity: 1 !important;
+            filter: none !important;
+            box-shadow: 0 3px 0 #cbd5e1, 0 3px 6px rgba(0, 0, 0, 0.3) !important;
+            cursor: default;
+        }
+
+        body.theme-bold .card.clubs {
+            background: var(--primary-blue);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 3px 0 #1e3a8a, 0 3px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        body.theme-bold .card.hearts {
+            background: var(--card-heart);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 3px 0 #881337, 0 3px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        body.theme-bold .card.selected {
+            z-index: 10;
+            transform: translateY(-5px);
+            border: 2px solid white;
+        }
+
+        body.theme-bold .card.disabled {
+            opacity: 0.25;
+            cursor: default;
+            box-shadow: none;
+            border-color: transparent;
+        }
+
+        body.theme-bold .card.in-center {
+            opacity: 1 !important;
+            box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .card-corner {
+            position: absolute;
+            top: 3px;
+            left: 4px;
+            right: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .card-corner div:first-child {
+            font-size: 1.1rem;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .card-corner .mini-suit {
+            font-size: 0.8rem;
+            line-height: 1;
+        }
+
+        .card-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2.8em;
+        }
+
+        body.theme-bold .card-corner {
+            display: none;
+        }
+
+        body.theme-bold .card-center {
+            font-size: 3.5rem;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 900;
+        }
+
+        #action-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) scale(0.9);
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 12px 35px;
+            border-radius: 30px;
+            font-weight: 800;
+            font-size: 1rem;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.5);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.2s;
+            letter-spacing: 1px;
+            z-index: 200;
+        }
+
+        #action-btn.show {
+            opacity: 1;
+            pointer-events: all;
+            transform: translateX(-50%) scale(1);
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(8px);
+            z-index: 500;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        #start-screen {
+            background: rgba(15, 23, 42, 0.98);
+            z-index: 600;
+            gap: 20px;
+        }
+
+        .mode-btn {
+            background: transparent;
+            border: 2px solid var(--accent-blue);
+            color: white;
+            padding: 15px 40px;
+            width: 250px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .mode-btn:hover {
+            background: var(--accent-blue);
+            color: var(--bg-dark);
+            transform: scale(1.05);
+        }
+
+        .mode-btn.online-btn {
+            border-color: #10b981;
+        }
+
+        .mode-btn.online-btn:hover {
+            background: #10b981;
+        }
+
+        #start-logo {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+            letter-spacing: 5px;
+        }
+
+        .sub-link {
+            color: rgba(255, 255, 255, 0.5);
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            z-index: 1001;
+            position: relative;
+        }
+
+        .sub-link:hover {
+            color: white;
+        }
+
+        #lobby-ui {
+            text-align: center;
+            display: none;
+        }
+
+        #lobby-code {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--accent-blue);
+            margin: 20px 0;
+            letter-spacing: 5px;
+        }
+
+        #whatsapp-btn {
+            background: #25D366;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        #copy-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #ccc;
+            padding: 8px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            width: 100%;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px 30px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            position: relative;
+            color: var(--text-main);
+        }
+
+        .close-btn {
+            color: #aaa;
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            font-size: 28px;
+            cursor: pointer;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .setting-label {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0 20px 0;
+            font-size: 0.85rem;
+        }
+
+        .stats-table th {
+            text-align: center;
+            padding: 8px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .stats-table td {
+            padding: 8px;
+            font-weight: 700;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+        }
+
+        .stats-table td:first-child {
+            text-align: left;
+        }
+
+        .stats-p1 {
+            color: var(--accent-blue);
+        }
+
+        .stats-p2 {
+            color: var(--card-heart);
+        }
+
+        .stats-total {
+            color: #fff;
+            opacity: 0.8;
+            font-weight: 800;
+        }
+
+        .winner-announce {
+            font-size: 2rem;
+            font-weight: 900;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-align: center;
+        }
+
+        #play-again-btn {
+            width: 100%;
+            background: white;
+            color: var(--bg-dark);
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .switch-toggle {
+            display: flex;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 2px;
+            cursor: pointer;
+            position: relative;
+            width: 140px;
+            height: 36px;
+        }
+
+        .switch-option {
+            flex: 1;
+            text-align: center;
+            z-index: 2;
+            font-size: 0.8rem;
+            font-weight: 700;
+            line-height: 32px;
+            transition: color 0.3s;
+        }
+
+        .switch-bg {
+            position: absolute;
+            width: 50%;
+            height: 32px;
+            background: var(--primary-blue);
+            border-radius: 18px;
+            transition: transform 0.3s;
+            z-index: 1;
+        }
+
+        .switch-toggle[data-state="left"] .switch-bg {
+            transform: translateX(0);
+        }
+
+        .switch-toggle[data-state="right"] .switch-bg {
+            transform: translateX(100%);
+        }
+
+        .switch-toggle[data-state="left"] .opt-left {
+            color: white;
+        }
+
+        .switch-toggle[data-state="right"] .opt-right {
+            color: white;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotateX(0) rotateY(0);
+            }
+
+            100% {
+                transform: rotateX(360deg) rotateY(720deg);
+            }
+        }
+
+        #rules-modal {
+            z-index: 2000;
+        }
+    </style>
+</head>
+
+<body class="theme-classic">
+
+    <div id="splash-screen">
+        <img src="DD-Splash.png" alt="Dice Duel">
+    </div>
+
+    <header>
+        <div class="header-top">
+            <div id="main-title">DICE DUEL</div>
+            <div id="settings-btn" onclick="openSettings()">⚙️</div>
+        </div>
+
+        <div class="header-mid">
+            <div id="icon-left" class="player-icon active icon-club">♣</div>
+            <div class="scene" id="dice-area">
+                <div class="cube" id="dice1"></div>
+            </div>
+            <div id="icon-right" class="player-icon active icon-club">♣</div>
+        </div>
+
+        <div class="header-bottom">
+            <p id="instruction-text">Clubs, your turn to roll the dice.</p>
+            <button id="skip-btn">Pass Turn to Hearts</button>
+        </div>
+    </header>
+
+    <div id="game-board">
+        <div class="column" id="col-p1">
+            <div class="header-slot">
+                <div class="col-header" id="header-p1">CLUBS</div>
+            </div>
+            <div id="p1-slot-6" class="card-slot"></div>
+            <div id="p1-slot-5" class="card-slot"></div>
+            <div id="p1-slot-4" class="card-slot"></div>
+            <div id="p1-slot-3" class="card-slot"></div>
+            <div id="p1-slot-2" class="card-slot"></div>
+            <div id="p1-slot-1" class="card-slot"></div>
+        </div>
+        <div class="column" id="col-center">
+            <div class="header-slot">
+                <div class="col-header" style="opacity:0">.</div>
+            </div>
+            <div id="center-slot-6" class="card-slot"></div>
+            <div id="center-slot-5" class="card-slot"></div>
+            <div id="center-slot-4" class="card-slot"></div>
+            <div id="center-slot-3" class="card-slot"></div>
+            <div id="center-slot-2" class="card-slot"></div>
+            <div id="center-slot-1" class="card-slot"></div>
+        </div>
+        <div class="column" id="col-p2">
+            <div class="header-slot">
+                <div class="col-header" id="header-p2">HEARTS</div>
+            </div>
+            <div id="p2-slot-6" class="card-slot"></div>
+            <div id="p2-slot-5" class="card-slot"></div>
+            <div id="p2-slot-4" class="card-slot"></div>
+            <div id="p2-slot-3" class="card-slot"></div>
+            <div id="p2-slot-2" class="card-slot"></div>
+            <div id="p2-slot-1" class="card-slot"></div>
+        </div>
+    </div>
+
+    <button id="action-btn">MOVE CARDS</button>
+
+    <div id="start-screen" class="modal-overlay show">
+        <div id="start-logo">DICE DUEL</div>
+        <button class="mode-btn" onclick="startGame('1p')">1 PLAYER (AI)</button>
+        <button class="mode-btn" onclick="startGame('2p')">2 PLAYERS (LOCAL)</button>
+        <button class="mode-btn online-btn" onclick="initOnlineGame()">PLAY ONLINE</button>
+        <div class="sub-link" onclick="openRules()">How to Play</div>
+    </div>
+
+    <div id="lobby-screen" class="modal-overlay">
+        <div class="modal-content" style="text-align: center;">
+            <h2>Online Lobby</h2>
+            <p>Share this link to invite a friend.</p>
+            <div id="lobby-code">LOADING...</div>
+            <button id="whatsapp-btn" onclick="shareWhatsapp()">Invite via WhatsApp</button>
+            <button id="copy-btn" onclick="copyLink()">Copy Link</button>
+            <p style="font-size:0.8rem; margin-top:20px; opacity:0.6;">Waiting for opponent to join...</p>
+            <button onclick="location.reload()"
+                style="background:transparent; border:none; color:#999; margin-top:10px;">Cancel</button>
+        </div>
+    </div>
+
+    <div id="victory-overlay" class="modal-overlay">
+        <div class="modal-content" style="text-align: center;">
+            <div id="winner-text" class="winner-announce">CLUBS WINS!</div>
+            <table class="stats-table">
+                <thead>
+                    <tr>
+                        <th>Stat</th>
+                        <th>Clubs</th>
+                        <th>Hearts</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Moved</td>
+                        <td id="stat-p1-moves">0</td>
+                        <td id="stat-p2-moves">0</td>
+                        <td id="stat-total-moves" class="stats-total">0</td>
+                    </tr>
+                    <tr>
+                        <td>Bumps</td>
+                        <td id="stat-p1-bumps">0</td>
+                        <td id="stat-p2-bumps">0</td>
+                        <td id="stat-total-bumps" class="stats-total">0</td>
+                    </tr>
+                    <tr>
+                        <td>Skips</td>
+                        <td id="stat-p1-skips">0</td>
+                        <td id="stat-p2-skips">0</td>
+                        <td id="stat-total-skips" class="stats-total">0</td>
+                    </tr>
+                </tbody>
+            </table>
+            <button id="play-again-btn" onclick="fullReset()">PLAY AGAIN</button>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal-overlay" onclick="closeSettings(event)">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeSettings()">&times;</span>
+            <h2>Settings</h2>
+            <div class="setting-row">
+                <div class="setting-label">Card Style</div>
+                <div id="theme-toggle" class="switch-toggle" data-state="left" onclick="toggleTheme()">
+                    <div class="switch-bg"></div>
+                    <div class="switch-option opt-left">Classic</div>
+                    <div class="switch-option opt-right">Bold</div>
+                </div>
+            </div>
+            <h3 style="margin:10px 0 5px; font-size:0.8rem; opacity:0.6;">LIVE STATS</h3>
+            <table class="stats-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Clubs</th>
+                        <th>Hearts</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Moved</td>
+                        <td id="live-p1-moves">0</td>
+                        <td id="live-p2-moves">0</td>
+                        <td id="live-total-moves">0</td>
+                    </tr>
+                    <tr>
+                        <td>Bumps</td>
+                        <td id="live-p1-bumps">0</td>
+                        <td id="live-p2-bumps">0</td>
+                        <td id="live-total-bumps">0</td>
+                    </tr>
+                    <tr>
+                        <td>Skips</td>
+                        <td id="live-p1-skips">0</td>
+                        <td id="live-p2-skips">0</td>
+                        <td id="live-total-skips">0</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="setting-row" style="justify-content: center; border:none; gap:10px;">
+                <button onclick="openRules(); closeSettings()"
+                    style="width:48%; padding:10px; background:#334155; border:none; border-radius:8px; color:white; font-weight:bold; cursor:pointer;">How
+                    to Play</button>
+                <button onclick="confirmReset(); closeSettings()"
+                    style="width:48%; padding:10px; background:#ef4444; border:none; border-radius:8px; color:white; font-weight:bold; cursor:pointer;">Quit
+                    / Restart</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="rules-modal" class="modal-overlay" onclick="closeRules(event)">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeRules()">&times;</span>
+            <h2>How to Play</h2>
+            <p><strong>Goal:</strong> Move all 6 cards to the center stage.</p>
+            <ul>
+                <li>Roll the dice.</li>
+                <li>Select cards that sum to the roll.</li>
+                <li>Move them to the center.</li>
+            </ul>
+            <p><strong>Bump:</strong> Landing on an opponent's card sends it home.</p>
+        </div>
+    </div>
+
+    <script>
+        // --- HELPER FUNCTIONS ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
+            osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+
+            if (type === 'roll') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(600, now); osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+                gainNode.gain.setValueAtTime(0.1, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if (type === 'select') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(800, now); gainNode.gain.setValueAtTime(0.1, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if (type === 'move') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(300, now); osc.frequency.linearRampToValueAtTime(600, now + 0.2);
+                gainNode.gain.setValueAtTime(0.1, now); gainNode.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'bump') {
+                osc.type = 'square'; osc.frequency.setValueAtTime(150, now); osc.frequency.exponentialRampToValueAtTime(50, now + 0.2);
+                gainNode.gain.setValueAtTime(0.2, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now); osc.stop(now + 0.2);
+            } else if (type === 'shuffle') {
+                const bs = audioCtx.sampleRate * 0.5; const b = audioCtx.createBuffer(1, bs, audioCtx.sampleRate);
+                const d = b.getChannelData(0); for (let i = 0; i < bs; i++) { d[i] = Math.random() * 2 - 1; }
+                const n = audioCtx.createBufferSource(); n.buffer = b;
+                const ng = audioCtx.createGain(); n.connect(ng); ng.connect(audioCtx.destination);
+                ng.gain.setValueAtTime(0.2, now); ng.gain.exponentialRampToValueAtTime(0.01, now + 0.3); n.start(now);
+            }
+        }
+        function triggerHaptic() { if (navigator.vibrate) navigator.vibrate(15); }
+
+        // --- SPLASH SCREEN ---
+        window.onload = () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.classList.add('fade-out');
+                setTimeout(() => splash.remove(), 500);
+            }, 1500);
+        }
+
+        // --- FIREBASE SETUP ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjEu71FYxr8Ebqhd3fySP-4qxuWNxSC6Q",
+            authDomain: "finger-of-shame.firebaseapp.com",
+            projectId: "finger-of-shame",
+            storageBucket: "finger-of-shame.firebasestorage.app",
+            messagingSenderId: "940288270460",
+            appId: "1:940288270460:web:fb2681477c29523b7269f9",
+            measurementId: "G-0QT07HKZ8M",
+            databaseURL: "https://finger-of-shame-default-rtdb.europe-west1.firebasedatabase.app"
+        };
+
+        let db;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+        } catch (e) { console.log("Firebase Error", e); }
+
+        // --- GAME VARIABLES ---
+        let gameMode = '2p';
+        let onlineGameId = null;
+        let myRole = null;
+
+        let gameState = { turn: 'p1', roll: 1, hasRolled: false, centerSlots: { 1: null, 2: null, 3: null, 4: null, 5: null, 6: null }, winner: null };
+        let gameStats = { p1: { moves: 0, bumps: 0, skips: 0 }, p2: { moves: 0, bumps: 0, skips: 0 } };
+        let p1Home = { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true };
+        let p2Home = { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true };
+        let selectedValues = []; let isAnimating = false;
+
+        const instructionText = document.getElementById('instruction-text');
+        const diceEl = document.getElementById('dice1');
+        const diceArea = document.getElementById('dice-area');
+        const iconLeft = document.getElementById('icon-left');
+        const iconRight = document.getElementById('icon-right');
+        const skipBtn = document.getElementById('skip-btn');
+        const actionBtn = document.getElementById('action-btn');
+        const victoryOverlay = document.getElementById('victory-overlay');
+        const startScreen = document.getElementById('start-screen');
+        const lobbyScreen = document.getElementById('lobby-screen');
+        const settingsModal = document.getElementById('settings-modal');
+        const rulesModal = document.getElementById('rules-modal');
+        const themeToggle = document.getElementById('theme-toggle');
+        const headerP1 = document.getElementById('header-p1');
+        const headerP2 = document.getElementById('header-p2');
+        const statsP1 = document.getElementById('stats-p1');
+        const statsP2 = document.getElementById('stats-p2');
+
+        initDiceFaces(diceEl);
+        initBoard();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const inviteId = urlParams.get('game');
+        if (inviteId && db) {
+            joinOnlineGame(inviteId);
+        }
+
+        function initBoard() {
+            for (let i = 1; i <= 6; i++) { createCardElement('p1', i); createCardElement('p2', i); }
+        }
+
+        function createCardElement(player, value) {
+            const card = document.createElement('div');
+            card.className = `card ${player === 'p1' ? 'clubs' : 'hearts'}`;
+            card.id = `card-${player}-${value}`;
+            const suitIcon = player === 'p1' ? '♣' : '♥';
+            const displayVal = value === 1 ? 'A' : value;
+            card.innerHTML = `<div class="card-corner"><div>${displayVal}</div><div class="mini-suit">${suitIcon}</div></div><div class="card-center">${suitIcon}</div>`;
+            card.onclick = () => handleCardClick(player, value);
+            document.getElementById(`${player}-slot-${value}`).appendChild(card);
+        }
+
+        function handleCardClick(player, value) {
+            if (isAnimating || gameState.winner || !gameState.hasRolled) return;
+            if (gameMode === 'online' && player !== myRole) return;
+            if (gameMode === '1p' && player === 'p2') return;
+            if (player !== gameState.turn) return;
+
+            const isHome = player === 'p1' ? p1Home[value] : p2Home[value];
+            if (!isHome) return;
+
+            const cardEl = document.getElementById(`card-${player}-${value}`);
+            if (selectedValues.includes(value)) {
+                selectedValues = selectedValues.filter(v => v !== value);
+                cardEl.classList.remove('selected');
+            } else {
+                selectedValues.push(value);
+                cardEl.classList.add('selected');
+                playSound('select'); triggerHaptic();
+            }
+            checkSelection();
+        }
+
+        function checkSelection() {
+            const sum = selectedValues.reduce((a, b) => a + b, 0);
+            if (sum === gameState.roll) {
+                actionBtn.innerText = "POKE TO MOVE"; actionBtn.classList.add('show');
+            } else {
+                actionBtn.classList.remove('show');
+            }
+        }
+
+        // --- ONLINE LOGIC ---
+
+        function initOnlineGame() {
+            if (!db) { alert("Database Error"); return; }
+            gameMode = 'online';
+            onlineGameId = Math.random().toString(36).substring(2, 8).toUpperCase();
+            myRole = 'p1';
+
+            db.ref('dice_game/rooms/' + onlineGameId).set({
+                gameState: gameState,
+                p1Home: p1Home,
+                p2Home: p2Home,
+                gameStats: gameStats,
+                status: 'waiting'
+            });
+
+            startScreen.classList.remove('show');
+            lobbyScreen.classList.add('show');
+            document.getElementById('lobby-code').innerText = onlineGameId;
+
+            // Listen for status changes
+            db.ref('dice_game/rooms/' + onlineGameId + '/status').on('value', (snap) => {
+                if (snap.val() === 'active') {
+                    lobbyScreen.classList.remove('show');
+                    startGameListener();
+                } else if (snap.val() === 'waiting') {
+                    // Game reset! Show Lobby
+                    victoryOverlay.classList.remove('show');
+                    startScreen.classList.remove('show');
+                    lobbyScreen.classList.add('show');
+                    // Reset local visuals
+                    document.querySelectorAll('.card').forEach(c => {
+                        c.classList.remove('in-center', 'selected');
+                        c.style.transform = '';
+                    });
+                    gameState.centerSlots = { 1: null, 2: null, 3: null, 4: null, 5: null, 6: null };
+                    syncDOMtoState();
+                }
+            });
+        }
+
+        function joinOnlineGame(id) {
+            if (!db) return;
+            gameMode = 'online';
+            onlineGameId = id;
+
+            db.ref('dice_game/rooms/' + id).once('value', (snap) => {
+                if (snap.exists()) {
+                    const savedRole = localStorage.getItem('role_' + id);
+                    if (savedRole) {
+                        myRole = savedRole;
+                    } else {
+                        myRole = 'p2';
+                        localStorage.setItem('role_' + id, 'p2');
+                        db.ref('dice_game/rooms/' + id + '/status').set('active');
+                    }
+                    startScreen.classList.remove('show');
+                    startGameListener();
+
+                    // Add listener for resets on P2 side too
+                    db.ref('dice_game/rooms/' + id + '/status').on('value', (snap) => {
+                        if (snap.val() === 'waiting') {
+                            victoryOverlay.classList.remove('show');
+                            lobbyScreen.classList.add('show');
+                            document.getElementById('lobby-code').innerText = onlineGameId;
+                        }
+                    });
+
+                } else {
+                    alert("Game not found!");
+                }
+            });
+        }
+
+        function startGameListener() {
+            db.ref('dice_game/rooms/' + onlineGameId).on('value', (snap) => {
+                const data = snap.val();
+                if (!data) return;
+
+                // Only update if we aren't currently animating a local roll
+                if (!isAnimating) {
+                    gameState = data.gameState || {};
+                    if (!gameState.centerSlots) gameState.centerSlots = { 1: null, 2: null, 3: null, 4: null, 5: null, 6: null };
+
+                    p1Home = data.p1Home || {};
+                    p2Home = data.p2Home || {};
+                    gameStats = data.gameStats || { p1: { moves: 0, bumps: 0, skips: 0 }, p2: { moves: 0, bumps: 0, skips: 0 } };
+                    if (!gameStats.p1) gameStats.p1 = { moves: 0, bumps: 0, skips: 0 };
+                    if (!gameStats.p2) gameStats.p2 = { moves: 0, bumps: 0, skips: 0 };
+
+                    syncDOMtoState();
+                    updateDiceVisual(diceEl, gameState.roll);
+                    updateUI();
+
+                    if (gameState.winner) handleWin(gameState.winner);
+                }
+            });
+        }
+
+        function syncOnline() {
+            if (gameMode === 'online' && db) {
+                db.ref('dice_game/rooms/' + onlineGameId).update({
+                    gameState: gameState,
+                    p1Home: p1Home,
+                    p2Home: p2Home,
+                    gameStats: gameStats
+                });
+            }
+        }
+
+        function syncDOMtoState() {
+            document.querySelectorAll('.card').forEach(c => {
+                c.classList.remove('in-center', 'selected');
+                c.style.transform = '';
+            });
+
+            for (let i = 1; i <= 6; i++) {
+                let p1Slot = p1Home[i] ? `p1-slot-${i}` : (gameState.centerSlots && gameState.centerSlots[i] === 'p1' ? `center-slot-${i}` : null);
+                if (p1Slot) {
+                    const card = document.getElementById(`card-p1-${i}`);
+                    document.getElementById(p1Slot).appendChild(card);
+                    if (p1Slot.includes('center')) card.classList.add('in-center');
+                }
+                let p2Slot = p2Home[i] ? `p2-slot-${i}` : (gameState.centerSlots && gameState.centerSlots[i] === 'p2' ? `center-slot-${i}` : null);
+                if (p2Slot) {
+                    const card = document.getElementById(`card-p2-${i}`);
+                    document.getElementById(p2Slot).appendChild(card);
+                    if (p2Slot.includes('center')) card.classList.add('in-center');
+                }
+            }
+        }
+
+        function shareWhatsapp() {
+            const url = window.location.href.split('?')[0] + '?game=' + onlineGameId;
+            const text = `Join my Dice Duel game! Click here: ${url}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);
+        }
+        function copyLink() {
+            const url = window.location.href.split('?')[0] + '?game=' + onlineGameId;
+            navigator.clipboard.writeText(url);
+            alert("Link copied!");
+        }
+
+        diceArea.onclick = () => {
+            if (isAnimating && !diceEl.classList.contains('rolling')) { isAnimating = false; }
+            if (gameState.hasRolled || gameState.winner || isAnimating) return;
+            if (gameMode === 'online' && gameState.turn !== myRole) return;
+            if (gameMode === '1p' && gameState.turn === 'p2') return;
+            triggerRoll();
+        };
+
+        function triggerRoll() {
+            isAnimating = true;
+            diceEl.classList.add('rolling');
+            document.querySelector('.scene').classList.remove('dice-pulse');
+
+            // State driven text handles display
+
+            let rollInterval = setInterval(() => { playSound('roll'); if (Math.random() > 0.5) triggerHaptic(); }, 150);
+
+            setTimeout(() => {
+                try {
+                    clearInterval(rollInterval);
+                    const r = Math.floor(Math.random() * 6) + 1;
+                    diceEl.classList.remove('rolling');
+
+                    gameState.roll = r;
+                    gameState.hasRolled = true;
+
+                    updateDiceVisual(diceEl, r);
+                    triggerHaptic();
+
+                    syncOnline();
+
+                    if (gameMode === '1p' && gameState.turn === 'p2') {
+                        setTimeout(aiDecideMove, 1000);
+                    } else {
+                        skipBtn.classList.add('show');
+                    }
+                } catch (e) {
+                    console.error("Roll Error", e);
+                } finally {
+                    isAnimating = false;
+                    updateUI();
+                }
+            }, 800);
+        }
+
+        actionBtn.onclick = () => performMove();
+
+        function performMove() {
+            if (isAnimating) return;
+            const player = gameState.turn; const opponent = player === 'p1' ? 'p2' : 'p1';
+            isAnimating = true; actionBtn.classList.remove('show'); skipBtn.classList.remove('show');
+
+            gameStats[player].moves += selectedValues.length;
+
+            let pokePromises = selectedValues.map(val => {
+                const card = document.getElementById(`card-${player}-${val}`);
+                card.classList.add('poked'); triggerHaptic();
+                return new Promise(r => setTimeout(r, 200));
+            });
+
+            Promise.all(pokePromises).then(() => {
+                playSound('move'); let animations = [];
+                selectedValues.forEach(val => {
+                    const card = document.getElementById(`card-${player}-${val}`);
+                    card.classList.remove('poked');
+                    card.classList.add('in-center');
+
+                    if (player === 'p1') p1Home[val] = false; else p2Home[val] = false;
+
+                    if (gameState.centerSlots && gameState.centerSlots[val] === opponent) {
+                        gameStats[player].bumps++;
+                        if (opponent === 'p1') p1Home[val] = true; else p2Home[val] = true;
+
+                        const opCard = document.getElementById(`card-${opponent}-${val}`);
+                        opCard.classList.remove('in-center');
+
+                        gameState.centerSlots[val] = null;
+                        setTimeout(() => { playSound('bump'); triggerHaptic(); }, 200);
+                        animations.push(moveCardInDOM(opponent, val, 'center', 'home'));
+                    }
+                    if (!gameState.centerSlots) gameState.centerSlots = {};
+                    gameState.centerSlots[val] = player;
+                    animations.push(moveCardInDOM(player, val, 'home', 'center'));
+                });
+                Promise.all(animations).then(() => {
+                    selectedValues = [];
+                    // VITAL FIX: Clear animation flag BEFORE calling passTurn()
+                    isAnimating = false;
+
+                    if (checkWin(player)) {
+                        handleWin(player);
+                    } else {
+                        passTurn();
+                    }
+                });
+            });
+        }
+
+        function passTurn() {
+            try {
+                gameState.turn = gameState.turn === 'p1' ? 'p2' : 'p1';
+                gameState.hasRolled = false;
+                selectedValues = [];
+                skipBtn.classList.remove('show');
+                actionBtn.classList.remove('show');
+                document.querySelectorAll('.card.selected').forEach(el => el.classList.remove('selected'));
+
+                syncOnline();
+                updateUI();
+
+                if (gameMode === '1p' && gameState.turn === 'p2' && !gameState.winner) {
+                    setTimeout(triggerRoll, 1000);
+                }
+            } catch (e) { console.error("PassTurn Error", e); }
+        }
+
+        function startGame(mode) {
+            gameMode = mode;
+            startScreen.classList.remove('show');
+            fullReset();
+        }
+
+        function updateUI() {
+            const isP1 = gameState.turn === 'p1';
+            iconLeft.innerText = isP1 ? "♣" : "♥"; iconRight.innerText = isP1 ? "♣" : "♥";
+            iconLeft.className = isP1 ? "player-icon active icon-club pulse" : "player-icon active icon-heart pulse";
+            iconRight.className = isP1 ? "player-icon active icon-club pulse" : "player-icon active icon-heart pulse";
+
+            const playerName = isP1 ? "Clubs" : "Hearts";
+            const opponentName = isP1 ? "Hearts" : "Clubs";
+
+            const diceScene = document.querySelector('.scene');
+
+            // Fix: Self-Healing Logic for stuck text
+            if (isAnimating) {
+                instructionText.innerText = "Rolling...";
+            } else if (!gameState.hasRolled && !gameState.winner) {
+                // If text was stuck on "Rolling..." but isAnimating is false, fix it
+                if (diceEl.classList.contains('rolling')) diceEl.classList.remove('rolling');
+
+                if ((gameMode === '1p' && !isP1) || (gameMode === 'online' && gameState.turn !== myRole)) {
+                    diceScene.classList.remove('dice-pulse');
+                    instructionText.innerText = "Opponent is thinking...";
+                } else {
+                    diceScene.classList.add('dice-pulse');
+                    instructionText.innerText = `${playerName}, your turn to roll.`;
+                }
+            } else if (gameState.hasRolled) {
+                diceScene.classList.remove('dice-pulse');
+
+                if ((gameMode === '1p' && !isP1) || (gameMode === 'online' && gameState.turn !== myRole)) {
+                    instructionText.innerText = "Opponent is selecting...";
+                } else {
+                    instructionText.innerText = `Rolled a ${gameState.roll}`;
+                }
+            }
+
+            // Pass Button Visibility
+            if (gameState.hasRolled && !gameState.winner &&
+                ((gameMode === 'online' && gameState.turn === myRole) || gameMode !== 'online')) {
+                // EXPLICIT FIX: Hide pass button in 1P mode if it is the Computer's turn
+                if (gameMode === '1p' && gameState.turn === 'p2') {
+                    skipBtn.classList.remove('show');
+                } else {
+                    skipBtn.classList.add('show');
+                }
+            } else {
+                skipBtn.classList.remove('show');
+            }
+
+            skipBtn.innerText = `Pass Turn to ${opponentName}`;
+            updateStatsTables();
+
+            for (let i = 1; i <= 6; i++) {
+                const p1Card = document.getElementById(`card-p1-${i}`);
+                const isP1Active = isP1 && p1Home[i];
+                p1Card.classList.toggle('disabled', !isP1Active);
+                const p2Card = document.getElementById(`card-p2-${i}`);
+                const isP2Active = !isP1 && p2Home[i];
+                p2Card.classList.toggle('disabled', !isP2Active);
+            }
+        }
+
+        // Add event listener for Pass Button separately to ensure binding
+        skipBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // Guard clause: Prevent cheating in 1P mode
+            if (gameMode === '1p' && gameState.turn === 'p2') return;
+
+            if (!gameState.hasRolled) return;
+            // Safe stat increment
+            if (!gameStats[gameState.turn]) gameStats[gameState.turn] = { moves: 0, bumps: 0, skips: 0 };
+            gameStats[gameState.turn].skips++;
+            passTurn();
+        });
+
+        // ... [Rest of stats, win, theme, settings, reset logic same as before] ...
+        function updateStatsTables() {
+            const stats = ['moves', 'bumps', 'skips'];
+            stats.forEach(s => {
+                const p1v = gameStats.p1[s]; const p2v = gameStats.p2[s];
+                document.getElementById(`live-p1-${s}`).innerText = p1v;
+                document.getElementById(`live-p2-${s}`).innerText = p2v;
+                document.getElementById(`live-total-${s}`).innerText = p1v + p2v;
+                document.getElementById(`stat-p1-${s}`).innerText = p1v;
+                document.getElementById(`stat-p2-${s}`).innerText = p2v;
+                document.getElementById(`stat-total-${s}`).innerText = p1v + p2v;
+            });
+        }
+        function handleWin(player) {
+            gameState.winner = player; updateUI();
+            var duration = 3000; var end = Date.now() + duration;
+            (function frame() {
+                confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, zIndex: 2000 });
+                confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, zIndex: 2000 });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+            victoryOverlay.classList.add('show');
+            document.getElementById('winner-text').innerText = `${player === 'p1' ? 'Clubs' : 'Hearts'} WINS!`;
+            if (gameMode === 'online') syncOnline();
+        }
+        function toggleTheme() {
+            const body = document.body;
+            if (body.classList.contains('theme-classic')) {
+                body.classList.remove('theme-classic'); body.classList.add('theme-bold');
+                themeToggle.setAttribute('data-state', 'right');
+                document.querySelectorAll('.card').forEach(c => {
+                    const val = c.id.split('-')[2];
+                    c.innerHTML = `<div class="card-center">${val === '1' ? 'A' : val}</div>`;
+                });
+            } else {
+                body.classList.remove('theme-bold'); body.classList.add('theme-classic');
+                themeToggle.setAttribute('data-state', 'left');
+                document.querySelectorAll('.card').forEach(c => {
+                    const parts = c.id.split('-'); const icon = parts[1] === 'p1' ? '♣' : '♥'; const val = parts[2];
+                    const disp = val === '1' ? 'A' : val;
+                    c.innerHTML = `<div class="card-corner"><div>${disp}</div><div class="mini-suit">${icon}</div></div><div class="card-center">${icon}</div>`;
+                });
+            }
+        }
+        function openSettings() { settingsModal.classList.add('show'); updateUI(); }
+        function closeSettings(e) { if (!e || e.target === settingsModal || e.target.classList.contains('close-btn') || e.target.tagName === 'BUTTON') settingsModal.classList.remove('show'); }
+        function openRules() { rulesModal.classList.add('show'); }
+        function closeRules(e) { if (!e || e.target === rulesModal || e.target.classList.contains('close-btn')) rulesModal.classList.remove('show'); }
+        function confirmReset() { if (confirm("Restart Game?")) fullReset(); }
+        function fullReset() {
+            if (gameMode === 'online' && db) {
+                db.ref('dice_game/rooms/' + onlineGameId).update({
+                    status: 'waiting',
+                    gameState: { turn: 'p1', roll: 1, hasRolled: false, centerSlots: { 1: null, 2: null, 3: null, 4: null, 5: null, 6: null }, winner: null },
+                    p1Home: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true },
+                    p2Home: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true },
+                    gameStats: { p1: { moves: 0, bumps: 0, skips: 0 }, p2: { moves: 0, bumps: 0, skips: 0 } }
+                });
+            } else {
+                victoryOverlay.classList.remove('show'); playSound('shuffle'); triggerHaptic();
+                let animations = [];
+                for (let i = 1; i <= 6; i++) {
+                    if (gameState.centerSlots && gameState.centerSlots[i] === 'p1') animations.push(moveCardInDOM('p1', i, 'center', 'home'));
+                    else if (gameState.centerSlots && gameState.centerSlots[i] === 'p2') animations.push(moveCardInDOM('p2', i, 'center', 'home'));
+                }
+                Promise.all(animations).then(() => {
+                    gameState = { turn: 'p1', roll: 1, hasRolled: false, centerSlots: { 1: null, 2: null, 3: null, 4: null, 5: null, 6: null }, winner: null };
+                    gameStats = { p1: { moves: 0, bumps: 0, skips: 0 }, p2: { moves: 0, bumps: 0, skips: 0 } };
+                    p1Home = { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true }; p2Home = { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true };
+                    document.querySelectorAll('.card').forEach(c => c.classList.remove('in-center'));
+                    updateDiceVisual(diceEl, 1); updateUI();
+                    skipBtn.classList.remove('show'); actionBtn.classList.remove('show');
+                });
+            }
+        }
+        function aiDecideMove() {
+            const roll = gameState.roll; const available = [];
+            for (let i = 1; i <= 6; i++) { if (p2Home[i]) available.push(i); }
+            const subsets = getAllSubsets(available, roll);
+            if (subsets.length === 0) { setTimeout(() => { gameStats.p2.skips++; passTurn(); }, 1000); return; }
+            const exactMatch = subsets.find(s => s.length === 1);
+            let chosenSubset = exactMatch ? exactMatch : (Math.random() < 0.1 ? null : subsets[0]);
+            if (!chosenSubset) { instructionText.innerText = "Computer missed a move..."; setTimeout(() => { gameStats.p2.skips++; passTurn(); }, 1500); }
+            else { simulateAISelection(chosenSubset); }
+        }
+        function simulateAISelection(subset) {
+            let index = 0;
+            function selectNext() {
+                if (index < subset.length) {
+                    const val = subset[index];
+                    const card = document.getElementById(`card-p2-${val}`);
+                    selectedValues.push(val); card.classList.add('selected'); playSound('select'); index++; setTimeout(selectNext, 500);
+                } else { setTimeout(performMove, 500); }
+            } selectNext();
+        }
+        function getAllSubsets(n, t) {
+            let r = []; function f(t, i, c) { if (t === 0) { r.push([...c]); return; } if (t < 0 || i >= n.length) return; c.push(n[i]); f(t - n[i], i + 1, c); c.pop(); f(t, i + 1, c); } f(t, 0, []); return r;
+        }
+        function moveCardInDOM(player, val, fromLoc, toLoc) {
+            return new Promise(resolve => {
+                const card = document.getElementById(`card-${player}-${val}`);
+                const targetSlot = document.getElementById(toLoc === 'home' ? `${player}-slot-${val}` : `center-slot-${val}`);
+                const first = card.getBoundingClientRect(); targetSlot.appendChild(card); const last = card.getBoundingClientRect();
+                const deltaX = first.left - last.left; const deltaY = first.top - last.top;
+                card.style.transition = 'none'; card.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+                requestAnimationFrame(() => {
+                    card.classList.remove('selected');
+                    card.style.transition = 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                    card.style.transform = ''; setTimeout(resolve, 500);
+                });
+            });
+        }
+        function checkWin(player) {
+            for (let i = 1; i <= 6; i++) { if (gameState.centerSlots && gameState.centerSlots[i] !== player) return false; } return true;
+        }
+        function updateDiceVisual(el, val) {
+            const map = { 1: [0, 0], 2: [0, -90], 3: [0, -180], 4: [0, 90], 5: [-90, 0], 6: [90, 0] };
+            el.style.transform = `rotateX(${map[val][0]}deg) rotateY(${map[val][1]}deg)`;
+        }
+        function initDiceFaces(el) {
+            const configs = [{ r: 2, c: 2 }, { r1: 1, c1: 1, r2: 3, c2: 3 }, { r1: 1, c1: 1, r2: 2, c2: 2, r3: 3, c3: 3 }, { r1: 1, c1: 1, r2: 1, c2: 3, r3: 3, c3: 1, r4: 3, c4: 3 }, { r1: 1, c1: 1, r2: 1, c2: 3, r3: 2, c3: 2, r4: 3, c4: 1, r5: 3, c5: 3 }, { r1: 1, c1: 1, r2: 1, c2: 3, r3: 2, c3: 1, r4: 2, c4: 3, r5: 3, c5: 1, r6: 3, c6: 3 }];
+            for (let i = 0; i < 6; i++) {
+                const face = document.createElement('div'); face.className = `cube__face cube__face--${i + 1}`;
+                const cont = document.createElement('div'); cont.className = 'dot-container';
+                for (const key in configs[i]) {
+                    if (key.startsWith('r')) {
+                        const dot = document.createElement('div'); dot.className = 'dot';
+                        dot.style.gridRow = configs[i][key]; dot.style.gridColumn = configs[i]['c' + key.substring(1)] || configs[i].c;
+                        cont.appendChild(dot);
+                    }
+                } face.appendChild(cont); el.appendChild(face);
+            }
+        }
+    </script>
+</body>
+
+</html>

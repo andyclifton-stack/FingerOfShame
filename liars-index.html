@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Liar's Lounge</title>
+
+    <meta name="theme-color" content="#1e1b4b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest"
+        href='data:application/manifest+json,{"name":"Liars Lounge","short_name":"Liars","start_url":".","display":"standalone","background_color":"#0f172a","theme_color":"#1e1b4b","orientation":"portrait","icons":[{"src":"https://emojicdn.elk.sh/🎲?style=twitter","sizes":"192x192","type":"image/png"}]}'>
+
+    <link id="favicon" rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎲</text></svg>">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --accent-gold: #f59e0b;
+            --accent-purple: #8b5cf6;
+            --text-main: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- SPLASH SCREEN --- */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #0f172a;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s ease-out, visibility 0.8s;
+        }
+
+        #splash-screen.fade-out {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .splash-img {
+            width: 85%;
+            max-width: 400px;
+            border-radius: 20px;
+            box-shadow: 0 0 60px rgba(139, 92, 246, 0.4);
+            animation: splashBreath 3s infinite ease-in-out;
+        }
+
+        @keyframes splashBreath {
+
+            0%,
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 60px rgba(139, 92, 246, 0.4);
+            }
+
+            50% {
+                transform: scale(1.02);
+                box-shadow: 0 0 80px rgba(245, 158, 11, 0.6);
+            }
+        }
+
+        .splash-loader {
+            margin-top: 30px;
+            font-size: 0.9rem;
+            color: #cbd5e1;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            animation: pulse 1s infinite;
+        }
+
+        /* --- TOAST --- */
+        #toast {
+            position: fixed;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #22c55e;
+            color: #064e3b;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 20px;
+            z-index: 2000;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: top 0.3s ease-out;
+        }
+
+        #toast.show {
+            top: 20px;
+        }
+
+        /* --- VIEWS --- */
+        .view {
+            display: none;
+            height: 100%;
+            width: 100%;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .view.active {
+            display: flex;
+        }
+
+        /* --- UI ELEMENTS --- */
+        h1 {
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            margin: 0;
+            background: linear-gradient(to right, #a78bfa, #f472b6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        .setup-box {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        input {
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            background: #1e293b;
+            color: white;
+            font-size: 1.1rem;
+            text-align: center;
+            text-transform: uppercase;
+            font-weight: bold;
+            width: 100%;
+        }
+
+        .btn {
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: transform 0.1s;
+            width: 100%;
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn-primary {
+            background: var(--accent-purple);
+            color: white;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-secondary {
+            background: #334155;
+            color: #cbd5e1;
+        }
+
+        .btn-whatsapp {
+            background: #25D366;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .btn-copy {
+            background: transparent;
+            border: 1px solid #475569;
+            color: #94a3b8;
+            padding: 10px;
+            font-size: 0.8rem;
+        }
+
+        /* Start Button Pulse */
+        .btn-start-pulse {
+            background: var(--accent-purple);
+            color: white;
+            animation: pulseGlow 2s infinite;
+            box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7);
+        }
+
+        @keyframes pulseGlow {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7);
+            }
+
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 15px rgba(139, 92, 246, 0);
+            }
+
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(139, 92, 246, 0);
+            }
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            color: #475569;
+            font-size: 0.8rem;
+            margin: 10px 0;
+            width: 100%;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid #334155;
+        }
+
+        .divider::before {
+            margin-right: 10px;
+        }
+
+        .divider::after {
+            margin-left: 10px;
+        }
+
+        /* --- PREVIEW LIST --- */
+        .preview-list {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 10px;
+            width: 100%;
+            text-align: left;
+            font-size: 0.9rem;
+            color: #cbd5e1;
+            margin-bottom: 10px;
+        }
+
+        .preview-title {
+            font-size: 0.7rem;
+            color: var(--accent-gold);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        /* --- LOBBY --- */
+        .lobby-header {
+            text-align: center;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        .room-badge {
+            background: #334155;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-family: monospace;
+            font-size: 1.2rem;
+            color: var(--accent-gold);
+            letter-spacing: 2px;
+            display: inline-block;
+        }
+
+        .player-list {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 10px;
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .player-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            align-items: center;
+        }
+
+        .player-avatar {
+            width: 30px;
+            height: 30px;
+            background: #334155;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            margin-right: 10px;
+        }
+
+        /* --- WAITING TEXT --- */
+        .waiting-text-large {
+            font-size: 1.2rem;
+            color: var(--accent-gold);
+            font-weight: 900;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            animation: textPulse 2s infinite ease-in-out;
+            text-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(245, 158, 11, 0.05);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        @keyframes textPulse {
+            0% {
+                opacity: 0.6;
+                transform: scale(0.98);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.02);
+            }
+
+            100% {
+                opacity: 0.6;
+                transform: scale(0.98);
+            }
+        }
+
+        /* --- GAME HEADER --- */
+        .header-controls {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 50;
+            pointer-events: none;
+        }
+
+        .header-controls>* {
+            pointer-events: auto;
+        }
+
+        .player-greeting {
+            color: var(--accent-gold);
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .rules-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            color: #cbd5e1;
+            font-weight: bold;
+            font-size: 0.8rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* --- GAME TABLE --- */
+        #game-view {
+            padding: 0;
+            background: radial-gradient(circle at center, #1e1b4b 0%, #020617 100%);
+        }
+
+        .opponents-bar {
+            width: 100%;
+            padding: 15px;
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+            scrollbar-width: none;
+            min-height: 90px;
+            align-items: center;
+            margin-top: 60px;
+        }
+
+        .opp-card {
+            background: #1e293b;
+            border-radius: 10px;
+            padding: 10px 15px;
+            min-width: 85px;
+            text-align: center;
+            opacity: 0.6;
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .opp-card.active-turn {
+            border-color: var(--accent-gold);
+            opacity: 1;
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+            z-index: 10;
+        }
+
+        .opp-name {
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-bottom: 4px;
+            white-space: nowrap;
+        }
+
+        .opp-dice-count {
+            font-size: 1.2rem;
+        }
+
+        .table-center {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .current-bid-box {
+            text-align: center;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.9;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.9;
+            }
+        }
+
+        .bid-label {
+            font-size: 0.7rem;
+            color: var(--accent-gold);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .bid-display {
+            font-size: 3rem;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        /* --- DICE --- */
+        .die-svg {
+            width: 50px;
+            height: 50px;
+            filter: drop-shadow(0px 3px 0px #94a3b8);
+            border-radius: 10px;
+        }
+
+        .die-svg.lg {
+            width: 70px;
+            height: 70px;
+        }
+
+        .die-svg.sm {
+            width: 25px;
+            height: 25px;
+            filter: none;
+        }
+
+        .die-svg.dead {
+            opacity: 0.3;
+            filter: grayscale(1);
+        }
+
+        .my-hand {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 5px;
+            justify-content: center;
+            perspective: 800px;
+        }
+
+        .die-container {
+            width: 50px;
+            height: 50px;
+            transition: transform 0.1s;
+        }
+
+        .die-rolling {
+            animation-name: roll3D;
+            animation-timing-function: ease-out;
+            animation-fill-mode: both;
+        }
+
+        @keyframes roll3D {
+            0% {
+                transform: rotate3d(1, 1, 1, 720deg) scale(0.5);
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: rotate3d(0, 0, 0, 0deg) scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* --- CONTROLS --- */
+        .my-area {
+            width: 100%;
+            padding: 20px;
+            background: #0f172a;
+            border-top: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
+        }
+
+        .controls-container {
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .controls-container.show {
+            display: flex;
+        }
+
+        .bid-rows {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .bid-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .bid-col-label {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .bid-selector {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #1e293b;
+            padding: 5px;
+            border-radius: 12px;
+        }
+
+        .selector-btn {
+            width: 40px;
+            height: 50px;
+            background: #334155;
+            border-radius: 8px;
+            font-size: 1.5rem;
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .selector-btn:active {
+            transform: scale(0.95);
+        }
+
+        .selector-val {
+            font-size: 1.5rem;
+            font-weight: bold;
+            flex: 1;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .bid-sentence {
+            display: none;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .strategy-tip {
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid #22c55e;
+            color: #86efac;
+            font-size: 0.8rem;
+            padding: 8px;
+            border-radius: 8px;
+            text-align: center;
+            width: 100%;
+            margin-bottom: 5px;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* --- MODALS --- */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .rules-content {
+            background: #1e293b;
+            border: 1px solid var(--accent-purple);
+            border-radius: 15px;
+            padding: 25px;
+            max-width: 500px;
+            width: 90%;
+            text-align: left;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .rules-list {
+            padding-left: 20px;
+            line-height: 1.6;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+        }
+
+        .rules-list li {
+            margin-bottom: 10px;
+        }
+
+        .close-rules {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.5rem;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+        }
+
+        .reveal-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 20px 0;
+            width: 100%;
+            max-width: 400px;
+            max-height: 40vh;
+            overflow-y: auto;
+        }
+
+        .reveal-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 8px;
+        }
+
+        .mini-dice-row {
+            display: flex;
+            gap: 4px;
+        }
+
+        .story-box {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+
+        .story-line {
+            font-size: 0.9rem;
+            color: #cbd5e1;
+            margin-bottom: 5px;
+        }
+
+        .story-result {
+            font-size: 1.1rem;
+            color: var(--accent-gold);
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .btn-confirm-thumbs {
+            font-size: 3rem;
+            background: #22c55e;
+            border: none;
+            border-radius: 20px;
+            width: 100%;
+            padding: 15px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 5px 15px rgba(34, 197, 94, 0.4);
+        }
+
+        .btn-confirm-thumbs:active {
+            transform: scale(0.95);
+        }
+
+        .btn-oops {
+            background: transparent;
+            border: none;
+            color: #ef4444;
+            margin-top: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 0.9rem;
+        }
+
+        /* Confetti Canvas */
+        #confetti-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 200;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="splash-screen">
+        <img src="LL-Splash.png" alt="Liar's Lounge" class="splash-img">
+        <div class="splash-loader">ENTERING LOUNGE...</div>
+    </div>
+
+    <div id="toast">Link Copied!</div>
+
+    <div id="view-setup" class="view active">
+        <h1>Liar's Lounge 🤥</h1>
+        <p class="subtitle">Bluff. Bet. Survive.</p>
+
+        <div class="setup-box">
+            <input type="text" id="player-name" placeholder="Enter Your Name" maxlength="12">
+            <div id="setup-default">
+                <button class="btn btn-primary" onclick="createGame()">Host New Game 🏠</button>
+                <div class="divider">OR</div>
+                <button class="btn btn-secondary" onclick="toggleJoinInput()">Join Existing Game</button>
+                <div id="manual-join-area" style="display:none; margin-top:10px;">
+                    <input type="text" id="manual-code" placeholder="Enter Room Code" maxlength="4"
+                        style="margin-bottom:10px;">
+                    <button class="btn btn-primary" onclick="joinGame(false)">Join Room</button>
+                </div>
+            </div>
+            <div id="setup-autojoin" style="display:none;">
+                <div class="preview-list">
+                    <div class="preview-title">Joining Room: <span id="autojoin-code"
+                            style="color:white; font-weight:bold;">...</span></div>
+                    <div id="preview-players">Loading players...</div>
+                </div>
+                <button class="btn btn-primary" onclick="joinGame(true)">Join Now ➡️</button>
+            </div>
+        </div>
+
+        <p style="margin-top:auto; opacity:0.5; font-size:0.8rem;">Finger Game Hub</p>
+    </div>
+
+    <div id="view-lobby" class="view">
+        <div class="lobby-header">
+            <h2 style="margin-bottom:5px;">Room Code</h2>
+            <div class="room-badge" id="lobby-code">----</div>
+        </div>
+
+        <div id="waiting-msg" class="waiting-text-large" style="display:none;">WAITING FOR HOST<br>TO START...</div>
+
+        <div id="lobby-share-area" class="setup-box" style="margin-bottom:20px;">
+            <button class="btn btn-whatsapp" onclick="shareWhatsApp()">Invite via WhatsApp 🔗</button>
+            <button class="btn btn-copy" onclick="copyLink()">Copy Link</button>
+        </div>
+
+        <div style="text-align:left; width:100%; max-width:400px; color:#94a3b8; font-size:0.8rem; margin-bottom:5px;">
+            PLAYERS IN LOBBY:</div>
+        <div class="player-list" id="lobby-list"></div>
+
+        <div id="host-controls" style="width:100%; max-width:400px; display:none;">
+            <button class="btn btn-start-pulse" onclick="startGame()">START GAME 🎲</button>
+        </div>
+    </div>
+
+    <div id="view-game" class="view" id="game-view">
+        <div class="header-controls">
+            <div id="top-name" class="player-greeting">Hello</div>
+            <button class="rules-btn" onclick="toggleRules()">How to Play</button>
+        </div>
+
+        <div class="opponents-bar" id="opponents-container"></div>
+
+        <div class="table-center">
+            <div id="status-text" style="color:#94a3b8; font-size:0.9rem; margin-bottom:10px;">Waiting...</div>
+            <div class="current-bid-box">
+                <div class="bid-label">Current Bid</div>
+                <div class="bid-display" id="bid-display">
+                    <span id="bid-qty">0</span> <span style="font-size:1.5rem; opacity:0.7;">x</span>
+                    <div id="bid-face"></div>
+                </div>
+                <div id="bidder-name">--</div>
+            </div>
+        </div>
+
+        <div class="my-area">
+            <div style="font-size:0.8rem; color:#64748b; margin-bottom:0px;">YOUR HAND</div>
+            <div class="my-hand" id="my-hand-display"></div>
+
+            <div class="controls-container" id="controls">
+                <div id="strategy-tip" class="strategy-tip">💡 <strong>Pro Tip:</strong> Start with a low bid!</div>
+
+                <div class="bid-rows">
+                    <div class="bid-col">
+                        <div class="bid-col-label">How Many?</div>
+                        <div class="bid-selector">
+                            <button id="btn-qty-down" class="selector-btn" onclick="adjustBid('qty', -1)">-</button>
+                            <div class="selector-val" id="input-qty">1</div>
+                            <button id="btn-qty-up" class="selector-btn" onclick="adjustBid('qty', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="bid-col">
+                        <div class="bid-col-label">Which Value?</div>
+                        <div class="bid-selector">
+                            <button id="btn-face-down" class="selector-btn" onclick="adjustBid('face', -1)">-</button>
+                            <div class="selector-val" id="input-face"></div>
+                            <button id="btn-face-up" class="selector-btn" onclick="adjustBid('face', 1)">+</button>
+                        </div>
+                    </div>
+                </div>
+                <button id="btn-place-bid" class="btn btn-primary" onclick="openConfirm()">BET</button>
+                <div style="width:100%; height:1px; background:#334155; margin:5px 0;"></div>
+                <button class="btn btn-danger" onclick="callLiar()">CALL LIAR! 🤥</button>
+            </div>
+            <div id="turn-msg" style="color:var(--accent-gold); font-weight:bold; display:none;">It's your turn!</div>
+        </div>
+    </div>
+
+    <div id="modal-confirm" class="modal">
+        <div class="modal-glass" style="text-align:center;">
+            <div style="font-size:0.9rem; color:#cbd5e1; margin-bottom:10px;">YOU ARE BETTING:</div>
+            <h2 id="confirm-text" style="color:white; margin:0 0 30px 0; font-size:1.8rem; line-height:1.4;"></h2>
+            <button class="btn-confirm-thumbs" onclick="confirmBid()">👍</button>
+            <button class="btn-oops" onclick="cancelConfirm()">Oops! Cancel ❌</button>
+        </div>
+    </div>
+
+    <div id="modal-reveal" class="modal">
+        <h1 id="reveal-title" style="margin-bottom:5px;">LIAR!</h1>
+        <p id="reveal-subtitle" style="color:#cbd5e1; margin-top:0;">Let's see the dice...</p>
+        <div class="reveal-grid" id="reveal-list"></div>
+        <div class="story-box">
+            <div class="story-line" id="story-claim">...</div>
+            <div class="story-line" id="story-truth">...</div>
+            <div class="story-result" id="story-final">...</div>
+        </div>
+        <button id="btn-next-round" class="btn btn-primary" onclick="nextRound()" style="display:none;">Next Round
+            ➡️</button>
+        <div id="waiting-next" style="color:#64748b; font-size:0.9rem;">Waiting for host...</div>
+    </div>
+
+    <div id="modal-gameover" class="modal">
+        <div class="modal-glass" style="text-align:center;">
+            <h1 style="font-size:1.5rem; margin-bottom:5px;">🎉 WINNER! 🎉</h1>
+            <h2 id="winner-name" style="font-size:3rem; color:var(--accent-gold); margin:10px 0;">--</h2>
+            <p style="color:#cbd5e1; margin-bottom:20px;">The last liar standing.</p>
+            <button class="btn btn-primary" onclick="resetGame()">START NEW GAME 🔄</button>
+        </div>
+        <canvas id="confetti-canvas"></canvas>
+    </div>
+
+    <div id="rules-overlay" class="modal">
+        <div class="rules-content">
+            <button class="close-rules" onclick="toggleRules()">&times;</button>
+            <h2 style="color:var(--accent-gold); margin-top:0;">How to Play 📜</h2>
+            <h3 style="color:#94a3b8; font-size:0.9rem; margin-bottom:5px;">🏆 GOAL: SURVIVAL</h3>
+            <ul class="rules-list" style="margin-top:0;">
+                <li><strong>Dice = Lives.</strong> You want to <strong>KEEP</strong> them.</li>
+                <li>Lose a round = Lose a die.</li>
+                <li>Last player standing wins.</li>
+            </ul>
+            <h3 style="color:#94a3b8; font-size:0.9rem; margin-bottom:5px;">👀 THE BID</h3>
+            <p style="font-size:0.9rem; color:#cbd5e1; padding-left:20px;">Guess the <strong>TOTAL</strong> number of
+                dice in the <strong>WHOLE ROOM</strong> (e.g., "Five 2s").</p>
+            <h3 style="color:#94a3b8; font-size:0.9rem; margin-bottom:5px;">👉 YOUR TURN (Version Logic)</h3>
+            <p style="font-size:0.9rem; color:#cbd5e1; padding-left:20px;">You must bet a <strong>Higher Version
+                    Number</strong> than the last player.</p>
+            <ul class="rules-list" style="margin-top:0;">
+                <li><strong>1. Major Update (Quantity):</strong> Increase the quantity (e.g. "Three" -> "Four").
+                    <em>"Four 2s" beats "Three 6s"</em></li>
+                <li><strong>2. Minor Update (Face Value):</strong> Same quantity, higher face (e.g. "2s" -> "5s").
+                    <em>"Three 5s" beats "Three 2s"</em></li>
+                <li><strong>OR... CALL LIAR! 🤥</strong> If you think they don't exist.</li>
+            </ul>
+            <button class="btn btn-primary" onclick="toggleRules()">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIG ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjEu71FYxr8Ebqhd3fySP-4qxuWNxSC6Q",
+            authDomain: "finger-of-shame.firebaseapp.com",
+            projectId: "finger-of-shame",
+            storageBucket: "finger-of-shame.firebasestorage.app",
+            messagingSenderId: "940288270460",
+            appId: "1:940288270460:web:fb2681477c29523b7269f9",
+            databaseURL: "https://finger-of-shame-default-rtdb.europe-west1.firebasedatabase.app"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // --- AUDIO ENGINE ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); const now = audioCtx.currentTime;
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            if (type === 'blip') { osc.type = 'triangle'; osc.frequency.setValueAtTime(800, now); gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1); osc.start(now); osc.stop(now + 0.1); }
+            else if (type === 'bid') { osc.type = 'sine'; osc.frequency.setValueAtTime(600, now); osc.frequency.exponentialRampToValueAtTime(1200, now + 0.2); gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.3); osc.start(now); osc.stop(now + 0.3); }
+            else if (type === 'alert') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, now); osc.frequency.linearRampToValueAtTime(100, now + 0.4); gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.4); osc.start(now); osc.stop(now + 0.4); }
+            else if (type === 'roll') { osc.type = 'square'; osc.frequency.setValueAtTime(50, now); gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5); osc.start(now); osc.stop(now + 0.5); }
+        }
+
+        // --- DYNAMIC FAVICON ---
+        function setFavicon(type) {
+            let emoji = "🎲";
+            if (type === 'turn') emoji = "🔔";
+            if (type === 'liar') emoji = "🤥";
+            const link = document.getElementById('favicon');
+            if (link) link.href = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>${emoji}</text></svg>`;
+        }
+
+        // --- STATE ---
+        let roomCode = null; let myName = null; let myId = null; let gameState = {}; let players = {}; let myHand = []; let isHost = false; let cachedHandStr = ""; let autoJoinCode = null;
+
+        // --- SETUP LOGIC (Safe) ---
+        window.onload = function () {
+            // Splash Screen Timer
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                if (splash) {
+                    splash.classList.add('fade-out');
+                    setTimeout(() => splash.remove(), 800);
+                }
+            }, 2500);
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const codeParam = urlParams.get('room');
+            if (codeParam) {
+                autoJoinCode = codeParam.toUpperCase();
+                const def = document.getElementById('setup-default'); if (def) def.style.display = 'none';
+                const auto = document.getElementById('setup-autojoin'); if (auto) auto.style.display = 'block';
+                const codeEl = document.getElementById('autojoin-code'); if (codeEl) codeEl.innerText = autoJoinCode;
+                db.ref(`liars_lounge/${autoJoinCode}/players`).once('value', snap => {
+                    const prevEl = document.getElementById('preview-players');
+                    if (snap.exists() && prevEl) {
+                        const pList = Object.values(snap.val()).map(p => p.name).join(', ');
+                        prevEl.innerHTML = `<strong>Current Players:</strong><br>${pList}`;
+                    } else if (prevEl) { prevEl.innerText = "Room not found or empty."; }
+                });
+            }
+        };
+
+        function toggleJoinInput() { const el = document.getElementById('manual-join-area'); if (el) el.style.display = 'block'; }
+
+        // --- DICE SVG ---
+        function getDieSVG(value, sizeClass = '') {
+            let pips = [];
+            if (value === 1) pips = [[50, 50]]; if (value === 2) pips = [[25, 25], [75, 75]]; if (value === 3) pips = [[25, 25], [50, 50], [75, 75]];
+            if (value === 4) pips = [[25, 25], [75, 25], [25, 75], [75, 75]]; if (value === 5) pips = [[25, 25], [75, 25], [50, 50], [25, 75], [75, 75]]; if (value === 6) pips = [[25, 25], [75, 25], [25, 50], [75, 50], [25, 75], [75, 75]];
+            const circles = pips.map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="10" fill="black" />`).join('');
+            if (pips.length === 0 && value !== 0) return `<svg viewBox="0 0 100 100" class="die-svg ${sizeClass}"><rect width="100" height="100" rx="15" fill="white" stroke="#ccc" stroke-width="2"/><text x="50" y="65" font-size="50" text-anchor="middle" fill="#ccc">?</text></svg>`;
+            return `<svg viewBox="0 0 100 100" class="die-svg ${sizeClass}"><rect width="100" height="100" rx="15" fill="white" stroke="#ccc" stroke-width="2"/>${circles}</svg>`;
+        }
+        function getDieName(val) { const names = ["?", "Ones", "Twos", "Threes", "Fours", "Fives", "Sixes"]; return names[val] || val; }
+
+        // --- HELPERS (SAFE VERSION) ---
+        function showView(id) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            const target = document.getElementById(id);
+            if (target) target.classList.add('active');
+        }
+        function toggleRules() { const el = document.getElementById('rules-overlay'); if (el) el.classList.toggle('show'); }
+        function pushLog(message, type = 'info') {
+            db.ref(`liars_lounge/${roomCode}/logs`).push({ msg: message, type: type, timestamp: Date.now() });
+        }
+
+        function shareWhatsApp() {
+            const url = window.location.href.split('?')[0] + '?room=' + roomCode;
+            const text = `Join my Liar's Lounge game! Room Code: ${roomCode}. Click here:`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)} ${encodeURIComponent(url)}`);
+        }
+        function copyLink() {
+            const url = window.location.href.split('?')[0] + '?room=' + roomCode;
+            navigator.clipboard.writeText(url).then(() => {
+                const toast = document.getElementById('toast');
+                if (toast) { toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2000); }
+            });
+        }
+
+        // --- CONFETTI (Lightweight) ---
+        function startConfetti() {
+            const canvas = document.getElementById("confetti-canvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+
+            const particles = [];
+            const colors = ['#f59e0b', '#8b5cf6', '#ec4899', '#22c55e', '#ffffff'];
+
+            for (let i = 0; i < 150; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width, y: Math.random() * canvas.height - canvas.height,
+                    vx: Math.random() * 2 - 1, vy: Math.random() * 3 + 2,
+                    c: colors[Math.floor(Math.random() * colors.length)],
+                    s: Math.random() * 10 + 5
+                });
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => {
+                    p.y += p.vy; p.x += p.vx;
+                    if (p.y > canvas.height) p.y = -20;
+                    ctx.fillStyle = p.c; ctx.fillRect(p.x, p.y, p.s, p.s);
+                });
+                if (document.getElementById('modal-gameover').classList.contains('show')) requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        // --- LOBBY ---
+        function createGame() {
+            myName = document.getElementById('player-name').value.trim() || "Host";
+            roomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
+            myId = 'host_' + Date.now();
+            isHost = true;
+            const updates = {};
+            updates[`liars_lounge/${roomCode}/state`] = 'lobby';
+            updates[`liars_lounge/${roomCode}/players/${myId}`] = { name: myName, diceCount: 5, isHost: true };
+            updates[`liars_lounge/${roomCode}/logs`] = null;
+            db.ref().update(updates).then(() => enterLobby());
+        }
+
+        function joinGame(isAuto = false) {
+            myName = document.getElementById('player-name').value.trim();
+            if (!myName) return alert("Please enter your name!");
+            let inputCode = "";
+            if (isAuto && autoJoinCode) inputCode = autoJoinCode; else {
+                const el = document.getElementById('manual-code');
+                if (el) inputCode = el.value.toUpperCase().trim();
+            }
+            if (!inputCode) return alert("Room code missing!");
+
+            db.ref(`liars_lounge/${inputCode}`).once('value', snap => {
+                if (!snap.exists()) return alert("Room not found!");
+                roomCode = inputCode;
+                myId = 'p_' + Date.now();
+                db.ref(`liars_lounge/${roomCode}/players/${myId}`).set({ name: myName, diceCount: 5, isHost: false })
+                    .then(() => enterLobby());
+            });
+        }
+
+        function enterLobby() {
+            const codeEl = document.getElementById('lobby-code'); if (codeEl) codeEl.innerText = roomCode;
+            const nameEl = document.getElementById('top-name'); if (nameEl) nameEl.innerText = "Hello " + myName;
+            showView('view-lobby');
+
+            const hostEls = ['host-controls', 'lobby-share-area'];
+            const guestEls = ['waiting-msg', 'waiting-next'];
+
+            hostEls.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = isHost ? 'block' : 'none'; });
+            if (isHost) {
+                const shareArea = document.getElementById('lobby-share-area');
+                if (shareArea) shareArea.style.display = 'flex';
+            }
+            guestEls.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = isHost ? 'none' : 'block'; });
+
+            pushLog(`${myName} joined.`);
+            setFavicon('default');
+
+            const roomRef = db.ref(`liars_lounge/${roomCode}`);
+
+            roomRef.child('players').on('value', snap => {
+                players = snap.val() || {};
+                renderLobbyList();
+                if (document.getElementById('game-view')?.classList.contains('active')) renderOpponents();
+            });
+
+            roomRef.child('state').on('value', snap => {
+                const s = snap.val();
+                if (s === 'playing') {
+                    showView('view-game');
+                    setFavicon('default');
+                    document.getElementById('modal-gameover').classList.remove('show');
+                }
+                if (s === 'reveal') { showRevealModal(); setFavicon('liar'); }
+
+                if (s === 'gameover') {
+                    document.getElementById('modal-gameover').classList.add('show');
+                    startConfetti();
+                    db.ref(`liars_lounge/${roomCode}/winner`).once('value', wSnap => {
+                        document.getElementById('winner-name').innerText = wSnap.val() || "Someone";
+                    });
+                }
+
+                if (s === 'calculating' && isHost) {
+                    calculateAndSaveResult();
+                }
+
+                if (s !== 'reveal' && s !== 'gameover') {
+                    const modal = document.getElementById('modal-reveal');
+                    if (modal) modal.classList.remove('show');
+                }
+            });
+
+            roomRef.child('currentBid').on('value', snap => {
+                gameState.currentBid = snap.val();
+                renderBidTable();
+            });
+
+            roomRef.child('turn').on('value', snap => {
+                gameState.turn = snap.val();
+                renderTurnState();
+            });
+
+            roomRef.child('playerOrder').on('value', snap => {
+                gameState.playerOrder = snap.val();
+            });
+
+            roomRef.child('roundResult').on('value', snap => {
+                const res = snap.val();
+                if (res) renderResultModal(res);
+            });
+
+            db.ref(`liars_lounge/${roomCode}/hands/${myId}`).on('value', snap => {
+                const newHand = snap.val() || [];
+                myHand = newHand;
+                renderHand(true);
+            });
+        }
+
+        function renderLobbyList() {
+            const list = document.getElementById('lobby-list'); if (!list) return;
+            list.innerHTML = '';
+            Object.values(players).forEach(p => {
+                list.innerHTML += `<div class="player-item"><div style="display:flex;align-items:center;"><div class="player-avatar">${p.name[0]}</div><span>${p.name}</span></div><span>${p.diceCount} 🎲</span></div>`;
+            });
+        }
+
+        // --- GAME LOGIC ---
+        function startGame() {
+            const updates = {}; const playerIds = Object.keys(players);
+            playerIds.forEach(pid => {
+                const hand = Array.from({ length: players[pid].diceCount }, () => Math.floor(Math.random() * 6) + 1);
+                updates[`liars_lounge/${roomCode}/hands/${pid}`] = hand;
+            });
+            updates[`liars_lounge/${roomCode}/state`] = 'playing';
+            updates[`liars_lounge/${roomCode}/currentBid`] = { qty: 0, face: 0, player: null };
+            updates[`liars_lounge/${roomCode}/turn`] = playerIds[0];
+            updates[`liars_lounge/${roomCode}/turnIndex`] = 0;
+            updates[`liars_lounge/${roomCode}/playerOrder`] = playerIds;
+            updates[`liars_lounge/${roomCode}/roundResult`] = null;
+
+            db.ref().update(updates);
+            pushLog("--- NEW ROUND ---", "result");
+        }
+
+        function resetGame() {
+            const updates = {};
+            Object.keys(players).forEach(pid => {
+                updates[`liars_lounge/${roomCode}/players/${pid}/diceCount`] = 5;
+            });
+            updates[`liars_lounge/${roomCode}/logs`] = null;
+            db.ref().update(updates).then(() => {
+                startGame();
+            });
+        }
+
+        function renderOpponents() {
+            const oppContainer = document.getElementById('opponents-container'); if (!oppContainer) return;
+            oppContainer.innerHTML = '';
+            const order = gameState.playerOrder || [];
+            order.forEach(pid => {
+                if (pid === myId) return;
+                const p = players[pid]; if (!p) return;
+                const isTurn = gameState.turn === pid;
+                oppContainer.innerHTML += `<div class="opp-card ${isTurn ? 'active-turn' : ''}"><div class="opp-name">${p.name}</div><div class="opp-dice-count">${isTurn ? 'Thinking...' : (p.diceCount + ' 🎲')}</div></div>`;
+            });
+        }
+
+        function renderBidTable() {
+            const bid = gameState.currentBid;
+            const qtyEl = document.getElementById('bid-qty');
+            const faceEl = document.getElementById('bid-face');
+            const nameEl = document.getElementById('bidder-name');
+
+            if (bid && bid.qty > 0) {
+                if (qtyEl) qtyEl.innerText = bid.qty;
+                if (faceEl) faceEl.innerHTML = getDieSVG(bid.face, 'lg');
+                if (nameEl) nameEl.innerText = (players[bid.player]?.name || 'Unknown') + " bet this";
+                if (gameState.turn !== myId) { currentInputQty = bid.qty; currentInputFace = bid.face; updateInputDisplay(); }
+            } else {
+                if (qtyEl) qtyEl.innerText = "-";
+                if (faceEl) faceEl.innerHTML = getDieSVG(0, 'lg');
+                if (nameEl) nameEl.innerText = "Waiting for opening bid";
+                if (gameState.turn === myId) { currentInputQty = 1; currentInputFace = 2; updateInputDisplay(); }
+            }
+        }
+
+        function renderTurnState() {
+            renderOpponents();
+            const isMyTurn = gameState.turn === myId;
+            const controls = document.getElementById('controls');
+            const turnMsg = document.getElementById('turn-msg');
+            const statusText = document.getElementById('status-text');
+            const dangerBtn = document.querySelector('.btn-danger');
+            const bid = gameState.currentBid;
+
+            if (isMyTurn) {
+                setFavicon('turn');
+                if (controls) controls.classList.add('show');
+                if (turnMsg) turnMsg.style.display = 'block';
+                if (statusText) statusText.innerText = "YOUR TURN";
+                if (dangerBtn) dangerBtn.style.display = (bid && bid.qty > 0) ? 'block' : 'none';
+
+                if (bid && bid.qty > 0 && currentInputQty === bid.qty && currentInputFace === bid.face) {
+                    if (currentInputFace < 6) currentInputFace++; else { currentInputQty++; currentInputFace = 1; }
+                    updateInputDisplay();
+                }
+            } else {
+                setFavicon('default');
+                if (controls) controls.classList.remove('show');
+                if (turnMsg) turnMsg.style.display = 'none';
+                if (statusText) statusText.innerText = (players[gameState.turn]?.name || "Someone") + "'s Turn";
+            }
+        }
+
+        function renderHand(animate) {
+            const handDiv = document.getElementById('my-hand-display'); if (!handDiv) return;
+            if (animate) playTone('roll');
+
+            handDiv.innerHTML = '';
+            myHand.forEach(val => {
+                const duration = 0.5 + Math.random() * 1.5;
+                const style = animate ? `animation-duration: ${duration}s;` : '';
+                const rollClass = animate ? 'die-rolling' : '';
+                handDiv.innerHTML += `<div class="die-container ${rollClass}" style="${style}">${getDieSVG(val)}</div>`;
+            });
+            const deadCount = 5 - myHand.length;
+            for (let i = 0; i < deadCount; i++) { handDiv.innerHTML += `<div class="die-container">${getDieSVG(0, 'dead')}</div>`; }
+        }
+
+        // --- INPUTS ---
+        let currentInputQty = 1; let currentInputFace = 2;
+
+        function adjustBid(type, delta) {
+            playTone('blip');
+            const curBid = gameState.currentBid || { qty: 0, face: 0 };
+            if (type === 'qty') { currentInputQty += delta; if (currentInputQty < 1) currentInputQty = 1; }
+            else { currentInputFace += delta; if (currentInputFace > 6) currentInputFace = 1; if (currentInputFace < 1) currentInputFace = 6; }
+
+            if (curBid.qty > 0) {
+                if (currentInputQty < curBid.qty) currentInputQty = curBid.qty;
+                if (currentInputQty === curBid.qty && currentInputFace <= curBid.face) {
+                    if (type === 'face' && delta < 0) { currentInputFace = curBid.face + 1; if (currentInputFace > 6) { currentInputQty++; currentInputFace = 1; } }
+                    if (currentInputFace <= curBid.face) { currentInputFace = curBid.face + 1; if (currentInputFace > 6) { currentInputQty++; currentInputFace = 1; } }
+                }
+            }
+            updateInputDisplay();
+        }
+
+        function updateInputDisplay() {
+            const qtyEl = document.getElementById('input-qty'); if (qtyEl) qtyEl.innerText = currentInputQty;
+            const faceEl = document.getElementById('input-face'); if (faceEl) faceEl.innerHTML = getDieSVG(currentInputFace, 'sm');
+
+            const btnPlace = document.getElementById('btn-place-bid');
+            if (btnPlace) btnPlace.innerText = `BET ${currentInputQty} x ${getDieName(currentInputFace).toUpperCase()}`;
+        }
+
+        function openConfirm() {
+            const cur = gameState.currentBid;
+            let isValid = false;
+            if (!cur || cur.qty === 0) isValid = true;
+            else if (currentInputQty > cur.qty) isValid = true;
+            else if (currentInputQty === cur.qty && currentInputFace > cur.face) isValid = true;
+            if (!isValid) { alert("Bid must be higher!"); return; }
+
+            const sentence = `You are betting that there are<br><span style="font-size:2.5rem; color:var(--accent-gold);">${currentInputQty} x ${getDieName(currentInputFace)}</span><br>in the room.`;
+            const txt = document.getElementById('confirm-text'); if (txt) txt.innerHTML = sentence;
+            const modal = document.getElementById('modal-confirm'); if (modal) modal.classList.add('show');
+        }
+
+        function cancelConfirm() { const m = document.getElementById('modal-confirm'); if (m) m.classList.remove('show'); }
+        function confirmBid() { const m = document.getElementById('modal-confirm'); if (m) m.classList.remove('show'); submitBid(); }
+
+        function submitBid() {
+            const order = gameState.playerOrder || [];
+            if (order.length === 0) { alert("Error: Player list empty."); return; }
+
+            const currentIndex = (typeof gameState.turnIndex === 'number') ? gameState.turnIndex : 0;
+            let nextIndex = (currentIndex + 1) % order.length;
+            let nextPlayerId = order[nextIndex];
+
+            if (!nextPlayerId) { nextIndex = 0; nextPlayerId = order[0]; }
+            if (!nextPlayerId) { alert("Critical Error: No valid players found."); return; }
+
+            playTone('bid');
+            const myPlayerName = players[myId].name;
+            pushLog(`${myPlayerName} bets: ${currentInputQty} x ${getDieName(currentInputFace)}s`);
+
+            const updates = {};
+            updates[`liars_lounge/${roomCode}/currentBid`] = { qty: currentInputQty, face: currentInputFace, player: myId };
+            updates[`liars_lounge/${roomCode}/turn`] = nextPlayerId;
+            updates[`liars_lounge/${roomCode}/turnIndex`] = nextIndex;
+
+            db.ref().update(updates);
+        }
+
+        function callLiar() {
+            playTone('alert');
+            setFavicon('liar');
+            const myPlayerName = players[myId].name;
+            const accusedName = players[gameState.currentBid.player].name;
+            pushLog(`🛑 ${myPlayerName} calls ${accusedName} a LIAR!`, 'result');
+            db.ref(`liars_lounge/${roomCode}/state`).set('calculating');
+        }
+
+        // --- HOST LOGIC ---
+        function showRevealModal() {
+            const modal = document.getElementById('modal-reveal');
+            if (modal) modal.classList.add('show');
+            const list = document.getElementById('reveal-list');
+            if (list) list.innerHTML = "Loading results...";
+
+            const btnNext = document.getElementById('btn-next-round');
+            const waitNext = document.getElementById('waiting-next');
+            if (btnNext && waitNext) {
+                btnNext.style.display = isHost ? 'block' : 'none';
+                waitNext.style.display = isHost ? 'none' : 'block';
+            }
+
+            if (isHost) {
+                db.ref(`liars_lounge/${roomCode}/roundResult`).once('value', rSnap => {
+                    if (rSnap.exists()) return;
+                    calculateAndSaveResult();
+                });
+            }
+        }
+
+        function calculateAndSaveResult() {
+            const bid = gameState.currentBid;
+            const callerId = gameState.turn;
+
+            db.ref(`liars_lounge/${roomCode}/hands`).once('value', snap => {
+                const allHands = snap.val();
+                let totalCount = 0;
+                let html = '';
+                Object.keys(allHands).forEach(pid => {
+                    const hand = allHands[pid];
+                    let diceHtml = '';
+                    hand.forEach(d => { if (d === bid.face) totalCount++; diceHtml += getDieSVG(d, 'sm'); });
+                    html += `<div class="reveal-row"><span style="color:${pid === bid.player ? 'var(--accent-gold)' : 'white'}">${players[pid].name}</span><div class="mini-dice-row">${diceHtml}</div></div>`;
+                });
+
+                const accusedName = players[bid.player].name;
+                const callerName = players[callerId].name;
+
+                let storyClaim = `THE CLAIM: ${accusedName} said <strong>${bid.qty} x ${getDieName(bid.face)}s</strong>.`;
+                let storyTruth = `THE TRUTH: There were <strong>${totalCount}</strong>!`;
+                let storyFinal = "";
+                let resultHtml = "";
+                let loserId = null;
+
+                if (totalCount >= bid.qty) {
+                    storyFinal = `RESULT: ${accusedName} told the TRUTH. ${callerName} loses a die!`;
+                    resultHtml = storyFinal;
+                    loserId = callerId;
+                    pushLog(`⚖️ Result: ${accusedName} was SAFE (${totalCount} found). ${callerName} loses a die.`, 'result');
+                } else {
+                    storyFinal = `RESULT: ${accusedName} LIED! ${accusedName} loses a die!`;
+                    resultHtml = storyFinal;
+                    loserId = bid.player;
+                    pushLog(`⚖️ Result: ${accusedName} LIED (${totalCount} found). ${accusedName} loses a die.`, 'result');
+                }
+
+                const updates = {};
+                updates[`liars_lounge/${roomCode}/roundResult`] = { html: html, count: totalCount, msg: resultHtml, story: { claim: storyClaim, truth: storyTruth, final: storyFinal }, loser: loserId };
+                updates[`liars_lounge/${roomCode}/state`] = 'reveal';
+                db.ref().update(updates);
+            });
+        }
+
+        function renderResultModal(res) {
+            const list = document.getElementById('reveal-list'); if (list) list.innerHTML = res.html;
+            const bid = gameState.currentBid;
+
+            const callerName = players[gameState.turn]?.name || "Someone";
+            const accusedName = players[bid?.player]?.name || "Someone";
+
+            const title = document.getElementById('reveal-title');
+            if (title) title.innerHTML = `<span style="color:#ef4444; font-size:1.5rem;">${callerName}</span><br>CALLS LIAR ON<br><span style="color:var(--accent-gold); font-size:1.5rem;">${accusedName}</span>!`;
+
+            const countEl = document.getElementById('actual-count-display'); if (countEl) countEl.innerText = res.count;
+            if (res.story) {
+                const s1 = document.getElementById('story-claim'); if (s1) s1.innerHTML = res.story.claim;
+                const s2 = document.getElementById('story-truth'); if (s2) s2.innerHTML = res.story.truth;
+                const s3 = document.getElementById('story-final'); if (s3) s3.innerHTML = res.story.final;
+            }
+        }
+
+        function nextRound() {
+            db.ref(`liars_lounge/${roomCode}/roundResult`).once('value', snap => {
+                const res = snap.val(); if (!res) return;
+
+                const loserId = res.loser;
+                const newCount = players[loserId].diceCount - 1;
+
+                const updates = {};
+                updates[`liars_lounge/${roomCode}/players/${loserId}/diceCount`] = newCount;
+
+                let activePlayers = 0;
+                let lastSurvivorName = "";
+                Object.keys(players).forEach(pid => {
+                    const count = (pid === loserId) ? newCount : players[pid].diceCount;
+                    if (count > 0) {
+                        activePlayers++;
+                        lastSurvivorName = players[pid].name;
+                    }
+                });
+
+                if (activePlayers === 1) {
+                    updates[`liars_lounge/${roomCode}/winner`] = lastSurvivorName;
+                    updates[`liars_lounge/${roomCode}/state`] = 'gameover';
+                    pushLog(`🏆 GAME OVER! ${lastSurvivorName} WINS!`, 'result');
+                } else {
+                    updates[`liars_lounge/${roomCode}/roundResult`] = null;
+                    pushLog("--- ROUND OVER ---", "result");
+                    db.ref().update(updates).then(() => { startGame(); });
+                    return;
+                }
+
+                db.ref().update(updates);
+            });
+        }
+    </script>
+</body>
+
+</html>

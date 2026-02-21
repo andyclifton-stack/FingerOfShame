@@ -1,0 +1,21 @@
+{
+  "name": "Liar's Lounge",
+  "short_name": "Liar's",
+  "start_url": "liars-index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#1e1b4b",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://emojicdn.elk.sh/🎲?style=twitter",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://emojicdn.elk.sh/🎲?style=twitter",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Couples Cards</title>
+    
+    <link rel="manifest" href="couples-manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://img.icons8.com/color/192/hearts.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="couples_style.css">
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+</head>
+<body>
+
+<div class="container">
+
+    <div id="view-loading" class="view active">
+        <h2 style="margin-top:50px;">Connecting...</h2>
+    </div>
+
+    <div id="view-init" class="view">
+        <h1 style="font-size:2rem; margin-bottom:10px;">Couples Cards</h1>
+        <p style="text-align:center; color:var(--text-muted); margin-bottom:30px;">
+            A game of strategy, romance, and chores.
+        </p>
+        
+        <div class="setup-box">
+            <label>Select Duration</label>
+            <select id="duration-select">
+                <option value="7">1 Week</option>
+                <option value="30" selected>1 Month</option>
+                <option value="90">3 Months</option>
+            </select>
+        </div>
+
+        <button class="btn btn-primary" onclick="initGameSetup()">Start New Game</button>
+    </div>
+
+    <div id="view-roles" class="view">
+        <div class="intro-box">
+            <h1>Couples Cards</h1>
+            <p class="intro-tagline">Strategy. Romance. Chores.</p>
+            
+            <div class="instructions-card">
+                <h3>How to Play</h3>
+                <ul>
+                    <li>🃏 <strong>The Deal:</strong> 15 random cards + 2 Veto cards + 1 Gamble card.</li>
+                    <li>🔥 <strong>The Goal:</strong> Redeem cards to make your partner do things.</li>
+                    <li>🎰 <strong>The Gamble:</strong> Use the "Gamble Card" for a custom wish, but lose 2 other cards!</li>
+                    <li>👇 <strong>To Start:</strong> Select your role below.</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2 style="margin-bottom:15px; font-size:1rem;">Select Player</h2>
+        
+        <button class="btn role-btn" onclick="selectRole('husband')">
+            <div class="role-info">
+                <span id="avatar-husband">👨</span>
+                <span id="name-husband">Husband</span>
+            </div>
+            <span id="status-husband" class="role-status">Checking...</span>
+        </button>
+        
+        <button class="btn role-btn" onclick="selectRole('wife')">
+            <div class="role-info">
+                <span id="avatar-wife">👩</span>
+                <span id="name-wife">Wife</span>
+            </div>
+            <span id="status-wife" class="role-status">Checking...</span>
+        </button>
+
+        <p style="text-align:center; margin-top:30px; font-size:0.8rem;">
+            <a href="#" onclick="forceHardReset()" style="color:var(--text-muted); text-decoration:underline; opacity:0.5;">Reset Database (Emergency)</a>
+        </p>
+    </div>
+
+    <div id="view-pin" class="view">
+        <h1 id="pin-title">Login</h1>
+        <h2 id="pin-subtitle">Enter your secret PIN</h2>
+        
+        <div id="name-area" style="display:none; margin-bottom:15px;">
+            <label style="display:block; text-align:left; color:var(--text-muted); margin-bottom:5px; font-size:0.9rem;">Your Name</label>
+            <input type="text" id="name-input" placeholder="e.g. Andy" maxlength="12">
+        </div>
+
+        <input type="number" id="pin-input" placeholder="PIN" maxlength="4">
+        
+        <button id="btn-pin-action" class="btn btn-primary">Login</button>
+        
+        <div style="display:flex; justify-content:space-between; margin-top:10px;">
+            <button class="btn btn-outline btn-sm" onclick="showRoleSelection()">Back</button>
+            <button class="btn btn-text btn-sm" id="forgot-btn" onclick="resetPin()">Forgot PIN?</button>
+        </div>
+    </div>
+
+    <div id="view-dashboard" class="view">
+        <div class="dash-header">
+            <div class="header-left">
+                <h1 id="user-greeting">Player</h1>
+                <div id="partner-status" class="status-indicator offline">
+                    <span class="status-dot"></span> <span id="partner-status-text">Offline</span>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <div id="time-remaining" class="time-badge">-- Days</div>
+                <div class="score-board">
+                    <div class="score-item">
+                        <span class="score-label">ME</span>
+                        <span id="count-me" class="score-val">--</span>
+                    </div>
+                    <div class="score-item">
+                        <span id="label-partner" class="score-label">THEM</span>
+                        <span id="count-partner" class="score-val">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-cards" class="tab-content">
+            <div id="deck-area" class="deck-container"></div>
+            <div class="deck-controls">
+                <button class="btn btn-outline" onclick="cyclePrevCard()">&#8592; Prev</button>
+                <button class="btn btn-outline" onclick="cycleNextCard()">Next &#8594;</button>
+            </div>
+            <p id="empty-msg" style="display:none;">All cards used!</p>
+        </div>
+
+        <div id="tab-history" class="tab-content" style="display:none;">
+            <h3>Redemption Log</h3>
+            <div id="list-history" style="margin-top:15px; padding-bottom:20px;"></div>
+        </div>
+        
+        <div id="tab-gameover" class="tab-content" style="display:none; text-align:center;">
+             <h1 style="margin-top:30px;">Season Over!</h1>
+             <div id="game-stats" style="background:var(--bg-card); padding:20px; border-radius:12px; margin-top:20px;"></div>
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="switchTab('cards')">
+                <svg viewBox="0 0 24 24"><path d="M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H4V5h16v14z"/></svg>
+                Deck
+            </div>
+            <div class="nav-item" onclick="switchTab('history')">
+                <svg viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+                History
+            </div>
+            <div class="nav-item" onclick="openMenu()">
+                <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+                Menu
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div id="rules-modal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-close" onclick="closeModal('rules-modal')">&times;</div>
+        <h2>Rules of Engagement</h2>
+        <ul class="rules-list">
+            <li>1. A card played is binding. No arguing.</li>
+            <li>2. Once a card is redeemed, it is burned.</li>
+            <li>3. "Hell No" cards cancel the LAST card played against you.</li>
+            <li>4. "The Gamble" burns 2 random cards to grant 1 wish.</li>
+            <li>5. Have fun and be fair!</li>
+        </ul>
+        <button class="btn btn-primary" onclick="closeModal('rules-modal')">Got it</button>
+    </div>
+</div>
+
+<div id="menu-modal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-close" onclick="closeModal('menu-modal')">&times;</div>
+        <h2>Settings</h2>
+        <button class="btn btn-outline" onclick="openRules()">Read Rules</button>
+        <button class="btn btn-outline" onclick="triggerResetRequest()">Request New Season</button>
+        <button class="btn btn-danger" onclick="logout()">Logout</button>
+    </div>
+</div>
+
+<div id="success-modal" class="modal-overlay">
+    <div class="modal">
+        <div style="font-size:3rem; margin-bottom:10px;">✅</div>
+        <h2 style="color:white; margin-bottom:10px;">Redeemed!</h2>
+        <p style="color:var(--text-muted); margin-bottom:20px;">Your partner has been notified.</p>
+        <button id="wa-btn" class="btn btn-whatsapp">Send WhatsApp Alert</button>
+        <button class="btn btn-outline" onclick="closeModal('success-modal')" style="margin-top:10px;">Close</button>
+    </div>
+</div>
+
+<div id="incoming-modal" class="modal-overlay">
+    <div class="incoming-alert-box">
+        <div class="alert-header">⚠️ INCOMING ACTION</div>
+        <div id="inc-emoji" style="font-size:5rem; margin-bottom:10px;"></div>
+        <h2 id="inc-title" style="color:var(--bg-body); font-size:1.8rem; margin-bottom:10px;"></h2>
+        <p id="inc-desc" style="color:#475569; margin-bottom:20px;"></p>
+        <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:20px;">
+            <span id="inc-player">Opponent</span> played this against you.
+        </p>
+        <button class="btn btn-danger" onclick="acknowledgeCard()">I Accept My Fate</button>
+    </div>
+</div>
+
+<div id="reset-modal" class="modal-overlay">
+    <div class="modal">
+        <div style="font-size:3rem; margin-bottom:10px;">🔄</div>
+        <h2 id="reset-title" style="color:white; margin-bottom:10px;">Restart Game?</h2>
+        <p id="reset-desc" style="color:var(--text-muted); margin-bottom:20px;">
+            Both players must agree to restart.
+        </p>
+        <div id="reset-actions"></div>
+    </div>
+</div>
+
+<script src="couples_cards.js"></script>
+<script src="couples_logic.js"></script>
+
+</body>
+</html>

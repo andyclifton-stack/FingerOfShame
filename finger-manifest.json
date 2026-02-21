@@ -1,0 +1,16 @@
+{
+  "name": "The Finger of Shame",
+  "short_name": "Finger Game",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f0c29",
+  "theme_color": "#302b63",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "splash.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
