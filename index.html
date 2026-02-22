@@ -149,6 +149,10 @@
             background: linear-gradient(135deg, #fbbf24, #d97706);
         }
 
+        .avatar-birthday {
+            background: linear-gradient(135deg, #ff007f, #7a00cc);
+        }
+
         .game-title {
             font-size: 1.4rem;
             font-weight: 800;
@@ -354,6 +358,13 @@
             <div class="play-btn">Play Now</div>
         </a>
 
+        <a id="birthday-link" href="/AliceBirthday/" class="game-card">
+            <div class="game-avatar avatar-birthday">🎂</div>
+            <h2 class="game-title">Alice's Birthday</h2>
+            <p class="game-desc">A magical music player with confetti and voting for Alice's big 10th birthday!</p>
+            <div class="play-btn">Play Now</div>
+        </a>
+
         <div class="game-card placeholder-card">
             <div class="game-avatar" style="background: rgba(255,255,255,0.05); color: #64748b;">🔜</div>
             <h2 class="game-title" style="color: #64748b;">Coming Soon</h2>
@@ -390,6 +401,9 @@
 
                 const mtLink = document.getElementById("magictrick-link");
                 if (mtLink) mtLink.href = 'http://localhost:5174/'; // Usually Vite takes the next port if 5173 is busy
+
+                const bdayLink = document.getElementById("birthday-link");
+                if (bdayLink) bdayLink.href = 'http://localhost:5173/';
             }
         });
 
