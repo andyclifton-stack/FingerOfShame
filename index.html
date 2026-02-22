@@ -365,6 +365,13 @@
             <div class="play-btn">Play Now</div>
         </a>
 
+        <a id="wouldyourather-link" href="/WouldYouRather/" class="game-card">
+            <div class="game-avatar" style="background: linear-gradient(135deg, #a855f7, #6366f1);">⚖️</div>
+            <h2 class="game-title">Would You Rather</h2>
+            <p class="game-desc">A fast-paced social debate game. Find out who really thinks alike!</p>
+            <div class="play-btn">Play Now</div>
+        </a>
+
         <div class="game-card placeholder-card">
             <div class="game-avatar" style="background: rgba(255,255,255,0.05); color: #64748b;">🔜</div>
             <h2 class="game-title" style="color: #64748b;">Coming Soon</h2>
@@ -404,6 +411,9 @@
 
                 const bdayLink = document.getElementById("birthday-link");
                 if (bdayLink) bdayLink.href = 'http://localhost:5173/';
+
+                const wyrLink = document.getElementById("wouldyourather-link");
+                if (wyrLink) wyrLink.href = 'http://localhost:5173/WouldYouRather/';
             }
         });
 
