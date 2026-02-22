@@ -347,6 +347,13 @@
             <div class="play-btn">Launch App</div>
         </a>
 
+        <a id="magictrick-link" href="/ShowMeAMagicTrick/" class="game-card">
+            <div class="game-avatar" style="background: linear-gradient(135deg, #b055ff, #8a2be2);">✨</div>
+            <h2 class="game-title">Magic Trick</h2>
+            <p class="game-desc">Experience a mind-reading digital illusion with mesmerizing visual effects.</p>
+            <div class="play-btn">Play Now</div>
+        </a>
+
         <div class="game-card placeholder-card">
             <div class="game-avatar" style="background: rgba(255,255,255,0.05); color: #64748b;">🔜</div>
             <h2 class="game-title" style="color: #64748b;">Coming Soon</h2>
@@ -380,6 +387,9 @@
 
                 const aliLink = document.getElementById("alibucks-link");
                 if (aliLink) aliLink.href = 'http://localhost:8080/';
+
+                const mtLink = document.getElementById("magictrick-link");
+                if (mtLink) mtLink.href = 'http://localhost:5174/'; // Usually Vite takes the next port if 5173 is busy
             }
         });
 
