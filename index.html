@@ -365,6 +365,13 @@
             <div class="play-btn">Play Now</div>
         </a>
 
+        <a id="aimeme-link" href="/Ai-Meme/" class="game-card">
+            <div class="game-avatar" style="background: linear-gradient(135deg, #6366f1, #a855f7);">🖼️</div>
+            <h2 class="game-title">AI Meme</h2>
+            <p class="game-desc">Generate hilarious memes using Gemini AI. Upload a photo or use a template!</p>
+            <div class="play-btn">Play Now</div>
+        </a>
+
         <div class="game-card placeholder-card">
             <div class="game-avatar" style="background: rgba(255,255,255,0.05); color: #64748b;">🔜</div>
             <h2 class="game-title" style="color: #64748b;">Coming Soon</h2>
@@ -407,6 +414,9 @@
 
                 const wyrLink = document.getElementById("wouldyourather-link");
                 if (wyrLink) wyrLink.href = 'http://localhost:5173/WouldYouRather/';
+
+                const aimemeLink = document.getElementById("aimeme-link");
+                if (aimemeLink) aimemeLink.href = 'http://localhost:3000/Ai-Meme/';
             }
         });
 
