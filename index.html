@@ -1,477 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Finger Game Hub</title>
 
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#07121f">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Finger Games">
+    <meta name="apple-mobile-web-app-title" content="Finger Hub">
     <link rel="manifest" href="hub-manifest.json">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="hub.css">
 
     <script>
-        const link = document.createElement('link');
-        link.rel = 'icon';
-        link.href = "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕹️</text></svg>";
-        document.head.appendChild(link);
+        const iconLink = document.createElement("link");
+        iconLink.rel = "icon";
+        iconLink.href = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2307121f'/><text x='50' y='62' font-size='48' text-anchor='middle' fill='%23e2e8f0' font-family='Arial'>FG</text></svg>";
+        document.head.appendChild(iconLink);
     </script>
-
-    <style>
-        :root {
-            --bg-dark: #0f172a;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-        }
-
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-dark);
-            background-image: radial-gradient(circle at 50% 0%, #1e1b4b 0%, var(--bg-dark) 70%);
-            color: var(--text-main);
-            font-family: 'Outfit', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* --- Header --- */
-        header {
-            width: 100%;
-            padding: 40px 20px 20px;
-            text-align: center;
-            max-width: 600px;
-        }
-
-        h1 {
-            font-size: 2.2rem;
-            font-weight: 900;
-            margin: 0;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            background: linear-gradient(to right, #c084fc, #60a5fa);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
-            line-height: 1.1;
-        }
-
-        .subtitle {
-            color: var(--text-muted);
-            font-size: 1rem;
-            margin-top: 5px;
-            font-weight: 500;
-        }
-
-        /* --- Game Grid --- */
-        .container {
-            width: 100%;
-            max-width: 800px;
-            padding: 20px;
-            flex: 1;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-            align-content: start;
-        }
-
-        .game-card {
-            background: rgba(30, 41, 59, 0.6);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            transition: transform 0.2s, border-color 0.2s;
-            cursor: pointer;
-            text-decoration: none;
-            color: inherit;
-            position: relative;
-        }
-
-        .game-card:active {
-            transform: scale(0.98);
-        }
-
-        .game-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        /* Avatar Gradients */
-        .avatar-finger {
-            background: linear-gradient(135deg, #ef4444, #b91c1c);
-        }
-
-        .avatar-dice {
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-        }
-
-        .avatar-couples {
-            background: linear-gradient(135deg, #ec4899, #be185d);
-        }
-
-        .avatar-liar {
-            background: linear-gradient(135deg, #8b5cf6, #4c1d95);
-        }
-
-        .avatar-fitness {
-            background: linear-gradient(135deg, #10b981, #047857);
-        }
-
-        /* New Poker Gradient (Gold/Amber) */
-        .avatar-poker {
-            background: linear-gradient(135deg, #fbbf24, #d97706);
-        }
-
-        .avatar-birthday {
-            background: linear-gradient(135deg, #ff007f, #7a00cc);
-        }
-
-        .game-title {
-            font-size: 1.4rem;
-            font-weight: 800;
-            margin: 0 0 5px 0;
-            letter-spacing: 0.5px;
-        }
-
-        .game-desc {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            margin: 0 0 20px 0;
-            line-height: 1.4;
-        }
-
-        .play-btn {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 50px;
-            font-weight: 700;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: background 0.2s;
-            width: 100%;
-        }
-
-        .game-card:hover .play-btn {
-            background: white;
-            color: var(--bg-dark);
-        }
-
-        /* Locked Styling */
-        .game-card.locked .play-btn {
-            background: rgba(0, 0, 0, 0.3);
-            color: #94a3b8;
-        }
-
-        .game-card.locked:hover .play-btn {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-        }
-
-        /* --- Placeholder Card (Desktop Only) --- */
-        .placeholder-card {
-            display: none;
-            /* Hidden by default (mobile) */
-            opacity: 0.4;
-            border-style: dashed;
-            border-color: rgba(255, 255, 255, 0.2);
-            cursor: default;
-        }
-
-        /* Only show when screen is wide enough for 2+ columns (approx 640px) */
-        @media (min-width: 640px) {
-            .placeholder-card {
-                display: flex;
-            }
-
-            .placeholder-card:hover {
-                transform: none;
-                background: rgba(30, 41, 59, 0.6);
-            }
-
-            .placeholder-card:active {
-                transform: none;
-            }
-        }
-
-        /* --- Footer --- */
-        footer {
-            width: 100%;
-            padding: 30px 20px;
-            text-align: center;
-            background: rgba(15, 23, 42, 0.8);
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-
-        .share-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .btn-social {
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-family: 'Outfit', sans-serif;
-            font-size: 0.9rem;
-            color: white;
-            transition: opacity 0.2s;
-        }
-
-        .btn-social:active {
-            opacity: 0.8;
-            transform: scale(0.98);
-        }
-
-        .btn-wa {
-            background-color: #25D366;
-        }
-
-        .btn-fb {
-            background-color: #1877F2;
-        }
-
-        #install-btn {
-            display: none;
-            margin: 0 auto 20px auto;
-            background: linear-gradient(to right, #8b5cf6, #ec4899);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
-        }
-    </style>
 </head>
-
 <body>
-
-    <header>
-        <h1>FINGER GAME HUB</h1>
-        <div class="subtitle">Select a game to begin</div>
-    </header>
-
-    <div class="container">
-
-        <a href="finger-index.html" class="game-card">
-            <div class="game-avatar avatar-finger">🫵</div>
-            <h2 class="game-title">Finger of Shame</h2>
-            <p class="game-desc">The ultimate party court. Accuse friends, cast votes, and face the wheel.</p>
-            <div class="play-btn">Play Now</div>
-        </a>
-
-        <a href="diceduel-index.html" class="game-card">
-            <div class="game-avatar avatar-dice">🎲</div>
-            <h2 class="game-title">Dice Duel</h2>
-            <p class="game-desc">A 1v1 strategy game. Roll the dice, move your cards, and bump your opponent.</p>
-            <div class="play-btn">Play Now</div>
-        </a>
-
-        <a href="PokerScore-index.html" class="game-card">
-            <div class="game-avatar avatar-poker">♦️</div>
-            <h2 class="game-title">Poker Elite</h2>
-            <p class="game-desc">Track buy-ins, live pots, and weekly payouts for the gentlemen's club.</p>
-            <div class="play-btn">Play Now</div>
-        </a>
-
-        <div onclick="unlockCouples()" class="game-card locked">
-            <div class="game-avatar avatar-couples">❤️</div>
-            <h2 class="game-title">Couples Cards</h2>
-            <p class="game-desc">Strategy, romance, and chores. Redeem cards to make your partner do things.</p>
-            <div class="play-btn" id="btn-couples">PLAY NOW 🔒</div>
-        </div>
-
-        <div onclick="unlockFitness()" class="game-card locked">
-            <div class="game-avatar avatar-fitness">💪</div>
-            <h2 class="game-title">AC Fitness</h2>
-            <p class="game-desc">Track workouts, manage plans, and build your streak.</p>
-            <div class="play-btn">PLAY NOW 🔒</div>
-        </div>
-
-        <a id="wheelspin-link" href="/WheelSpin/" class="game-card">
-            <div class="game-avatar" style="background: linear-gradient(135deg, #14b8a6, #0f766e);">🎡</div>
-            <h2 class="game-title">Wheel Spin</h2>
-            <p class="game-desc">A customizable, interactive prize wheel with realistic physics and social sharing.</p>
-            <div class="play-btn">Play Now</div>
-        </a>
-
-        <a id="alibucks-link" href="/AliBucks/" class="game-card">
-            <div class="game-avatar" style="background: white; padding: 5px;">
-                <img src="alibucks-logo.png" alt="AliBucks"
-                    style="width: 100%; height: 100%; object-fit: contain; border-radius: 12px;">
+    <div class="hub-shell">
+        <header class="hub-header">
+            <p class="kicker">Finger Universe</p>
+            <h1>Finger Game Hub</h1>
+            <p class="subtitle">One launchpad for every game and app. Fast on mobile, clean on desktop, built to keep growing.</p>
+            <div class="header-actions">
+                <button id="install-btn" class="btn btn-install" type="button" hidden>Install App</button>
+                <button id="share-btn" class="btn btn-secondary" type="button">Share Hub</button>
             </div>
-            <h2 class="game-title">AliBucks</h2>
-            <p class="game-desc">The official Alice Starbucks app.</p>
-            <div class="play-btn">Launch App</div>
-        </a>
+        </header>
 
-        <a id="magictrick-link" href="/ShowMeAMagicTrick/" class="game-card">
-            <div class="game-avatar" style="background: linear-gradient(135deg, #b055ff, #8a2be2);">✨</div>
-            <h2 class="game-title">Magic Trick</h2>
-            <p class="game-desc">Experience a mind-reading digital illusion with mesmerizing visual effects.</p>
-            <div class="play-btn">Play Now</div>
-        </a>
+        <main class="hub-main">
+            <section id="featured-panel" class="featured-panel" aria-live="polite"></section>
 
-        <a id="birthday-link" href="/AliceBirthday/" class="game-card">
-            <div class="game-avatar avatar-birthday">🎂</div>
-            <h2 class="game-title">Alice's Birthday</h2>
-            <p class="game-desc">A magical music player with confetti and voting for Alice's big 10th birthday!</p>
-            <div class="play-btn">Play Now</div>
-        </a>
+            <section class="controls" aria-label="Hub controls">
+                <label class="search-wrap">
+                    <span class="label">Search</span>
+                    <input id="search-input" type="search" placeholder="Search games, apps, and tags" autocomplete="off">
+                </label>
 
-        <a id="wouldyourather-link" href="/WouldYouRather/" class="game-card">
-            <div class="game-avatar" style="background: linear-gradient(135deg, #a855f7, #6366f1);">⚖️</div>
-            <h2 class="game-title">Would You Rather</h2>
-            <p class="game-desc">A fast-paced social debate game. Find out who really thinks alike!</p>
-            <div class="play-btn">Play Now</div>
-        </a>
+                <div class="control-row">
+                    <div class="filter-group" role="tablist" aria-label="Filter entries">
+                        <button class="filter-btn is-active" data-filter="all" type="button">All</button>
+                        <button class="filter-btn" data-filter="game" type="button">Games</button>
+                        <button class="filter-btn" data-filter="app" type="button">Apps</button>
+                        <button class="filter-btn" data-filter="locked" type="button">Locked</button>
+                    </div>
 
-        <a id="aimeme-link" href="/Ai-Meme/" class="game-card">
-            <div class="game-avatar" style="background: linear-gradient(135deg, #6366f1, #a855f7);">🖼️</div>
-            <h2 class="game-title">AI Meme</h2>
-            <p class="game-desc">Generate hilarious memes using Gemini AI. Upload a photo or use a template!</p>
-            <div class="play-btn">Play Now</div>
-        </a>
+                    <label class="sort-wrap">
+                        <span class="label">Sort</span>
+                        <select id="sort-select">
+                            <option value="featured">Featured</option>
+                            <option value="recent">Recently Played</option>
+                            <option value="az">A to Z</option>
+                        </select>
+                    </label>
+                </div>
 
-        <div class="game-card placeholder-card">
-            <div class="game-avatar" style="background: rgba(255,255,255,0.05); color: #64748b;">🔜</div>
-            <h2 class="game-title" style="color: #64748b;">Coming Soon</h2>
-            <p class="game-desc">More games are in development. Watch this space!</p>
-        </div>
+                <div class="stats-row" id="stats-row">
+                    <span class="chip"><strong id="visible-count">0</strong> visible</span>
+                    <span class="chip"><strong id="game-count">0</strong> games</span>
+                    <span class="chip"><strong id="app-count">0</strong> apps</span>
+                </div>
+            </section>
 
+            <section id="hub-grid" class="hub-grid" aria-live="polite"></section>
+            <p id="empty-state" class="empty-state" hidden>No entries match your current filter. Try clearing search or switching tabs.</p>
+        </main>
+
+        <footer class="hub-footer">
+            <div class="footer-actions">
+                <button id="whatsapp-btn" class="btn btn-social btn-whatsapp" type="button">Share on WhatsApp</button>
+                <button id="facebook-btn" class="btn btn-social btn-facebook" type="button">Share on Facebook</button>
+            </div>
+            <p class="copyright">Finger Game <span id="year"></span></p>
+        </footer>
     </div>
 
-    <footer>
-        <button id="install-btn">📲 Install App</button>
-
-        <div class="share-buttons">
-            <button class="btn-social btn-wa" onclick="shareWhatsApp()">WhatsApp</button>
-            <button class="btn-social btn-fb" onclick="shareFacebook()">Facebook</button>
-        </div>
-
-        <p style="margin-top:10px; font-size:0.8rem; color:rgba(255,255,255,0.3); letter-spacing:1px;">
-            Finger Game ©️
-            <script>document.write(new Date().getFullYear())</script>
-        </p>
-    </footer>
-
-    <script>
-        // --- Local Dev Routing Settings ---
-        document.addEventListener("DOMContentLoaded", () => {
-            // Detect if we are running locally (127.0.0.1 or localhost)
-            if (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') {
-                // Reroute WheelSpin link to its native local Vite server 
-                const wsLink = document.getElementById("wheelspin-link");
-                if (wsLink) wsLink.href = 'http://localhost:5173/';
-
-                const aliLink = document.getElementById("alibucks-link");
-                if (aliLink) aliLink.href = 'http://localhost:8080/';
-
-                const mtLink = document.getElementById("magictrick-link");
-                if (mtLink) mtLink.href = 'http://localhost:5174/'; // Usually Vite takes the next port if 5173 is busy
-
-                const bdayLink = document.getElementById("birthday-link");
-                if (bdayLink) bdayLink.href = 'http://localhost:5173/';
-
-                const wyrLink = document.getElementById("wouldyourather-link");
-                if (wyrLink) wyrLink.href = 'http://localhost:5173/WouldYouRather/';
-
-                const aimemeLink = document.getElementById("aimeme-link");
-                if (aimemeLink) aimemeLink.href = 'http://localhost:3000/Ai-Meme/';
-            }
-        });
-
-        // --- Password Logic for Couples ---
-        function unlockCouples() {
-            const code = prompt("Enter Password to Unlock:");
-            if (code === "1234") {
-                window.location.href = "couples-index.html";
-            } else if (code !== null) {
-                alert("⛔ Incorrect Password");
-            }
-        }
-
-        // --- Password Logic for Fitness ---
-        function unlockFitness() {
-            const code = prompt("Enter Password to Unlock:");
-            if (code === "1234") {
-                window.location.href = "fitness-index.html";
-            } else if (code !== null) {
-                alert("⛔ Incorrect Password");
-            }
-        }
-
-        // --- Social Share Logic ---
-        const SHARE_URL = "https://fingergame.co.uk/";
-
-        function shareWhatsApp() {
-            const funText = "The Finger Game Hub is live! 🕹️ Accuse your friends 🫵, duel with dice 🎲, bluff in the lounge 🤥, or unlock the couples challenge ❤️. All games in one place:";
-            window.open(`https://wa.me/?text=${encodeURIComponent(funText)} ${encodeURIComponent(SHARE_URL)}`, '_blank');
-        }
-
-        function shareFacebook() {
-            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SHARE_URL)}`, '_blank');
-        }
-
-        // --- PWA Install Logic ---
-        let deferredPrompt;
-        const installBtn = document.getElementById('install-btn');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installBtn.style.display = 'block';
-        });
-
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                deferredPrompt = null;
-                installBtn.style.display = 'none';
-            }
-        });
-    </script>
-
+    <script src="hub.js" defer></script>
 </body>
-
 </html>
