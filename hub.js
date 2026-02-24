@@ -130,19 +130,6 @@ const HUB_ITEMS = [
         tags: ["debate", "social", "party"],
         cta: "Play Now"
     },
-    {
-        id: "aimeme",
-        title: "AI Meme",
-        description: "Generate memes from photos or templates with AI prompts.",
-        type: "app",
-        href: "/Ai-Meme/",
-        localHref: "http://localhost:3000/Ai-Meme/",
-        short: "AM",
-        accent: "teal",
-        status: "new",
-        tags: ["ai", "memes", "images"],
-        cta: "Launch App"
-    }
 ];
 
 const itemById = new Map(HUB_ITEMS.map((item) => [item.id, item]));
