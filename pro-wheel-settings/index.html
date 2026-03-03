@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PRO Wheel PC Settings Browser</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="hero">
+      <p class="eyebrow">Logitech PRO Racing Wheel</p>
+      <h1>PC In-Game Settings</h1>
+      <p class="meta">
+        Source: <a id="source-link" target="_blank" rel="noreferrer">Logitech support article</a>
+        <span id="capture-date"></span>
+      </p>
+    </header>
+
+    <section class="controls" aria-label="Game controls">
+      <div class="controls-grid">
+        <label class="field">
+          <span>Find game</span>
+          <input id="search-input" type="text" placeholder="Type a game name..." />
+        </label>
+
+        <label class="field">
+          <span>Main game</span>
+          <select id="game-select"></select>
+        </label>
+
+      </div>
+
+      <div class="actions-row">
+        <button id="favorite-btn" class="action-btn" type="button">Favorite</button>
+      </div>
+
+      <div class="favorites-wrap" id="favorites-wrap" hidden>
+        <p>Favorites</p>
+        <div id="favorites-list" class="favorites-list"></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-root" aria-live="polite"></section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>

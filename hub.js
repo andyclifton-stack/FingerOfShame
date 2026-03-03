@@ -80,6 +80,18 @@ const HUB_ITEMS = [
         cta: "Play Now"
     },
     {
+        id: "prowheel",
+        title: "PRO Wheel Settings",
+        description: "Quick lookup for Logitech PRO wheel and in-game settings by title.",
+        type: "app",
+        href: "/pro-wheel-settings/",
+        short: "PW",
+        accent: "azure",
+        status: "new",
+        tags: ["racing", "logitech", "settings"],
+        cta: "Open"
+    },
+    {
         id: "alibucks",
         title: "AliBucks",
         description: "The official Alice Starbucks app.",

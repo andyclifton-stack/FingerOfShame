@@ -1,0 +1,359 @@
+:root {
+  --bg-1: #060f16;
+  --bg-2: #111f2f;
+  --panel: rgba(9, 17, 29, 0.88);
+  --panel-2: rgba(5, 12, 22, 0.9);
+  --text: #edf4ff;
+  --muted: #98afc8;
+  --line: rgba(128, 158, 189, 0.28);
+  --accent: #22d3ee;
+  --accent-2: #fb923c;
+  --warn: #fbbf24;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(1300px 700px at -10% -25%, rgba(34, 211, 238, 0.22), transparent 65%),
+    radial-gradient(1000px 700px at 110% -10%, rgba(251, 146, 60, 0.2), transparent 62%),
+    linear-gradient(180deg, var(--bg-1), var(--bg-2));
+  padding: clamp(0.6rem, 1vw + 0.45rem, 1.6rem);
+}
+
+.app-shell {
+  max-width: 1180px;
+  margin: 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(2, 7, 15, 0.62);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+  overflow: clip;
+}
+
+.hero {
+  padding: clamp(1rem, 1.6vw + 0.75rem, 1.5rem);
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(140deg, rgba(10, 21, 36, 0.95), rgba(7, 16, 28, 0.88));
+}
+
+.eyebrow {
+  margin: 0;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.76rem;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.hero h1 {
+  margin: 0.35rem 0;
+  font-family: 'Rajdhani', 'Segoe UI', sans-serif;
+  font-size: clamp(2rem, 4.8vw, 3.3rem);
+  line-height: 0.95;
+}
+
+.meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.93rem;
+}
+
+.meta a {
+  color: var(--accent-2);
+}
+
+.controls {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  padding: 0.8rem 1rem 1rem;
+  border-bottom: 1px solid var(--line);
+  background: rgba(5, 11, 19, 0.9);
+  backdrop-filter: blur(6px);
+}
+
+.controls-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.32rem;
+}
+
+.field span {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+input,
+select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(13, 23, 37, 0.85);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.95rem;
+  padding: 0.64rem 0.74rem;
+}
+
+input:focus,
+select:focus,
+button:focus-visible {
+  outline: 2px solid rgba(34, 211, 238, 0.55);
+  outline-offset: 1px;
+}
+
+.actions-row {
+  margin-top: 0.55rem;
+}
+
+.action-btn {
+  border: 1px solid var(--line);
+  background: rgba(11, 20, 34, 0.88);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.82rem;
+  border-radius: 9px;
+  padding: 0.47rem 0.58rem;
+  cursor: pointer;
+}
+
+.action-btn.active {
+  border-color: rgba(34, 211, 238, 0.58);
+  color: #c6f6ff;
+  background: rgba(11, 35, 49, 0.72);
+}
+
+.favorites-wrap {
+  margin-top: 0.65rem;
+}
+
+.favorites-wrap p {
+  margin: 0 0 0.35rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.favorites-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.fav-chip {
+  border: 1px solid rgba(34, 211, 238, 0.35);
+  background: rgba(9, 35, 47, 0.72);
+  color: #c9f8ff;
+  border-radius: 999px;
+  padding: 0.32rem 0.55rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.view {
+  padding: 1rem;
+}
+
+.single-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.game-panel {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  overflow: hidden;
+}
+
+.panel-head {
+  padding: 0.9rem 0.95rem;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(130deg, rgba(9, 18, 32, 0.95), rgba(7, 14, 24, 0.8));
+}
+
+.panel-head h2 {
+  margin: 0;
+  font-family: 'Rajdhani', 'Segoe UI', sans-serif;
+  font-size: 1.5rem;
+  letter-spacing: 0.03em;
+}
+
+.panel-head p {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.panel-body {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9rem;
+}
+
+.block {
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--panel-2);
+  padding: 0.7rem;
+}
+
+.block h3 {
+  margin: 0 0 0.55rem;
+  font-family: 'Rajdhani', 'Segoe UI', sans-serif;
+  font-size: 1.02rem;
+}
+
+.kv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.45rem;
+}
+
+.kv-item {
+  border: 1px solid rgba(137, 168, 201, 0.24);
+  border-radius: 8px;
+  padding: 0.48rem;
+  background: rgba(3, 10, 20, 0.85);
+}
+
+.kv-label {
+  display: block;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.kv-value {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #dbeafe;
+}
+
+.settings-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.45rem;
+}
+
+.setting-row {
+  border: 1px solid rgba(137, 168, 201, 0.22);
+  border-radius: 8px;
+  padding: 0.5rem;
+  background: rgba(4, 13, 24, 0.84);
+}
+
+.setting-top {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.setting-label {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.setting-value {
+  text-align: right;
+  color: #ebf3ff;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.setting-value.uncertain {
+  color: var(--warn);
+}
+
+.setting-meter {
+  margin-top: 0.42rem;
+  height: 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(128, 158, 189, 0.34);
+  background: linear-gradient(
+    90deg,
+    rgba(34, 211, 238, 0.14) 0%,
+    rgba(45, 212, 191, 0.1) 45%,
+    rgba(245, 158, 11, 0.12) 100%
+  );
+  overflow: hidden;
+}
+
+.setting-meter > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #22d3ee 0%, #2dd4bf 45%, #f59e0b 100%);
+  box-shadow: 0 0 14px rgba(45, 212, 191, 0.35);
+}
+
+.setting-meter-caption {
+  margin-top: 0.28rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.source-links {
+  margin-top: 0.52rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.source-links a {
+  color: var(--accent);
+}
+
+@media (max-width: 760px) {
+  .controls-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .view {
+    padding: 0.75rem;
+  }
+
+  .panel-head h2 {
+    font-size: 1.35rem;
+  }
+
+  .kv-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .settings-list {
+    grid-template-columns: 1fr;
+  }
+
+  .setting-top {
+    grid-template-columns: 1fr;
+  }
+
+  .setting-value {
+    text-align: left;
+  }
+}
