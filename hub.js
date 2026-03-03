@@ -84,7 +84,7 @@ const HUB_ITEMS = [
         title: "PRO Wheel Settings",
         description: "Quick lookup for Logitech PRO wheel and in-game settings by title.",
         type: "app",
-        href: "/pro-wheel-settings/",
+        href: "pro-wheel-settings/",
         short: "PW",
         accent: "azure",
         status: "new",
