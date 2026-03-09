@@ -142,6 +142,20 @@ const HUB_ITEMS = [
         tags: ["debate", "social", "party"],
         cta: "Play Now"
     },
+    {
+        id: "tamagotchi",
+        title: "Tamagotchi",
+        description: "Care for a real-time virtual pet with themes, growth, parent tools, and live sharing.",
+        type: "game",
+        href: "/Tamagotchi/",
+        localHref: "http://localhost:5175/",
+        short: "TG",
+        accent: "rose",
+        status: "new",
+        featured: true,
+        tags: ["virtual pet", "kids", "realtime"],
+        cta: "Play Now"
+    },
 ];
 
 const itemById = new Map(HUB_ITEMS.map((item) => [item.id, item]));
