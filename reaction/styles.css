@@ -567,6 +567,24 @@ li {
   color: #ffd778;
 }
 
+.share-footer {
+  display: flex;
+  justify-content: center;
+  padding: 4px 0 14px;
+}
+
+.share-btn {
+  min-width: min(460px, 100%);
+  border-radius: 14px;
+  padding: 14px 18px;
+  border: 1px solid rgba(255,255,255,.28);
+  color: #ecfff3;
+  background: linear-gradient(120deg, #18a34a, #25d366);
+  box-shadow: 0 10px 24px rgba(8, 38, 22, 0.35);
+  font-size: 1rem;
+  letter-spacing: .01em;
+}
+
 @media (max-width: 860px) {
   .difficulty-panel {
     grid-template-columns: 1fr;

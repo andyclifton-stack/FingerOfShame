@@ -69,6 +69,7 @@ const scoreValue = document.getElementById("scoreValue");
 const bestValue = document.getElementById("bestValue");
 const scoreboardEl = document.getElementById("scoreboard");
 const resetBoardBtn = document.getElementById("resetBoard");
+const shareBtn = document.getElementById("shareBtn");
 
 const state = {
   inGame: false,
@@ -228,6 +229,42 @@ function triggerHaptics(pattern = 10) {
   if (typeof navigator.vibrate === "function") {
     navigator.vibrate(pattern);
   }
+}
+
+function buildShareMessage() {
+  const url = "https://fingergame.co.uk/reaction/";
+  const name = state.player || "I";
+  const line = state.bestReaction
+    ? `My latest run: ${state.score} points (${state.bestReaction}ms best) on ${getLevelConfig().name}.`
+    : "Comic-style reaction chaos is live.";
+
+  return {
+    url,
+    title: "Reaction Rumble",
+    text: `Reaction Rumble is live.\n\n${line}\n\nCan you beat me?\n${url}`,
+    fallbackText: `${name} just challenged you in Reaction Rumble.\n${line}\nPlay now: ${url}`,
+  };
+}
+
+async function shareGame() {
+  const payload = buildShareMessage();
+  const shareData = {
+    title: payload.title,
+    text: payload.text,
+    url: payload.url,
+  };
+
+  if (navigator.share) {
+    try {
+      await navigator.share(shareData);
+      return;
+    } catch {
+      // fall through to WhatsApp/web fallback
+    }
+  }
+
+  const wa = `https://wa.me/?text=${encodeURIComponent(payload.fallbackText)}`;
+  window.open(wa, "_blank", "noopener");
 }
 
 function showBubble(text) {
@@ -828,6 +865,8 @@ resetBoardBtn.addEventListener("click", () => {
   localStorage.removeItem(storeKey);
   setBoardRows([], { persistLocal: false });
 });
+
+shareBtn?.addEventListener("click", shareGame);
 
 updateDifficultyUI();
 updateMuteButton();
