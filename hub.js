@@ -156,6 +156,19 @@ const HUB_ITEMS = [
         tags: ["virtual pet", "kids", "realtime"],
         cta: "Play Now"
     },
+    {
+        id: "reactionrumble",
+        title: "Reaction Rumble",
+        description: "Comic-style reaction test madness with penalties, sound modes, and a live kill board.",
+        type: "game",
+        href: "/reaction/",
+        short: "RR",
+        accent: "amber",
+        status: "new",
+        featured: true,
+        tags: ["reaction", "arcade", "speed"],
+        cta: "Play Now"
+    },
 ];
 
 const itemById = new Map(HUB_ITEMS.map((item) => [item.id, item]));
