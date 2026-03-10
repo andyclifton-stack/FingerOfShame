@@ -1,5 +1,7 @@
 ﻿const storeKey = "reaction-rumble-board-v3";
 const cloudBoardPath = "reaction_rumble/scores";
+const maxScoreRows = 10;
+const resetPin = "999";
 
 const firebaseConfig = {
   // String is pieced together to avoid GitHub automated credential scanners
@@ -20,7 +22,7 @@ const levelConfigs = [
   { level: 4, name: "Caffeine Captain", rounds: 7, delayMin: 700, delayMax: 1500, baseMult: 0.95, falseStart: 36 },
   { level: 5, name: "Turbo Gremlin", rounds: 8, delayMin: 580, delayMax: 1250, baseMult: 0.87, falseStart: 43 },
   { level: 6, name: "Panic Ninja", rounds: 9, delayMin: 470, delayMax: 1050, baseMult: 0.80, falseStart: 51 },
-  { level: 7, name: "Galactic Sweatlord", rounds: 10, delayMin: 360, delayMax: 900, baseMult: 0.74, falseStart: 60 },
+  { level: 7, name: "Galactic Sweatlord", rounds: 20, delayMin: 360, delayMax: 900, baseMult: 0.74, falseStart: 60 },
 ];
 
 const impactWords = ["POW", "BAM", "WHAP", "ZONK", "KAZAP", "KABLAM"];
@@ -69,6 +71,7 @@ const scoreValue = document.getElementById("scoreValue");
 const bestValue = document.getElementById("bestValue");
 const scoreboardEl = document.getElementById("scoreboard");
 const resetBoardBtn = document.getElementById("resetBoard");
+const cancelGameBtn = document.getElementById("cancelGameBtn");
 const shareBtn = document.getElementById("shareBtn");
 
 const state = {
@@ -431,6 +434,17 @@ function updateHud() {
   bestValue.textContent = state.bestReaction ? `${state.bestReaction} ms` : "-";
 }
 
+function setGameControlsInGame(inGame) {
+  startBtn.disabled = inGame;
+  difficultySlider.disabled = inGame;
+  muteBtn.disabled = inGame;
+  playerNameInput.disabled = inGame;
+  if (cancelGameBtn) {
+    cancelGameBtn.classList.toggle("hidden", !inGame);
+    cancelGameBtn.disabled = !inGame;
+  }
+}
+
 function loadLocalBoard() {
   try {
     return JSON.parse(localStorage.getItem(storeKey) || "[]");
@@ -440,7 +454,7 @@ function loadLocalBoard() {
 }
 
 function saveLocalBoard(rows) {
-  localStorage.setItem(storeKey, JSON.stringify(rows.slice(0, 40)));
+  localStorage.setItem(storeKey, JSON.stringify(rows.slice(0, maxScoreRows)));
 }
 
 function normalizeBoardRows(rows) {
@@ -480,7 +494,7 @@ function renderBoard() {
     return;
   }
 
-  boardRows.slice(0, 14).forEach((r) => {
+  boardRows.forEach((r) => {
     const item = document.createElement("li");
     const mutePill = r.muted ? "<span class=\"mute-pill\">MUTED</span>" : "";
     const modePill = `<span class=\"mode-pill\">${escapeHtml(r.difficultyName)}</span>`;
@@ -497,7 +511,7 @@ function initCloudBoard() {
     cloud.db = window.firebase.database(app);
     cloud.connected = true;
 
-    cloud.db.ref(cloudBoardPath).limitToLast(120).on("value", (snapshot) => {
+    cloud.db.ref(cloudBoardPath).limitToLast(180).on("value", (snapshot) => {
       const data = snapshot.val() || {};
       const rows = Object.values(data);
       setBoardRows(rows);
@@ -641,12 +655,31 @@ function finalizeGame() {
   setKillBoardHint(`Kills: ${state.kills.length} · Game over: tap any thumbnail to preview.`);
   setKillBoardUnlocked(true);
 
-  startBtn.disabled = false;
-  difficultySlider.disabled = false;
-  muteBtn.disabled = false;
-  playerNameInput.disabled = false;
+  setGameControlsInGame(false);
 
   playGameOverSound();
+}
+
+function cancelGame() {
+  if (!state.inGame) return;
+
+  clearTimeout(state.timer);
+  state.inGame = false;
+  state.waitingForSpawn = false;
+  state.loadingTarget = false;
+  state.upcomingTarget = null;
+  state.activeTarget = null;
+  state.combo = 0;
+
+  setTargetState("idle", {
+    name: "GAME CANCELED",
+    prompt: "No score saved. Reset your focus and start again.",
+  });
+  hideBubble();
+  clearKillBoard();
+  setMessage("Game canceled. Ready for a fresh start.");
+  updateHud();
+  setGameControlsInGame(false);
 }
 
 async function presentTarget(roundToken) {
@@ -740,10 +773,7 @@ function startGame() {
   state.lastDelay = null;
   state.muteBonusActive = state.muteSetting;
 
-  startBtn.disabled = true;
-  difficultySlider.disabled = true;
-  muteBtn.disabled = true;
-  playerNameInput.disabled = true;
+  setGameControlsInGame(true);
 
   updateHud();
   const cfg = getLevelConfig();
@@ -857,15 +887,31 @@ killBoardEl.addEventListener("click", (event) => {
 });
 
 resetBoardBtn.addEventListener("click", () => {
-  if (cloud.connected) {
-    setMessage("Cloud scoreboard is active. Clear scores in Firebase console if needed.");
+  const pin = window.prompt("Enter admin PIN to clear all scores:");
+  if (pin === null) return;
+  if (pin !== resetPin) {
+    setMessage("Incorrect PIN. Scores were not cleared.");
     return;
   }
 
   localStorage.removeItem(storeKey);
   setBoardRows([], { persistLocal: false });
+
+  if (cloud.db) {
+    cloud.db.ref(cloudBoardPath).remove()
+      .then(() => {
+        setMessage("All scores cleared.");
+      })
+      .catch(() => {
+        setMessage("Local scores cleared, but cloud clear failed.");
+      });
+    return;
+  }
+
+  setMessage("All local scores cleared.");
 });
 
+cancelGameBtn?.addEventListener("click", cancelGame);
 shareBtn?.addEventListener("click", shareGame);
 
 updateDifficultyUI();

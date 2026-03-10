@@ -261,6 +261,31 @@ button:active { transform: translateY(1px) scale(.98); }
   font-size: 1.12rem;
 }
 
+.cancel-game-btn {
+  margin: -4px 0 10px auto;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.28);
+  background: rgba(6, 13, 33, 0.32);
+  color: rgba(244, 249, 255, 0.75);
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  backdrop-filter: blur(4px);
+}
+
+.cancel-game-btn:hover {
+  transform: none;
+  filter: none;
+  color: rgba(244, 249, 255, 0.95);
+  border-color: rgba(255,255,255,0.4);
+}
+
+.cancel-game-btn:active {
+  transform: none;
+}
+
 .target {
   width: 100%;
   min-height: 340px;
