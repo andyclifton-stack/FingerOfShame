@@ -611,7 +611,41 @@ li {
   }
 
   .status-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: auto auto;
+    row-gap: 4px;
+    column-gap: 10px;
+  }
+
+  .status-row > div {
+    display: contents;
+  }
+
+  .status-row > div:nth-child(1) .label,
+  .status-row > div:nth-child(1) strong {
+    grid-column: 1;
+  }
+
+  .status-row > div:nth-child(2) .label,
+  .status-row > div:nth-child(2) strong {
+    grid-column: 2;
+  }
+
+  .status-row > div:nth-child(3) .label,
+  .status-row > div:nth-child(3) strong {
+    grid-column: 3;
+  }
+
+  .status-row .label {
+    grid-row: 1;
+    text-align: center;
+    margin: 0;
+  }
+
+  .status-row strong {
+    grid-row: 2;
+    text-align: center;
+    font-size: 1.05rem;
   }
 
   .target {
