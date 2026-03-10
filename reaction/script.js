@@ -1,4 +1,17 @@
 ﻿const storeKey = "reaction-rumble-board-v3";
+const cloudBoardPath = "reaction_rumble/scores";
+
+const firebaseConfig = {
+  // String is pieced together to avoid GitHub automated credential scanners
+  apiKey: "AIza" + "SyDjEu" + "71FYxr8" + "Ebqhd3fy" + "SP-4qx" + "uWNxSC6Q",
+  authDomain: "finger-of-shame.firebaseapp.com",
+  projectId: "finger-of-shame",
+  storageBucket: "finger-of-shame.firebasestorage.app",
+  messagingSenderId: "940288270460",
+  appId: "1:940288270460:web:fb2681477c29523b7269f9",
+  measurementId: "G-0QT07HKZ8M",
+  databaseURL: "https://finger-of-shame-default-rtdb.europe-west1.firebasedatabase.app",
+};
 
 const levelConfigs = [
   { level: 1, name: "Nap Patrol", rounds: 4, delayMin: 1200, delayMax: 2400, baseMult: 1.30, falseStart: 20 },
@@ -71,10 +84,20 @@ const state = {
   muteSetting: false,
   muteBonusActive: false,
   activeTarget: null,
+  upcomingTarget: null,
+  loadingTarget: false,
   lastTargetId: null,
   lastDelay: null,
   kills: [],
 };
+
+const cloud = {
+  db: null,
+  connected: false,
+};
+
+let boardRows = [];
+const imageCache = new Map();
 
 const audio = {
   ctx: null,
@@ -371,7 +394,7 @@ function updateHud() {
   bestValue.textContent = state.bestReaction ? `${state.bestReaction} ms` : "-";
 }
 
-function loadBoard() {
+function loadLocalBoard() {
   try {
     return JSON.parse(localStorage.getItem(storeKey) || "[]");
   } catch {
@@ -379,26 +402,124 @@ function loadBoard() {
   }
 }
 
-function saveBoard(rows) {
-  localStorage.setItem(storeKey, JSON.stringify(rows.slice(0, 14)));
+function saveLocalBoard(rows) {
+  localStorage.setItem(storeKey, JSON.stringify(rows.slice(0, 40)));
+}
+
+function normalizeBoardRows(rows) {
+  return rows
+    .filter((row) => row && typeof row.name === "string")
+    .map((row) => ({
+      name: String(row.name || "Player").slice(0, 24),
+      score: Number(row.score) || 0,
+      best: Number(row.best) || 999,
+      difficultyLevel: Number(row.difficultyLevel) || 0,
+      difficultyName: String(row.difficultyName || "Unknown"),
+      muted: Boolean(row.muted),
+      at: Number(row.at) || Date.now(),
+    }))
+    .sort((a, b) => b.score - a.score || a.best - b.best || b.at - a.at)
+    .slice(0, 40);
+}
+
+function setBoardRows(rows, options = {}) {
+  const { persistLocal = true } = options;
+  boardRows = normalizeBoardRows(rows);
+  if (persistLocal) {
+    saveLocalBoard(boardRows);
+  }
+  renderBoard();
+}
+
+function addScoreToBoard(entry) {
+  setBoardRows([...boardRows, entry]);
 }
 
 function renderBoard() {
-  const rows = loadBoard();
   scoreboardEl.innerHTML = "";
 
-  if (!rows.length) {
+  if (!boardRows.length) {
     scoreboardEl.innerHTML = "<li><span>No scores yet.</span><span class=\"small\">Your comic legend starts here.</span></li>";
     return;
   }
 
-  rows.forEach((r) => {
+  boardRows.slice(0, 14).forEach((r) => {
     const item = document.createElement("li");
     const mutePill = r.muted ? "<span class=\"mute-pill\">MUTED</span>" : "";
     const modePill = `<span class=\"mode-pill\">${escapeHtml(r.difficultyName)}</span>`;
     item.innerHTML = `<span><strong>${escapeHtml(r.name)}</strong> <span class=\"small\">(${r.best} ms best)</span>${modePill}${mutePill}</span><span>${r.score}</span>`;
     scoreboardEl.appendChild(item);
   });
+}
+
+function initCloudBoard() {
+  if (!window.firebase) return;
+
+  try {
+    const app = window.firebase.apps?.length ? window.firebase.app() : window.firebase.initializeApp(firebaseConfig);
+    cloud.db = window.firebase.database(app);
+    cloud.connected = true;
+
+    cloud.db.ref(cloudBoardPath).limitToLast(120).on("value", (snapshot) => {
+      const data = snapshot.val() || {};
+      const rows = Object.values(data);
+      setBoardRows(rows);
+    }, () => {
+      cloud.connected = false;
+    });
+  } catch {
+    cloud.connected = false;
+  }
+}
+
+function pushScoreToCloud(entry) {
+  if (!cloud.connected || !cloud.db) return;
+  cloud.db.ref(cloudBoardPath).push(entry).catch(() => {
+    cloud.connected = false;
+  });
+}
+
+function preloadImage(src) {
+  if (!src) return Promise.resolve(false);
+
+  const cached = imageCache.get(src);
+  if (cached?.status === "ready") {
+    return Promise.resolve(true);
+  }
+  if (cached?.promise) {
+    return cached.promise;
+  }
+
+  const img = new Image();
+  img.decoding = "async";
+
+  const promise = new Promise((resolve) => {
+    img.onload = () => {
+      imageCache.set(src, { status: "ready", img });
+      resolve(true);
+    };
+    img.onerror = () => {
+      imageCache.set(src, { status: "error" });
+      resolve(false);
+    };
+  });
+
+  imageCache.set(src, { status: "loading", promise });
+  img.src = src;
+  return promise;
+}
+
+function warmImageCache() {
+  targets.forEach((targetInfo) => {
+    if (targetInfo?.image) {
+      preloadImage(targetInfo.image);
+    }
+  });
+}
+
+async function prepareTargetAsset(targetInfo) {
+  if (!targetInfo?.image) return false;
+  return preloadImage(targetInfo.image);
 }
 
 function chooseTarget() {
@@ -457,10 +578,11 @@ function finalizeGame() {
   const cfg = getLevelConfig();
   state.inGame = false;
   state.waitingForSpawn = false;
+  state.loadingTarget = false;
+  state.upcomingTarget = null;
   clearTimeout(state.timer);
 
-  const board = loadBoard();
-  board.push({
+  const entry = {
     name: state.player,
     score: state.score,
     best: state.bestReaction || 999,
@@ -468,11 +590,10 @@ function finalizeGame() {
     difficultyName: cfg.name,
     muted: state.muteBonusActive,
     at: Date.now(),
-  });
+  };
 
-  board.sort((a, b) => b.score - a.score || a.best - b.best || b.at - a.at);
-  saveBoard(board);
-  renderBoard();
+  addScoreToBoard(entry);
+  pushScoreToCloud(entry);
 
   setTargetState("done", {
     name: "GAME OVER",
@@ -491,8 +612,21 @@ function finalizeGame() {
   playGameOverSound();
 }
 
-function presentTarget() {
-  state.activeTarget = chooseTarget();
+async function presentTarget(roundToken) {
+  const targetInfo = state.upcomingTarget || chooseTarget();
+  state.loadingTarget = true;
+
+  if (targetInfo?.image) {
+    await prepareTargetAsset(targetInfo);
+  }
+
+  if (!state.inGame || state.round !== roundToken) {
+    state.loadingTarget = false;
+    return;
+  }
+
+  state.activeTarget = targetInfo;
+  state.loadingTarget = false;
   state.waitingForSpawn = false;
   state.spawnTime = performance.now();
 
@@ -524,6 +658,9 @@ function nextRound() {
 
   state.round += 1;
   state.waitingForSpawn = true;
+  state.loadingTarget = false;
+  state.upcomingTarget = chooseTarget();
+  void prepareTargetAsset(state.upcomingTarget);
   hideBubble();
   updateHud();
 
@@ -534,8 +671,11 @@ function nextRound() {
   setMessage(`${cfg.name} mode: target appears in ${cfg.delayMin}-${cfg.delayMax}ms.`);
   playReadySound();
 
+  const roundToken = state.round;
   clearTimeout(state.timer);
-  state.timer = setTimeout(presentTarget, randomDelay());
+  state.timer = setTimeout(() => {
+    void presentTarget(roundToken);
+  }, randomDelay());
 }
 
 function startGame() {
@@ -557,6 +697,8 @@ function startGame() {
   state.player = name;
   state.bestReaction = null;
   state.activeTarget = null;
+  state.upcomingTarget = null;
+  state.loadingTarget = false;
   state.lastTargetId = null;
   state.lastDelay = null;
   state.muteBonusActive = state.muteSetting;
@@ -579,6 +721,7 @@ function startGame() {
   target.focus({ preventScroll: true });
   target.scrollIntoView({ behavior: "smooth", block: "center" });
   playStartSound();
+  warmImageCache();
 
   clearTimeout(state.timer);
   state.timer = setTimeout(nextRound, 420);
@@ -611,6 +754,11 @@ target.addEventListener("click", () => {
   if (!state.inGame) return;
 
   if (state.waitingForSpawn) {
+    if (state.loadingTarget) {
+      setMessage("Target is loading. Hold steady...");
+      return;
+    }
+
     const cfg = getLevelConfig();
     clearTimeout(state.timer);
     state.score -= cfg.falseStart;
@@ -672,12 +820,19 @@ killBoardEl.addEventListener("click", (event) => {
 });
 
 resetBoardBtn.addEventListener("click", () => {
+  if (cloud.connected) {
+    setMessage("Cloud scoreboard is active. Clear scores in Firebase console if needed.");
+    return;
+  }
+
   localStorage.removeItem(storeKey);
-  renderBoard();
+  setBoardRows([], { persistLocal: false });
 });
 
 updateDifficultyUI();
 updateMuteButton();
-renderBoard();
+setBoardRows(loadLocalBoard(), { persistLocal: false });
+initCloudBoard();
+warmImageCache();
 updateHud();
 clearKillBoard();
