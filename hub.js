@@ -169,6 +169,19 @@ const HUB_ITEMS = [
         tags: ["reaction", "arcade", "speed"],
         cta: "Play Now"
     },
+    {
+        id: "roasttimer",
+        title: "Roast Dinner Timer",
+        description: "Plan every roast task backwards from serving time with live kitchen recovery tools.",
+        type: "app",
+        href: "/Roast/",
+        short: "RT",
+        accent: "amber",
+        status: "new",
+        featured: true,
+        tags: ["kitchen", "timer", "planning"],
+        cta: "Open"
+    },
 ];
 
 const itemById = new Map(HUB_ITEMS.map((item) => [item.id, item]));

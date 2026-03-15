@@ -1,0 +1,2496 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roast Dinner Timer</title>
+  <style>
+    :root {
+      --bg: #f6f2ea;
+      --panel: #fffdf8;
+      --ink: #2e2a24;
+      --muted: #6d6458;
+      --line: #ddd2c3;
+      --accent: #c06a36;
+      --accent-strong: #9f4f20;
+      --ok: #2f7d32;
+      --warn: #b66a04;
+      --danger: #b42318;
+      --info: #1e6ca1;
+      --shadow: 0 8px 24px rgba(46, 42, 36, 0.1);
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 20% -5%, #f6e6d4 0%, rgba(246, 230, 212, 0) 40%),
+        radial-gradient(circle at 90% 0%, #efe4d5 0%, rgba(239, 228, 213, 0) 35%),
+        var(--bg);
+      min-height: 100vh;
+      line-height: 1.35;
+    }
+
+    .app {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 12px;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 8px;
+      z-index: 20;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .topbar-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.25rem, 3.5vw, 1.8rem);
+      letter-spacing: 0.02em;
+    }
+
+    .clock {
+      font-size: clamp(1.15rem, 3vw, 1.5rem);
+      font-weight: 700;
+      background: #f5eee2;
+      border: 1px solid var(--line);
+      padding: 6px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(120px, 1fr));
+      gap: 8px;
+      align-items: end;
+    }
+
+    .field {
+      display: grid;
+      gap: 4px;
+    }
+
+    .field label {
+      font-size: 0.84rem;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+      font: inherit;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      padding: 10px;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    textarea {
+      min-height: 78px;
+      resize: vertical;
+    }
+
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible,
+    button:focus-visible,
+    summary:focus-visible {
+      outline: 3px solid #ffcf9f;
+      outline-offset: 1px;
+    }
+
+    button {
+      cursor: pointer;
+      border: 1px solid #c5b7a5;
+      background: #f5eee5;
+      font-weight: 700;
+      min-height: 44px;
+    }
+
+    button:hover {
+      background: #f1e7da;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-strong);
+      border-color: var(--accent-strong);
+    }
+
+    .btn-danger {
+      background: #fbe9e8;
+      border-color: #e8b0ac;
+      color: #8f1a13;
+    }
+
+    .btn-subtle {
+      background: #fbf8f2;
+      border-color: #d8cebf;
+    }
+
+    .tabs {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .tab-btn {
+      font-size: 1rem;
+    }
+
+    .tab-btn.active {
+      background: #f1ddc8;
+      border-color: #d39f71;
+    }
+
+    .tab {
+      display: none;
+      margin-top: 10px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 12px;
+    }
+
+    .tab.active {
+      display: block;
+    }
+
+    .section-head {
+      display: flex;
+      gap: 8px;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .tiny {
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .warning-box {
+      border: 1px solid #e7be87;
+      background: #fff5e7;
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .warning-item {
+      margin: 5px 0;
+      color: #71420f;
+      font-weight: 600;
+    }
+
+    .task-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .task-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .task-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .task-name {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      font-size: 0.88rem;
+      color: var(--muted);
+      align-items: center;
+    }
+
+    .pill {
+      border: 1px solid #d7cab9;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-weight: 700;
+      background: #faf6f0;
+      color: #6b5f52;
+      white-space: nowrap;
+    }
+
+    .status {
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-upcoming,
+    .status-not-started {
+      color: var(--info);
+      border-color: #90bddb;
+      background: #ecf6fc;
+    }
+
+    .status-due-now {
+      color: #8b5100;
+      border-color: #f0bb77;
+      background: #fff3e2;
+    }
+
+    .status-in-progress {
+      color: var(--ok);
+      border-color: #97cf99;
+      background: #ebf7ec;
+    }
+
+    .status-paused {
+      color: #6b5f52;
+      border-color: #c2b6a6;
+      background: #f6f1ea;
+    }
+
+    .status-overdue {
+      color: var(--danger);
+      border-color: #ecaaa4;
+      background: #feeceb;
+    }
+
+    .status-complete,
+    .status-skipped {
+      color: #4f7c4a;
+      border-color: #b8d4b3;
+      background: #f3fbf2;
+    }
+
+    .task-actions,
+    .quick-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .task-actions button {
+      padding: 8px 10px;
+      min-height: 38px;
+      font-size: 0.92rem;
+    }
+
+    .plan-times {
+      font-size: 0.93rem;
+      font-weight: 700;
+    }
+
+    .notes {
+      font-size: 0.9rem;
+      color: #514940;
+      background: #fdfaf5;
+      border: 1px solid #eee2d3;
+      border-radius: 8px;
+      padding: 7px;
+    }
+
+    .timeline-shift {
+      display: grid;
+      gap: 4px;
+      font-size: 0.83rem;
+      color: var(--muted);
+    }
+
+    .timeline-shift input[type="range"] {
+      width: 100%;
+      padding: 0;
+      border: none;
+      background: transparent;
+      accent-color: var(--accent);
+      min-height: 30px;
+    }
+
+    .panel-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: 1.2fr 1fr;
+    }
+
+    .box {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 10px;
+    }
+
+    .next-task {
+      display: grid;
+      gap: 8px;
+    }
+
+    .big {
+      font-size: clamp(1.45rem, 4vw, 2rem);
+      font-weight: 800;
+      letter-spacing: 0.01em;
+    }
+
+    .countdown {
+      font-size: clamp(1.3rem, 3.6vw, 1.8rem);
+      font-weight: 800;
+      color: #824112;
+    }
+
+    .sub-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .list-title {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 1rem;
+    }
+
+    .edit-layout {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 10px;
+    }
+
+    .task-form {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .task-form .full {
+      grid-column: 1 / -1;
+    }
+
+    .task-row {
+      display: grid;
+      gap: 6px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      padding: 8px;
+    }
+
+    .task-row.dragging {
+      opacity: 0.5;
+    }
+
+    .task-row-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .small {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .settings-grid {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .switch {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      padding: 10px;
+    }
+
+    .switch label {
+      font-weight: 700;
+    }
+
+    .switch input {
+      width: 26px;
+      height: 26px;
+      margin: 0;
+    }
+
+    .toast-wrap {
+      position: fixed;
+      right: 10px;
+      bottom: 10px;
+      z-index: 50;
+      display: grid;
+      gap: 8px;
+      width: min(92vw, 360px);
+      pointer-events: none;
+    }
+
+    .toast {
+      border: 1px solid #d8c8b4;
+      background: #fffdf8;
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      padding: 8px 10px;
+      font-size: 0.92rem;
+      pointer-events: auto;
+    }
+
+    .toast.warn {
+      border-color: #edbc89;
+      background: #fff7ec;
+    }
+
+    .toast.error {
+      border-color: #ebaaa6;
+      background: #fff0ef;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      background: rgba(46, 42, 36, 0.45);
+      display: none;
+      place-items: center;
+      padding: 14px;
+    }
+
+    .overlay.show {
+      display: grid;
+    }
+
+    .overlay-card {
+      max-width: 430px;
+      width: 100%;
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 14px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      padding: 9px;
+    }
+
+    .checkbox input {
+      width: 20px;
+      height: 20px;
+      margin: 0;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+
+    @media (max-width: 900px) {
+      .controls-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .panel-grid,
+      .edit-layout,
+      .sub-grid,
+      .settings-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .tabs {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .task-form {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      .topbar,
+      .tabs,
+      #live-tab,
+      #edit-tab,
+      #settings-tab,
+      .task-actions,
+      .timeline-shift,
+      .warning-box button,
+      #resume-overlay,
+      .toast-wrap {
+        display: none !important;
+      }
+
+      #plan-tab {
+        display: block !important;
+        border: none;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar" aria-label="Top controls">
+      <div class="topbar-row">
+        <h1>Roast Dinner Timer</h1>
+        <div id="current-clock" class="clock" aria-live="polite">--:--:--</div>
+      </div>
+      <div class="controls-grid">
+        <div class="field">
+          <label for="serving-date">Serving date</label>
+          <input id="serving-date" type="date" />
+        </div>
+        <div class="field">
+          <label for="serving-time">Serving time</label>
+          <input id="serving-time" type="time" step="60" />
+        </div>
+        <div class="field">
+          <label for="recalc-policy">Recalc mode</label>
+          <select id="recalc-policy">
+            <option value="affected">Only shift affected tasks</option>
+            <option value="all">Recalculate all</option>
+            <option value="preserve">Leave existing clock times</option>
+          </select>
+        </div>
+        <label class="checkbox" for="start-now-mode">
+          <input id="start-now-mode" type="checkbox" />
+          <span>Start now mode</span>
+        </label>
+        <button id="start-cooking-btn" class="btn-primary">Start Cooking</button>
+        <div class="quick-row">
+          <button id="save-btn">Save</button>
+          <button id="reset-template-btn" class="btn-danger">Reset Template</button>
+        </div>
+      </div>
+      <div class="tiny">Anchor: serving time drives backward tasks and finish checks.</div>
+    </header>
+
+    <nav class="tabs" aria-label="Main tabs">
+      <button class="tab-btn active" data-tab="plan-tab">Plan</button>
+      <button class="tab-btn" data-tab="live-tab">Live Cook</button>
+      <button class="tab-btn" data-tab="edit-tab">Edit Tasks</button>
+      <button class="tab-btn" data-tab="settings-tab">Settings</button>
+    </nav>
+
+    <section id="plan-tab" class="tab active" aria-label="Plan view">
+      <div class="section-head">
+        <div>
+          <strong>Plan Timeline</strong>
+          <div class="tiny">Chronological task view with overlap checks and time nudges.</div>
+        </div>
+        <div class="quick-row">
+          <label for="plan-filter" class="sr-only">Filter category</label>
+          <select id="plan-filter"></select>
+          <button id="serve-plus-10" class="btn-subtle">Serve +10 min</button>
+          <button id="print-plan" class="btn-subtle">Print Plan</button>
+        </div>
+      </div>
+      <div id="plan-warnings"></div>
+      <div id="plan-list" class="task-list"></div>
+    </section>
+
+    <section id="live-tab" class="tab" aria-label="Live cook view">
+      <div class="section-head">
+        <div>
+          <strong>Live Cook</strong>
+          <div class="tiny">Current task, active timers, overdue recovery, and quick actions.</div>
+        </div>
+        <div class="quick-row">
+          <button id="quick-delay-next" class="btn-subtle">Delay next +5</button>
+          <button id="serve-plus-10-live" class="btn-subtle">Serve +10 min</button>
+        </div>
+      </div>
+      <div class="panel-grid">
+        <div id="next-task-panel" class="box next-task"></div>
+        <div class="box">
+          <h3 class="list-title">Emergency Quick Task</h3>
+          <form id="quick-task-form" class="task-form" autocomplete="off">
+            <div class="field full">
+              <label for="quick-task-name">Task name</label>
+              <input id="quick-task-name" type="text" placeholder="Quick gravy check" required />
+            </div>
+            <div class="field">
+              <label for="quick-task-mins">Duration (mins)</label>
+              <input id="quick-task-mins" type="number" min="0" value="5" required />
+            </div>
+            <div class="field">
+              <label for="quick-task-category">Category</label>
+              <select id="quick-task-category"></select>
+            </div>
+            <div class="field full">
+              <label for="quick-task-notes">Notes</label>
+              <input id="quick-task-notes" type="text" placeholder="Optional note" />
+            </div>
+            <button class="btn-primary full" type="submit">Add And Start Now</button>
+          </form>
+        </div>
+      </div>
+      <div class="sub-grid">
+        <div class="box">
+          <h3 class="list-title">Active Tasks</h3>
+          <div id="live-active" class="task-list"></div>
+        </div>
+        <div class="box">
+          <h3 class="list-title">Overdue Tasks</h3>
+          <div id="live-overdue" class="task-list"></div>
+        </div>
+      </div>
+      <div class="box" style="margin-top: 10px;">
+        <h3 class="list-title">Upcoming</h3>
+        <div id="live-upcoming" class="task-list"></div>
+      </div>
+    </section>
+
+    <section id="edit-tab" class="tab" aria-label="Edit tasks">
+      <div class="section-head">
+        <div>
+          <strong>Edit Tasks</strong>
+          <div class="tiny">Add, edit, delete, duplicate, and reorder tasks.</div>
+        </div>
+        <button id="new-task-btn" class="btn-subtle">New Task</button>
+      </div>
+      <div class="edit-layout">
+        <div class="box">
+          <form id="task-form" class="task-form" autocomplete="off">
+            <input id="task-id" type="hidden" />
+            <div class="field full">
+              <label for="task-name">Task name</label>
+              <input id="task-name" type="text" required />
+            </div>
+            <div class="field">
+              <label for="task-duration">Duration (mins)</label>
+              <input id="task-duration" type="number" min="0" required />
+            </div>
+            <div class="field">
+              <label for="task-category">Category</label>
+              <select id="task-category"></select>
+            </div>
+            <div class="field">
+              <label for="task-schedule-type">Start time rule</label>
+              <select id="task-schedule-type">
+                <option value="serveOffset">Count backwards from serve time</option>
+                <option value="after">Starts after another task ends</option>
+                <option value="fixed">Fixed clock time</option>
+                <option value="manual">Manual start</option>
+              </select>
+            </div>
+            <div class="field" id="field-fixed-time">
+              <label for="task-fixed-time">Fixed start time</label>
+              <input id="task-fixed-time" type="time" step="60" />
+            </div>
+            <div class="field" id="field-depends-on">
+              <label for="task-depends-on">Depends on task</label>
+              <select id="task-depends-on"></select>
+            </div>
+            <div class="field" id="field-after-offset">
+              <label for="task-after-offset">Offset after dependency (mins)</label>
+              <input id="task-after-offset" type="number" value="0" />
+            </div>
+            <div class="field" id="field-finish-offset">
+              <label for="task-finish-offset">Finish mins before serve</label>
+              <input id="task-finish-offset" type="number" value="0" />
+            </div>
+            <div class="field">
+              <label for="task-buffer">Delay buffer (mins)</label>
+              <input id="task-buffer" type="number" min="0" value="0" />
+            </div>
+            <div class="field">
+              <label for="task-priority">Priority</label>
+              <select id="task-priority">
+                <option value="1">Low</option>
+                <option value="2">Normal</option>
+                <option value="3">High</option>
+              </select>
+            </div>
+            <label class="checkbox">
+              <input id="task-must-finish" type="checkbox" />
+              <span>Must finish by serve time</span>
+            </label>
+            <label class="checkbox">
+              <input id="task-notify" type="checkbox" />
+              <span>Notify me</span>
+            </label>
+            <div class="field full">
+              <label for="task-notes">Notes</label>
+              <textarea id="task-notes"></textarea>
+            </div>
+            <div class="quick-row full">
+              <button type="submit" class="btn-primary" id="task-submit-btn">Add Task</button>
+              <button type="button" id="task-cancel-btn">Cancel</button>
+            </div>
+          </form>
+        </div>
+        <div class="box">
+          <div class="tiny">Drag to reorder or use buttons.</div>
+          <div id="edit-task-list" class="task-list" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="settings-tab" class="tab" aria-label="Settings">
+      <div class="section-head">
+        <div>
+          <strong>Settings</strong>
+          <div class="tiny">Clock, alerts, defaults, import/export, and presets.</div>
+        </div>
+      </div>
+      <div class="settings-grid">
+        <div class="switch">
+          <label for="set-clock12">12-hour clock format</label>
+          <input id="set-clock12" type="checkbox" />
+        </div>
+        <div class="switch">
+          <label for="set-sound">Sound alerts</label>
+          <input id="set-sound" type="checkbox" />
+        </div>
+        <div class="switch">
+          <label for="set-visual">Visual alerts</label>
+          <input id="set-visual" type="checkbox" />
+        </div>
+        <div class="field">
+          <label for="set-default-buffer">Default buffer minutes</label>
+          <input id="set-default-buffer" type="number" min="0" step="1" />
+        </div>
+        <div class="field">
+          <label for="preset-select">Meal presets</label>
+          <select id="preset-select">
+            <option value="classic">Classic roast template</option>
+            <option value="quick">Quick roast template</option>
+          </select>
+        </div>
+        <div class="quick-row">
+          <button id="load-preset" class="btn-subtle">Load Preset</button>
+          <button id="duplicate-plan" class="btn-subtle">Duplicate Plan</button>
+        </div>
+      </div>
+      <div class="box" style="margin-top: 10px;">
+        <div class="quick-row">
+          <button id="request-notification" class="btn-subtle">Enable Browser Notifications</button>
+          <button id="export-json" class="btn-subtle">Export JSON</button>
+          <label for="import-json" class="btn-subtle" style="display:inline-flex;align-items:center;">Import JSON</label>
+          <input id="import-json" type="file" accept="application/json" class="sr-only" />
+        </div>
+        <p class="tiny" style="margin-bottom: 0;">Data is saved locally in your browser using localStorage.</p>
+      </div>
+    </section>
+  </div>
+
+  <div id="toast-wrap" class="toast-wrap" aria-live="polite"></div>
+
+  <div id="resume-overlay" class="overlay" role="dialog" aria-modal="true" aria-label="Resume session">
+    <div class="overlay-card">
+      <h2 style="margin:0;">Resume your last cooking session?</h2>
+      <p class="muted" style="margin:0;">We found saved live task state from your last session.</p>
+      <div class="quick-row">
+        <button id="resume-btn" class="btn-primary">Resume</button>
+        <button id="fresh-btn">Start Fresh</button>
+        <button id="template-btn" class="btn-danger">Load Template</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const STORAGE_KEY = "roast-dinner-timer-v1";
+      const MIN = 60 * 1000;
+
+      // CUSTOMIZE: edit these kitchen categories.
+      const DEFAULT_CATEGORIES = ["oven", "hob", "prep", "rest", "serve", "fry", "veg", "gravy"];
+
+      const dom = {
+        currentClock: document.getElementById("current-clock"),
+        servingDate: document.getElementById("serving-date"),
+        servingTime: document.getElementById("serving-time"),
+        startNowMode: document.getElementById("start-now-mode"),
+        startCookingBtn: document.getElementById("start-cooking-btn"),
+        saveBtn: document.getElementById("save-btn"),
+        resetTemplateBtn: document.getElementById("reset-template-btn"),
+        tabs: Array.from(document.querySelectorAll(".tab-btn")),
+        tabPanels: Array.from(document.querySelectorAll(".tab")),
+        recalcPolicy: document.getElementById("recalc-policy"),
+        planFilter: document.getElementById("plan-filter"),
+        planWarnings: document.getElementById("plan-warnings"),
+        planList: document.getElementById("plan-list"),
+        servePlus10: document.getElementById("serve-plus-10"),
+        servePlus10Live: document.getElementById("serve-plus-10-live"),
+        quickDelayNext: document.getElementById("quick-delay-next"),
+        printPlan: document.getElementById("print-plan"),
+        nextTaskPanel: document.getElementById("next-task-panel"),
+        liveActive: document.getElementById("live-active"),
+        liveOverdue: document.getElementById("live-overdue"),
+        liveUpcoming: document.getElementById("live-upcoming"),
+        quickTaskForm: document.getElementById("quick-task-form"),
+        quickTaskName: document.getElementById("quick-task-name"),
+        quickTaskMins: document.getElementById("quick-task-mins"),
+        quickTaskCategory: document.getElementById("quick-task-category"),
+        quickTaskNotes: document.getElementById("quick-task-notes"),
+        newTaskBtn: document.getElementById("new-task-btn"),
+        taskForm: document.getElementById("task-form"),
+        taskId: document.getElementById("task-id"),
+        taskName: document.getElementById("task-name"),
+        taskDuration: document.getElementById("task-duration"),
+        taskCategory: document.getElementById("task-category"),
+        taskScheduleType: document.getElementById("task-schedule-type"),
+        taskFixedTime: document.getElementById("task-fixed-time"),
+        taskDependsOn: document.getElementById("task-depends-on"),
+        taskAfterOffset: document.getElementById("task-after-offset"),
+        taskFinishOffset: document.getElementById("task-finish-offset"),
+        taskBuffer: document.getElementById("task-buffer"),
+        taskPriority: document.getElementById("task-priority"),
+        taskMustFinish: document.getElementById("task-must-finish"),
+        taskNotify: document.getElementById("task-notify"),
+        taskNotes: document.getElementById("task-notes"),
+        taskSubmitBtn: document.getElementById("task-submit-btn"),
+        taskCancelBtn: document.getElementById("task-cancel-btn"),
+        fieldFixedTime: document.getElementById("field-fixed-time"),
+        fieldDependsOn: document.getElementById("field-depends-on"),
+        fieldAfterOffset: document.getElementById("field-after-offset"),
+        fieldFinishOffset: document.getElementById("field-finish-offset"),
+        editTaskList: document.getElementById("edit-task-list"),
+        setClock12: document.getElementById("set-clock12"),
+        setSound: document.getElementById("set-sound"),
+        setVisual: document.getElementById("set-visual"),
+        setDefaultBuffer: document.getElementById("set-default-buffer"),
+        requestNotification: document.getElementById("request-notification"),
+        exportJson: document.getElementById("export-json"),
+        importJson: document.getElementById("import-json"),
+        presetSelect: document.getElementById("preset-select"),
+        loadPreset: document.getElementById("load-preset"),
+        duplicatePlan: document.getElementById("duplicate-plan"),
+        toastWrap: document.getElementById("toast-wrap"),
+        resumeOverlay: document.getElementById("resume-overlay"),
+        resumeBtn: document.getElementById("resume-btn"),
+        freshBtn: document.getElementById("fresh-btn"),
+        templateBtn: document.getElementById("template-btn")
+      };
+
+      let activeTab = "plan-tab";
+      let draggingId = null;
+
+      const state = loadState();
+      let computed = computePlan();
+
+      hydrateTopControls();
+      bindEvents();
+      renderAll();
+
+      if (state.sessionActive && hasRuntimeProgress(state.tasks)) {
+        dom.resumeOverlay.classList.add("show");
+      }
+
+      setInterval(() => {
+        computed = computePlan();
+        processAlerts(computed);
+        renderClock();
+        renderLive(computed);
+        renderPlan(computed);
+        saveState();
+      }, 1000);
+
+      function loadState() {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          return defaultState();
+        }
+        try {
+          const parsed = JSON.parse(raw);
+          return normalizeState(parsed);
+        } catch (_err) {
+          return defaultState();
+        }
+      }
+
+      function normalizeState(input) {
+        const defaults = defaultState();
+        const merged = {
+          ...defaults,
+          ...input,
+          settings: {
+            ...defaults.settings,
+            ...(input.settings || {})
+          },
+          alertsFired: {
+            ...(input.alertsFired || {})
+          }
+        };
+        merged.tasks = Array.isArray(input.tasks) && input.tasks.length
+          ? input.tasks.map((task, index) => normalizeTask(task, index))
+          : defaultTasks();
+        if (!Array.isArray(merged.savedPlans)) {
+          merged.savedPlans = [];
+        }
+        return merged;
+      }
+
+      function normalizeTask(task, index) {
+        return {
+          id: task.id || `task-${Date.now()}-${index}`,
+          name: task.name || `Task ${index + 1}`,
+          durationMin: num(task.durationMin, 0),
+          scheduleType: task.scheduleType || "fixed",
+          fixedTime: task.fixedTime || "",
+          dependsOnId: task.dependsOnId || "",
+          afterOffsetMin: num(task.afterOffsetMin, 0),
+          finishOffsetMin: num(task.finishOffsetMin, 0),
+          category: task.category || "prep",
+          notes: task.notes || "",
+          bufferMin: Number.isFinite(task.bufferMin) ? Number(task.bufferMin) : 0,
+          priority: Math.max(1, Math.min(3, num(task.priority, 2))),
+          mustFinishByServe: Boolean(task.mustFinishByServe),
+          notify: task.notify !== false,
+          manualShiftMin: num(task.manualShiftMin, 0),
+          delayMin: num(task.delayMin, 0),
+          preserveDelayMin: num(task.preserveDelayMin, 0),
+          statusState: task.statusState || "not_started",
+          actualStartTs: task.actualStartTs || null,
+          actualEndTs: task.actualEndTs || null,
+          pausedAtTs: task.pausedAtTs || null,
+          pausedTotalMs: num(task.pausedTotalMs, 0)
+        };
+      }
+
+      function defaultState() {
+        return {
+          servingDate: localDateString(new Date()),
+          servingTime: "13:00",
+          startNowMode: false,
+          recalcPolicy: "affected",
+          planFilter: "all",
+          sessionActive: false,
+          sessionStartedAt: null,
+          settings: {
+            clock12: true,
+            soundAlerts: true,
+            visualAlerts: true,
+            defaultBufferMin: 0
+          },
+          // CUSTOMIZE: tweak or replace this sample plan list in defaultTasks().
+          tasks: defaultTasks(),
+          alertsFired: {},
+          savedPlans: []
+        };
+      }
+
+      function defaultTasks() {
+        return [
+          mkTask("preheat", "Preheat oven", 5, "fixed", {
+            fixedTime: "10:30",
+            category: "prep",
+            notify: true,
+            mustFinishByServe: false
+          }),
+          mkTask("gammon-in", "Put gammon in oven", 140, "fixed", {
+            fixedTime: "10:35",
+            category: "oven",
+            notes: "Cover loosely with foil, add a little water to tray",
+            notify: true,
+            mustFinishByServe: true,
+            priority: 3
+          }),
+          mkTask("prep-potatoes", "Prepare potatoes", 10, "fixed", {
+            fixedTime: "11:45",
+            category: "prep",
+            notify: true
+          }),
+          mkTask("parboil", "Parboil potatoes", 10, "after", {
+            dependsOnId: "prep-potatoes",
+            category: "hob",
+            notify: true
+          }),
+          mkTask("drain", "Drain and dry potatoes", 5, "after", {
+            dependsOnId: "parboil",
+            category: "prep",
+            notify: true
+          }),
+          mkTask("roast-potatoes", "Roast potatoes", 70, "after", {
+            dependsOnId: "drain",
+            category: "oven",
+            notify: true,
+            mustFinishByServe: true,
+            priority: 3
+          }),
+          mkTask("finish-gammon", "Remove foil and finish gammon", 20, "fixed", {
+            fixedTime: "12:20",
+            category: "oven",
+            notes: "Uncover, score fat, optional glaze",
+            notify: true
+          }),
+          mkTask("pigs", "Put pigs in blankets in oven", 25, "fixed", {
+            fixedTime: "12:30",
+            category: "oven",
+            notify: true
+          }),
+          mkTask("carrots", "Put baby carrots in oven", 25, "fixed", {
+            fixedTime: "12:35",
+            category: "oven",
+            notify: true
+          }),
+          mkTask("pineapple", "Put pineapple rings in oven", 20, "fixed", {
+            fixedTime: "12:40",
+            category: "oven",
+            notify: true
+          }),
+          mkTask("bread-sauce", "Start bread sauce", 10, "fixed", {
+            fixedTime: "12:45",
+            category: "hob",
+            notify: true
+          }),
+          mkTask("broccoli", "Fry tenderstem broccoli", 5, "fixed", {
+            fixedTime: "12:50",
+            category: "hob",
+            notify: true
+          }),
+          mkTask("yorkshire", "Heat Yorkshire puddings", 5, "fixed", {
+            fixedTime: "12:55",
+            category: "oven",
+            notify: true
+          }),
+          mkTask("rest-gammon", "Rest gammon", 5, "fixed", {
+            fixedTime: "12:57",
+            category: "rest",
+            notify: true
+          }),
+          mkTask("serve", "Serve", 0, "serveOffset", {
+            fixedTime: "13:00",
+            category: "serve",
+            notify: true,
+            mustFinishByServe: true,
+            priority: 3
+          })
+        ];
+      }
+
+      function quickTemplate() {
+        return [
+          mkTask("preheat-q", "Preheat oven", 5, "fixed", { fixedTime: "11:20", category: "prep", notify: true }),
+          mkTask("main-q", "Main roast in oven", 70, "fixed", { fixedTime: "11:25", category: "oven", notify: true, mustFinishByServe: true }),
+          mkTask("veg-prep-q", "Prep veg", 10, "fixed", { fixedTime: "12:00", category: "prep", notify: true }),
+          mkTask("veg-cook-q", "Cook veg", 20, "after", { dependsOnId: "veg-prep-q", category: "hob", notify: true }),
+          mkTask("gravy-q", "Make gravy", 10, "fixed", { fixedTime: "12:25", category: "hob", notify: true }),
+          mkTask("serve-q", "Serve", 0, "serveOffset", { finishOffsetMin: 0, category: "serve", notify: true, mustFinishByServe: true, priority: 3 })
+        ];
+      }
+
+      function mkTask(id, name, durationMin, scheduleType, extras) {
+        return normalizeTask({
+          id,
+          name,
+          durationMin,
+          scheduleType,
+          fixedTime: "",
+          dependsOnId: "",
+          afterOffsetMin: 0,
+          finishOffsetMin: 0,
+          category: "prep",
+          notes: "",
+          bufferMin: 0,
+          priority: 2,
+          mustFinishByServe: false,
+          notify: true,
+          manualShiftMin: 0,
+          delayMin: 0,
+          preserveDelayMin: 0,
+          statusState: "not_started",
+          actualStartTs: null,
+          actualEndTs: null,
+          pausedAtTs: null,
+          pausedTotalMs: 0,
+          ...extras
+        }, 0);
+      }
+
+      function saveState() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      }
+
+      function hydrateTopControls() {
+        dom.servingDate.value = state.servingDate;
+        dom.servingTime.value = state.servingTime;
+        dom.startNowMode.checked = state.startNowMode;
+        dom.recalcPolicy.value = state.recalcPolicy;
+      }
+
+      function bindEvents() {
+        dom.tabs.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            activeTab = btn.dataset.tab;
+            renderTabs();
+          });
+        });
+
+        dom.servingDate.addEventListener("change", () => {
+          state.servingDate = dom.servingDate.value || localDateString(new Date());
+          recomputeAndRender();
+        });
+
+        dom.servingTime.addEventListener("change", () => {
+          state.servingTime = dom.servingTime.value || "13:00";
+          recomputeAndRender();
+        });
+
+        dom.startNowMode.addEventListener("change", () => {
+          state.startNowMode = dom.startNowMode.checked;
+          saveState();
+        });
+
+        dom.recalcPolicy.addEventListener("change", () => {
+          state.recalcPolicy = dom.recalcPolicy.value;
+          saveState();
+        });
+
+        dom.startCookingBtn.addEventListener("click", () => {
+          if (state.startNowMode) {
+            alignPlanToNow();
+          }
+          state.sessionActive = true;
+          state.sessionStartedAt = Date.now();
+          toast("Cooking session started.");
+          recomputeAndRender();
+        });
+
+        dom.saveBtn.addEventListener("click", () => {
+          saveState();
+          toast("Saved.");
+        });
+
+        dom.resetTemplateBtn.addEventListener("click", () => {
+          if (!confirm("Reset to the default roast template?")) {
+            return;
+          }
+          const fresh = defaultState();
+          Object.assign(state, fresh);
+          hydrateTopControls();
+          resetRuntimeOnly(false);
+          recomputeAndRender();
+          toast("Template restored.");
+        });
+
+        dom.planFilter.addEventListener("change", () => {
+          state.planFilter = dom.planFilter.value;
+          renderPlan(computed);
+          saveState();
+        });
+
+        dom.servePlus10.addEventListener("click", () => shiftServingBy(10));
+        dom.servePlus10Live.addEventListener("click", () => shiftServingBy(10));
+
+        dom.quickDelayNext.addEventListener("click", () => {
+          const next = getNextDueTask(computed.tasks);
+          if (!next) {
+            toast("No upcoming task to delay.", "warn");
+            return;
+          }
+          applyDelay(next.id, 5);
+        });
+
+        dom.printPlan.addEventListener("click", () => window.print());
+
+        dom.quickTaskForm.addEventListener("submit", (event) => {
+          event.preventDefault();
+          const name = dom.quickTaskName.value.trim();
+          const duration = num(dom.quickTaskMins.value, 5);
+          if (!name) {
+            return;
+          }
+          const task = mkTask(uid(), name, duration, "manual", {
+            category: dom.quickTaskCategory.value || "prep",
+            notes: dom.quickTaskNotes.value.trim(),
+            statusState: "in_progress",
+            actualStartTs: Date.now(),
+            notify: true,
+            priority: 3
+          });
+          state.tasks.push(task);
+          dom.quickTaskForm.reset();
+          dom.quickTaskMins.value = 5;
+          dom.quickTaskCategory.value = "prep";
+          toast(`Started quick task: ${name}`);
+          recomputeAndRender();
+        });
+
+        dom.newTaskBtn.addEventListener("click", () => {
+          openTaskEditor();
+        });
+
+        dom.taskScheduleType.addEventListener("change", () => {
+          updateTaskFormVisibility();
+        });
+
+        dom.taskCancelBtn.addEventListener("click", () => {
+          openTaskEditor();
+        });
+
+        dom.taskForm.addEventListener("submit", (event) => {
+          event.preventDefault();
+          upsertTaskFromForm();
+        });
+
+        dom.editTaskList.addEventListener("click", handleTaskListClick);
+        dom.editTaskList.addEventListener("dragstart", handleDragStart);
+        dom.editTaskList.addEventListener("dragover", handleDragOver);
+        dom.editTaskList.addEventListener("drop", handleDrop);
+        dom.editTaskList.addEventListener("dragend", handleDragEnd);
+
+        document.addEventListener("click", handleGlobalActionClick);
+        document.addEventListener("input", handleGlobalInput);
+
+        dom.setClock12.addEventListener("change", () => {
+          state.settings.clock12 = dom.setClock12.checked;
+          recomputeAndRender();
+        });
+        dom.setSound.addEventListener("change", () => {
+          state.settings.soundAlerts = dom.setSound.checked;
+          saveState();
+        });
+        dom.setVisual.addEventListener("change", () => {
+          state.settings.visualAlerts = dom.setVisual.checked;
+          saveState();
+        });
+        dom.setDefaultBuffer.addEventListener("change", () => {
+          state.settings.defaultBufferMin = Math.max(0, num(dom.setDefaultBuffer.value, 0));
+          recomputeAndRender();
+        });
+
+        dom.requestNotification.addEventListener("click", async () => {
+          if (!("Notification" in window)) {
+            toast("Browser notifications are not supported here.", "warn");
+            return;
+          }
+          const permission = await Notification.requestPermission();
+          toast(`Notification permission: ${permission}`);
+        });
+
+        dom.exportJson.addEventListener("click", exportJson);
+        dom.importJson.addEventListener("change", importJson);
+
+        dom.loadPreset.addEventListener("click", () => {
+          if (dom.presetSelect.value === "quick") {
+            applyPreset("quick");
+            return;
+          }
+          applyPreset("classic");
+        });
+
+        dom.duplicatePlan.addEventListener("click", duplicatePlan);
+
+        dom.resumeBtn.addEventListener("click", () => {
+          dom.resumeOverlay.classList.remove("show");
+          toast("Session resumed.");
+        });
+
+        dom.freshBtn.addEventListener("click", () => {
+          resetRuntimeOnly(true);
+          dom.resumeOverlay.classList.remove("show");
+          toast("Started fresh from existing plan.");
+        });
+
+        dom.templateBtn.addEventListener("click", () => {
+          const fresh = defaultState();
+          Object.assign(state, fresh);
+          hydrateTopControls();
+          dom.resumeOverlay.classList.remove("show");
+          recomputeAndRender();
+          toast("Loaded default template.");
+        });
+      }
+
+      function renderAll() {
+        renderClock();
+        renderTabs();
+        renderSelectLists();
+        renderPlan(computed);
+        renderLive(computed);
+        renderEdit();
+        renderSettings();
+      }
+
+      function renderClock() {
+        dom.currentClock.textContent = formatClock(Date.now(), true);
+      }
+
+      function renderTabs() {
+        dom.tabs.forEach((btn) => {
+          const on = btn.dataset.tab === activeTab;
+          btn.classList.toggle("active", on);
+          btn.setAttribute("aria-selected", on ? "true" : "false");
+        });
+        dom.tabPanels.forEach((panel) => {
+          panel.classList.toggle("active", panel.id === activeTab);
+        });
+      }
+
+      function renderSelectLists() {
+        const categories = allCategories();
+        const optionsHtml = categories.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(cap(c))}</option>`).join("");
+
+        [dom.taskCategory, dom.quickTaskCategory].forEach((el) => {
+          const current = el.value;
+          el.innerHTML = optionsHtml;
+          el.value = categories.includes(current) ? current : categories[0];
+        });
+
+        const planFilterHtml = [`<option value="all">All categories</option>`]
+          .concat(categories.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(cap(c))}</option>`))
+          .join("");
+        dom.planFilter.innerHTML = planFilterHtml;
+        dom.planFilter.value = state.planFilter || "all";
+
+        const deps = [`<option value="">None</option>`]
+          .concat(state.tasks.map((task) => `<option value="${task.id}">${escapeHtml(task.name)}</option>`))
+          .join("");
+        dom.taskDependsOn.innerHTML = deps;
+      }
+
+      function renderPlan(data) {
+        renderWarnings(data.warnings);
+        const filter = state.planFilter || "all";
+        const rows = data.tasks
+          .filter((task) => filter === "all" || task.category === filter)
+          .map((task) => planTaskCard(task))
+          .join("");
+        dom.planList.innerHTML = rows || `<div class="tiny">No tasks match this filter.</div>`;
+      }
+
+      function planTaskCard(task) {
+        const start = task.plannedStart ? formatClock(task.plannedStart, false) : "Manual";
+        const end = task.plannedEnd ? formatClock(task.plannedEnd, false) : "Manual";
+        const statusClass = statusToClass(task.derivedStatus);
+        const startsIn = task.plannedStart ? prettyDiff(task.plannedStart - Date.now()) : "";
+
+        return `
+          <article class="task-card" data-id="${task.id}">
+            <div class="task-head">
+              <h3 class="task-name">${escapeHtml(task.name)}</h3>
+              <span class="status ${statusClass}">${escapeHtml(task.derivedStatus)}</span>
+            </div>
+            <div class="plan-times">${start} -> ${end} (${task.durationMin}m)</div>
+            <div class="meta">
+              <span class="pill">${escapeHtml(cap(task.category))}</span>
+              <span>Priority ${task.priority}</span>
+              <span>${escapeHtml(task.scheduleLabel)}</span>
+              ${task.mustFinishByServe ? "<span class=\"pill\">Must finish by serve</span>" : ""}
+              ${startsIn ? `<span>Starts ${startsIn}</span>` : ""}
+            </div>
+            ${task.notes ? `<div class="notes">${escapeHtml(task.notes)}</div>` : ""}
+            <div class="timeline-shift">
+              <div>Drag earlier/later: <strong>${signedMin(task.manualShiftMin)}m</strong></div>
+              <input
+                type="range"
+                min="-90"
+                max="180"
+                step="5"
+                value="${task.manualShiftMin}"
+                data-role="task-shift-slider"
+                data-id="${task.id}"
+                aria-label="Shift task timing for ${escapeHtml(task.name)}"
+              />
+              <div class="quick-row">
+                <button type="button" data-action="shift-task" data-id="${task.id}" data-mins="-5">Earlier 5</button>
+                <button type="button" data-action="shift-task" data-id="${task.id}" data-mins="5">Later 5</button>
+                <button type="button" data-action="start-task" data-id="${task.id}">Start</button>
+                <button type="button" data-action="task-done" data-id="${task.id}">Done</button>
+              </div>
+            </div>
+          </article>
+        `;
+      }
+
+      function renderWarnings(warnings) {
+        if (!warnings.length) {
+          dom.planWarnings.innerHTML = "";
+          return;
+        }
+        const items = warnings.map((w) => `<div class="warning-item">${escapeHtml(w)}</div>`).join("");
+        dom.planWarnings.innerHTML = `<div class="warning-box"><strong>Kitchen Warnings</strong>${items}</div>`;
+      }
+
+      function renderLive(data) {
+        const tasks = data.tasks;
+        const active = tasks.filter((t) => t.derivedStatus === "in progress" || t.derivedStatus === "paused");
+        const overdue = tasks.filter((t) => t.derivedStatus === "overdue");
+        const upcoming = tasks
+          .filter((t) => ["upcoming", "due now"].includes(t.derivedStatus))
+          .slice(0, 3);
+
+        renderNextTask(tasks, active);
+        dom.liveActive.innerHTML = active.length ? active.map((t) => liveTaskCard(t, true)).join("") : `<div class="tiny">No active tasks.</div>`;
+        dom.liveOverdue.innerHTML = overdue.length ? overdue.map((t) => liveTaskCard(t, false)).join("") : `<div class="tiny">No overdue tasks.</div>`;
+        dom.liveUpcoming.innerHTML = upcoming.length ? upcoming.map((t) => liveTaskCard(t, false)).join("") : `<div class="tiny">No upcoming tasks.</div>`;
+      }
+
+      function renderNextTask(tasks, active) {
+        const now = Date.now();
+        const next = getNextDueTask(tasks);
+        const serveTs = serveTimestamp();
+
+        if (active.length) {
+          const live = active[0];
+          const left = remainingMs(live, now);
+          dom.nextTaskPanel.innerHTML = `
+            <div class="tiny">Current focus</div>
+            <div class="big">${escapeHtml(live.name)}</div>
+            <div class="countdown">${left > 0 ? `${formatDuration(left)} remaining` : `${formatDuration(Math.abs(left))} over`}</div>
+            <div class="meta"><span class="pill">${escapeHtml(cap(live.category))}</span><span>${escapeHtml(live.derivedStatus)}</span></div>
+            <div class="task-actions">
+              ${live.derivedStatus === "paused"
+                ? `<button data-action="resume-task" data-id="${live.id}" class="btn-primary">Resume</button>`
+                : `<button data-action="pause-task" data-id="${live.id}">Pause</button>`}
+              <button data-action="task-done" data-id="${live.id}" class="btn-primary">Mark Done</button>
+              <button data-action="delay-task" data-id="${live.id}" data-mins="5">Delay +5</button>
+              <button data-action="skip-task" data-id="${live.id}" class="btn-danger">Skip</button>
+            </div>
+          `;
+          return;
+        }
+
+        if (!next) {
+          dom.nextTaskPanel.innerHTML = `
+            <div class="tiny">All tasks complete or skipped.</div>
+            <div class="big">Kitchen clear</div>
+            <div class="countdown">Serve target ${formatClock(serveTs, false)}</div>
+          `;
+          return;
+        }
+
+        const until = next.plannedStart ? next.plannedStart - now : 0;
+        const isLate = until < -60 * 1000;
+        dom.nextTaskPanel.innerHTML = `
+          <div class="tiny">Next task due</div>
+          <div class="big">${escapeHtml(next.name)}</div>
+          <div class="countdown">${isLate ? `${formatDuration(Math.abs(until))} overdue` : `${formatDuration(until)} to start`}</div>
+          <div class="meta">
+            <span class="pill">${escapeHtml(cap(next.category))}</span>
+            <span>${next.plannedStart ? formatClock(next.plannedStart, false) : "Manual start"}</span>
+          </div>
+          <div class="task-actions">
+            <button data-action="start-task" data-id="${next.id}" class="btn-primary">Start Now</button>
+            <button data-action="delay-task" data-id="${next.id}" data-mins="5">Delay +5</button>
+            <button data-action="task-done" data-id="${next.id}">Done</button>
+            <button data-action="skip-task" data-id="${next.id}" class="btn-danger">Skip</button>
+          </div>
+        `;
+      }
+
+      function liveTaskCard(task, includeProgress) {
+        const statusClass = statusToClass(task.derivedStatus);
+        const now = Date.now();
+        let clockText = "";
+
+        if (task.derivedStatus === "in progress" || task.derivedStatus === "paused") {
+          const left = remainingMs(task, now);
+          clockText = left >= 0 ? `${formatDuration(left)} left` : `${formatDuration(Math.abs(left))} over`;
+        } else if (task.plannedStart) {
+          const until = task.plannedStart - now;
+          clockText = until >= 0 ? `${formatDuration(until)} to start` : `${formatDuration(Math.abs(until))} late`;
+        }
+
+        return `
+          <article class="task-card">
+            <div class="task-head">
+              <h4 class="task-name">${escapeHtml(task.name)}</h4>
+              <span class="status ${statusClass}">${escapeHtml(task.derivedStatus)}</span>
+            </div>
+            <div class="meta">
+              <span class="pill">${escapeHtml(cap(task.category))}</span>
+              <span>${task.plannedStart ? `${formatClock(task.plannedStart, false)} -> ${formatClock(task.plannedEnd, false)}` : "Manual start"}</span>
+              ${clockText ? `<span><strong>${clockText}</strong></span>` : ""}
+            </div>
+            ${includeProgress ? `<div class="tiny">Actual start: ${task.actualStartTs ? formatClock(task.actualStartTs, false) : "-"}</div>` : ""}
+            <div class="task-actions">
+              ${task.derivedStatus === "paused"
+                ? `<button data-action="resume-task" data-id="${task.id}" class="btn-primary">Resume</button>`
+                : `<button data-action="start-task" data-id="${task.id}">Start</button><button data-action="pause-task" data-id="${task.id}">Pause</button>`}
+              <button data-action="task-done" data-id="${task.id}" class="btn-primary">Done</button>
+              <button data-action="delay-task" data-id="${task.id}" data-mins="5">Delay +5</button>
+              <button data-action="restart-task" data-id="${task.id}">Restart</button>
+              <button data-action="skip-task" data-id="${task.id}" class="btn-danger">Skip</button>
+            </div>
+          </article>
+        `;
+      }
+
+      function renderEdit() {
+        renderSelectLists();
+        const rows = state.tasks.map((task, idx) => {
+          const summary = scheduleSummary(task);
+          return `
+            <div class="task-row" draggable="true" data-id="${task.id}">
+              <div class="task-row-head">
+                <strong>${idx + 1}. ${escapeHtml(task.name)}</strong>
+                <span class="small">${escapeHtml(cap(task.category))} | ${task.durationMin}m</span>
+              </div>
+              <div class="small">${escapeHtml(summary)}</div>
+              <div class="task-actions">
+                <button data-action="edit-task" data-id="${task.id}">Edit</button>
+                <button data-action="duplicate-task" data-id="${task.id}">Duplicate</button>
+                <button data-action="move-up" data-id="${task.id}">Up</button>
+                <button data-action="move-down" data-id="${task.id}">Down</button>
+                <button data-action="delete-task" data-id="${task.id}" class="btn-danger">Delete</button>
+              </div>
+            </div>
+          `;
+        }).join("");
+        dom.editTaskList.innerHTML = rows || `<div class="tiny">No tasks yet.</div>`;
+      }
+
+      function renderSettings() {
+        dom.setClock12.checked = Boolean(state.settings.clock12);
+        dom.setSound.checked = Boolean(state.settings.soundAlerts);
+        dom.setVisual.checked = Boolean(state.settings.visualAlerts);
+        dom.setDefaultBuffer.value = num(state.settings.defaultBufferMin, 0);
+      }
+
+      function updateTaskFormVisibility() {
+        const type = dom.taskScheduleType.value;
+        const showFixed = type === "fixed";
+        const showAfter = type === "after";
+        const showServeOffset = type === "serveOffset";
+
+        dom.fieldFixedTime.style.display = showFixed ? "grid" : "none";
+        dom.fieldDependsOn.style.display = showAfter ? "grid" : "none";
+        dom.fieldAfterOffset.style.display = showAfter ? "grid" : "none";
+        dom.fieldFinishOffset.style.display = showServeOffset ? "grid" : "none";
+      }
+
+      function openTaskEditor(task) {
+        if (!task) {
+          dom.taskForm.reset();
+          dom.taskId.value = "";
+          dom.taskDuration.value = "10";
+          dom.taskScheduleType.value = "serveOffset";
+          dom.taskAfterOffset.value = "0";
+          dom.taskFinishOffset.value = "0";
+          dom.taskBuffer.value = String(num(state.settings.defaultBufferMin, 0));
+          dom.taskPriority.value = "2";
+          dom.taskNotify.checked = true;
+          dom.taskSubmitBtn.textContent = "Add Task";
+          updateTaskFormVisibility();
+          return;
+        }
+
+        dom.taskId.value = task.id;
+        dom.taskName.value = task.name;
+        dom.taskDuration.value = String(task.durationMin);
+        dom.taskCategory.value = task.category;
+        dom.taskScheduleType.value = task.scheduleType;
+        dom.taskFixedTime.value = task.fixedTime || "";
+        dom.taskDependsOn.value = task.dependsOnId || "";
+        dom.taskAfterOffset.value = String(task.afterOffsetMin || 0);
+        dom.taskFinishOffset.value = String(task.finishOffsetMin || 0);
+        dom.taskBuffer.value = String(task.bufferMin || 0);
+        dom.taskPriority.value = String(task.priority || 2);
+        dom.taskMustFinish.checked = Boolean(task.mustFinishByServe);
+        dom.taskNotify.checked = Boolean(task.notify);
+        dom.taskNotes.value = task.notes || "";
+        dom.taskSubmitBtn.textContent = "Save Task";
+        updateTaskFormVisibility();
+      }
+
+      function upsertTaskFromForm() {
+        const id = dom.taskId.value || uid();
+        const existing = state.tasks.find((t) => t.id === id);
+        const merged = normalizeTask({
+          ...(existing || {}),
+          id,
+          name: dom.taskName.value.trim(),
+          durationMin: num(dom.taskDuration.value, 0),
+          category: dom.taskCategory.value,
+          scheduleType: dom.taskScheduleType.value,
+          fixedTime: dom.taskFixedTime.value,
+          dependsOnId: dom.taskDependsOn.value,
+          afterOffsetMin: num(dom.taskAfterOffset.value, 0),
+          finishOffsetMin: num(dom.taskFinishOffset.value, 0),
+          bufferMin: Math.max(0, num(dom.taskBuffer.value, 0)),
+          priority: Math.max(1, Math.min(3, num(dom.taskPriority.value, 2))),
+          mustFinishByServe: dom.taskMustFinish.checked,
+          notify: dom.taskNotify.checked,
+          notes: dom.taskNotes.value.trim()
+        }, 0);
+
+        if (existing) {
+          Object.assign(existing, merged);
+          toast("Task updated.");
+        } else {
+          state.tasks.push(merged);
+          toast("Task added.");
+        }
+
+        openTaskEditor();
+        recomputeAndRender();
+      }
+
+      function handleTaskListClick(event) {
+        const btn = event.target.closest("button[data-action]");
+        if (!btn) {
+          return;
+        }
+        const id = btn.dataset.id;
+        const idx = state.tasks.findIndex((t) => t.id === id);
+        if (idx < 0) {
+          return;
+        }
+
+        const action = btn.dataset.action;
+        if (action === "edit-task") {
+          openTaskEditor(state.tasks[idx]);
+          return;
+        }
+        if (action === "delete-task") {
+          if (!confirm("Delete this task?")) {
+            return;
+          }
+          state.tasks.splice(idx, 1);
+          state.tasks.forEach((task) => {
+            if (task.dependsOnId === id) {
+              task.dependsOnId = "";
+            }
+          });
+          recomputeAndRender();
+          return;
+        }
+        if (action === "duplicate-task") {
+          const copy = normalizeTask({
+            ...state.tasks[idx],
+            id: uid(),
+            name: `${state.tasks[idx].name} (Copy)`,
+            statusState: "not_started",
+            actualStartTs: null,
+            actualEndTs: null,
+            pausedAtTs: null,
+            pausedTotalMs: 0
+          }, 0);
+          state.tasks.splice(idx + 1, 0, copy);
+          recomputeAndRender();
+          return;
+        }
+        if (action === "move-up" && idx > 0) {
+          moveTask(idx, idx - 1);
+          return;
+        }
+        if (action === "move-down" && idx < state.tasks.length - 1) {
+          moveTask(idx, idx + 1);
+          return;
+        }
+      }
+
+      function moveTask(from, to) {
+        const [task] = state.tasks.splice(from, 1);
+        state.tasks.splice(to, 0, task);
+        recomputeAndRender();
+      }
+
+      function handleDragStart(event) {
+        const row = event.target.closest(".task-row");
+        if (!row) {
+          return;
+        }
+        draggingId = row.dataset.id;
+        row.classList.add("dragging");
+        event.dataTransfer.effectAllowed = "move";
+      }
+
+      function handleDragOver(event) {
+        event.preventDefault();
+      }
+
+      function handleDrop(event) {
+        event.preventDefault();
+        const row = event.target.closest(".task-row");
+        if (!row || !draggingId || row.dataset.id === draggingId) {
+          return;
+        }
+        const from = state.tasks.findIndex((t) => t.id === draggingId);
+        const to = state.tasks.findIndex((t) => t.id === row.dataset.id);
+        if (from >= 0 && to >= 0) {
+          moveTask(from, to);
+        }
+      }
+
+      function handleDragEnd(event) {
+        const row = event.target.closest(".task-row");
+        if (row) {
+          row.classList.remove("dragging");
+        }
+        draggingId = null;
+      }
+
+      function handleGlobalActionClick(event) {
+        const btn = event.target.closest("button[data-action]");
+        if (!btn) {
+          return;
+        }
+
+        const action = btn.dataset.action;
+        const id = btn.dataset.id;
+
+        if (action === "shift-task") {
+          shiftTask(id, num(btn.dataset.mins, 0));
+          return;
+        }
+        if (action === "start-task") {
+          startTask(id);
+          return;
+        }
+        if (action === "pause-task") {
+          pauseTask(id);
+          return;
+        }
+        if (action === "resume-task") {
+          resumeTask(id);
+          return;
+        }
+        if (action === "task-done") {
+          markDone(id);
+          return;
+        }
+        if (action === "skip-task") {
+          markSkipped(id);
+          return;
+        }
+        if (action === "restart-task") {
+          restartTask(id);
+          return;
+        }
+        if (action === "delay-task") {
+          applyDelay(id, num(btn.dataset.mins, 5));
+        }
+      }
+
+      function handleGlobalInput(event) {
+        const target = event.target;
+        if (!target.matches("input[data-role='task-shift-slider']")) {
+          return;
+        }
+        const id = target.dataset.id;
+        const task = state.tasks.find((t) => t.id === id);
+        if (!task) {
+          return;
+        }
+        task.manualShiftMin = num(target.value, 0);
+        recomputeAndRender();
+      }
+
+      function computePlan() {
+        const serveTs = serveTimestamp();
+        const now = Date.now();
+        const warningSet = new Set();
+
+        // CUSTOMIZE: timing rules are implemented here.
+        const byId = new Map(state.tasks.map((task) => [task.id, { ...task }]));
+        const cache = new Map();
+
+        function computeOne(id, stack = []) {
+          if (cache.has(id)) {
+            return cache.get(id);
+          }
+          const task = byId.get(id);
+          if (!task) {
+            return null;
+          }
+          if (stack.includes(id)) {
+            warningSet.add(`Dependency cycle detected involving "${task.name}".`);
+            task.plannedStart = null;
+            task.plannedEnd = null;
+            cache.set(id, task);
+            return task;
+          }
+
+          const effectiveDuration = getEffectiveDuration(task);
+          let start = null;
+          let end = null;
+          let scheduleLabel = "";
+
+          if (task.scheduleType === "fixed") {
+            if (!task.fixedTime) {
+              warningSet.add(`Task "${task.name}" has no fixed time.`);
+            } else {
+              start = combineDateAndTime(state.servingDate, task.fixedTime);
+            }
+            scheduleLabel = task.fixedTime ? `Fixed ${task.fixedTime}` : "Fixed";
+          } else if (task.scheduleType === "after") {
+            if (!task.dependsOnId) {
+              warningSet.add(`Task "${task.name}" needs a dependency task.`);
+            } else {
+              const dep = computeOne(task.dependsOnId, stack.concat(id));
+              if (dep && dep.plannedEnd != null) {
+                start = dep.plannedEnd + num(task.afterOffsetMin, 0) * MIN;
+              } else {
+                warningSet.add(`Task "${task.name}" cannot schedule because dependency has no end time.`);
+              }
+            }
+            const depName = task.dependsOnId && byId.get(task.dependsOnId)
+              ? byId.get(task.dependsOnId).name
+              : "dependency";
+            scheduleLabel = `After ${depName}`;
+          } else if (task.scheduleType === "serveOffset") {
+            end = serveTs - num(task.finishOffsetMin, 0) * MIN;
+            start = end - effectiveDuration * MIN;
+            scheduleLabel = `Finish ${num(task.finishOffsetMin, 0)}m before serve`;
+          } else {
+            scheduleLabel = "Manual start";
+            if (task.actualStartTs) {
+              start = task.actualStartTs;
+            }
+          }
+
+          if (start != null) {
+            start += (num(task.manualShiftMin, 0) + num(task.delayMin, 0)) * MIN;
+            end = start + effectiveDuration * MIN;
+          }
+
+          task.scheduleLabel = scheduleLabel;
+          task.plannedStart = start;
+          task.plannedEnd = end;
+
+          if (task.mustFinishByServe && end != null && end > serveTs) {
+            warningSet.add(`"${task.name}" is planned to finish after serving time.`);
+          }
+
+          if (task.scheduleType === "fixed" && task.dependsOnId) {
+            warningSet.add(`"${task.name}" is fixed time and also has dependency; check conflict manually.`);
+          }
+
+          if (task.preserveDelayMin > 0) {
+            warningSet.add(`"${task.name}" delayed by ${task.preserveDelayMin}m while clock times are preserved.`);
+          }
+
+          cache.set(id, task);
+          return task;
+        }
+
+        state.tasks.forEach((task) => computeOne(task.id));
+
+        const list = state.tasks
+          .map((task, orderIndex) => ({ ...cache.get(task.id), orderIndex }))
+          .sort((a, b) => {
+            if (a.plannedStart == null && b.plannedStart == null) return a.orderIndex - b.orderIndex;
+            if (a.plannedStart == null) return 1;
+            if (b.plannedStart == null) return -1;
+            if (a.plannedStart === b.plannedStart) return a.orderIndex - b.orderIndex;
+            return a.plannedStart - b.plannedStart;
+          });
+
+        list.forEach((task) => {
+          task.derivedStatus = deriveStatus(task, now);
+        });
+
+        overlapWarnings(list, warningSet);
+
+        return {
+          serveTs,
+          tasks: list,
+          warnings: Array.from(warningSet)
+        };
+      }
+
+      function overlapWarnings(tasks, warningSet) {
+        const ovenTasks = tasks.filter((task) => task.category === "oven" && task.plannedStart != null);
+        for (let i = 0; i < ovenTasks.length; i += 1) {
+          let count = 1;
+          for (let j = i + 1; j < ovenTasks.length; j += 1) {
+            if (ovenTasks[j].plannedStart - ovenTasks[i].plannedStart <= 10 * MIN) {
+              count += 1;
+            }
+          }
+          if (count >= 3) {
+            warningSet.add("3 oven tasks begin within 10 minutes.");
+            break;
+          }
+        }
+
+        const stoveTasks = tasks.filter((task) => ["hob", "fry"].includes(task.category) && task.plannedStart != null && task.plannedEnd != null);
+        for (let i = 0; i < stoveTasks.length; i += 1) {
+          for (let j = i + 1; j < stoveTasks.length; j += 1) {
+            if (intervalOverlap(stoveTasks[i], stoveTasks[j])) {
+              warningSet.add("Hob and frying tasks overlap.");
+              i = stoveTasks.length;
+              break;
+            }
+          }
+        }
+
+        const points = [];
+        ovenTasks.forEach((task) => {
+          if (task.plannedStart != null && task.plannedEnd != null) {
+            points.push({ t: task.plannedStart, delta: 1 });
+            points.push({ t: task.plannedEnd, delta: -1 });
+          }
+        });
+        points.sort((a, b) => a.t - b.t || b.delta - a.delta);
+        let concurrent = 0;
+        let maxConcurrent = 0;
+        points.forEach((pt) => {
+          concurrent += pt.delta;
+          if (concurrent > maxConcurrent) {
+            maxConcurrent = concurrent;
+          }
+        });
+        if (maxConcurrent >= 3) {
+          warningSet.add("You may need more tray space: 3+ oven items overlap.");
+        }
+
+        const tight = tasks.some((task) => task.plannedStart != null && task.durationMin > 0 && task.bufferMin === 0 && task.priority >= 2);
+        if (tight) {
+          warningSet.add("This plan is tight and may need manual adjustment.");
+        }
+      }
+
+      function intervalOverlap(a, b) {
+        return a.plannedStart < b.plannedEnd && b.plannedStart < a.plannedEnd;
+      }
+
+      function deriveStatus(task, nowTs) {
+        if (task.statusState === "complete") return "complete";
+        if (task.statusState === "skipped") return "skipped";
+        if (task.statusState === "paused") return "paused";
+        if (task.statusState === "in_progress") return "in progress";
+
+        if (task.plannedStart == null) {
+          return "not started";
+        }
+
+        if (nowTs < task.plannedStart - MIN) {
+          return "upcoming";
+        }
+        if (nowTs <= task.plannedStart + MIN) {
+          return "due now";
+        }
+        if (nowTs > task.plannedStart + MIN) {
+          return "overdue";
+        }
+
+        return "upcoming";
+      }
+
+      function getEffectiveDuration(task) {
+        const base = Math.max(0, num(task.durationMin, 0));
+        const buffer = Number.isFinite(task.bufferMin)
+          ? Math.max(0, num(task.bufferMin, 0))
+          : Math.max(0, num(state.settings.defaultBufferMin, 0));
+        return base + buffer;
+      }
+
+      function remainingMs(task, nowTs) {
+        if (!task.actualStartTs) {
+          return 0;
+        }
+        const total = getEffectiveDuration(task) * MIN;
+        let paused = num(task.pausedTotalMs, 0);
+        if (task.statusState === "paused" && task.pausedAtTs) {
+          paused += nowTs - task.pausedAtTs;
+        }
+        const elapsed = nowTs - task.actualStartTs - paused;
+        return total - elapsed;
+      }
+
+      function getNextDueTask(tasks) {
+        return tasks.find((task) => !["complete", "skipped"].includes(task.derivedStatus) && task.plannedStart != null);
+      }
+
+      function alignPlanToNow() {
+        const plan = computePlan();
+        const starts = plan.tasks.map((task) => task.plannedStart).filter((ts) => ts != null);
+        if (!starts.length) {
+          return;
+        }
+        const earliest = Math.min(...starts);
+        const shift = Math.round((Date.now() - earliest) / MIN);
+        if (shift === 0) {
+          return;
+        }
+        state.tasks.forEach((task) => {
+          if (task.scheduleType === "fixed") {
+            task.manualShiftMin = num(task.manualShiftMin, 0) + shift;
+          }
+        });
+        shiftServingBy(shift, false);
+        toast(`Shifted plan by ${shift} minutes to start now.`);
+      }
+
+      function shiftServingBy(minutes, withToast = true) {
+        const ts = serveTimestamp() + minutes * MIN;
+        const dt = new Date(ts);
+        state.servingDate = localDateString(dt);
+        state.servingTime = localTimeString(dt);
+        dom.servingDate.value = state.servingDate;
+        dom.servingTime.value = state.servingTime;
+        recomputeAndRender(false);
+        if (withToast) {
+          toast(`Serving time moved ${minutes > 0 ? "later" : "earlier"} by ${Math.abs(minutes)} minutes.`);
+        }
+      }
+
+      function shiftTask(taskId, minutes) {
+        const task = state.tasks.find((item) => item.id === taskId);
+        if (!task) return;
+        task.manualShiftMin = num(task.manualShiftMin, 0) + minutes;
+        recomputeAndRender();
+      }
+
+      function startTask(taskId) {
+        const task = state.tasks.find((item) => item.id === taskId);
+        if (!task) return;
+
+        if (task.statusState === "paused") {
+          resumeTask(taskId);
+          return;
+        }
+
+        if (!["in_progress", "complete"].includes(task.statusState)) {
+          task.statusState = "in_progress";
+          task.actualStartTs = Date.now();
+          task.actualEndTs = null;
+          task.pausedAtTs = null;
+          task.pausedTotalMs = num(task.pausedTotalMs, 0);
+          state.sessionActive = true;
+          maybeChime();
+          toast(`Started: ${task.name}`);
+          recomputeAndRender();
+        }
+      }
+
+      function pauseTask(taskId) {
+        const task = state.tasks.find((item) => item.id === taskId);
+        if (!task || task.statusState !== "in_progress") return;
+        task.statusState = "paused";
+        task.pausedAtTs = Date.now();
+        toast(`Paused: ${task.name}`);
+        recomputeAndRender();
+      }
+
+      function resumeTask(taskId) {
+        const task = state.tasks.find((item) => item.id === taskId);
+        if (!task || task.statusState !== "paused") return;
+        if (task.pausedAtTs) {
+          task.pausedTotalMs = num(task.pausedTotalMs, 0) + (Date.now() - task.pausedAtTs);
+        }
+        task.pausedAtTs = null;
+        task.statusState = "in_progress";
+        toast(`Resumed: ${task.name}`);
+        recomputeAndRender();
+      }
+
+      function markDone(taskId) {
+        const task = state.tasks.find((item) => item.id === taskId);
+        if (!task) return;
+        if (task.statusState === "paused" && task.pausedAtTs) {
+          task.pausedTotalMs = num(task.pausedTotalMs, 0) + (Date.now() - task.pausedAtTs);
+          task.pausedAtTs = null;
+        }
+        if (!task.actualStartTs) {
+          task.actualStartTs = Date.now();
+        }
+        task.actualEndTs = Date.now();
+        task.statusState = "complete";
+        toast(`Done: ${task.name}`);
+        recomputeAndRender();
+      }
+
+      function markSkipped(taskId) {
+        const task = state.tasks.find((item) => item.id === taskId);
+        if (!task) return;
+        task.statusState = "skipped";
+        task.actualEndTs = Date.now();
+        toast(`Skipped: ${task.name}`, "warn");
+        recomputeAndRender();
+      }
+
+      function restartTask(taskId) {
+        const task = state.tasks.find((item) => item.id === taskId);
+        if (!task) return;
+        task.statusState = "not_started";
+        task.actualStartTs = null;
+        task.actualEndTs = null;
+        task.pausedAtTs = null;
+        task.pausedTotalMs = 0;
+        task.delayMin = 0;
+        task.preserveDelayMin = 0;
+        toast(`Restarted: ${task.name}`);
+        recomputeAndRender();
+      }
+
+      function applyDelay(taskId, minutes) {
+        const task = state.tasks.find((item) => item.id === taskId);
+        if (!task) return;
+        const mins = num(minutes, 5);
+
+        if (state.recalcPolicy === "all") {
+          shiftServingBy(mins, false);
+          state.tasks.forEach((item) => {
+            if (item.scheduleType === "fixed") {
+              item.manualShiftMin = num(item.manualShiftMin, 0) + mins;
+            }
+          });
+          toast(`Recalculated all tasks later by ${mins} minutes.`);
+          recomputeAndRender();
+          return;
+        }
+
+        if (state.recalcPolicy === "preserve") {
+          task.preserveDelayMin = num(task.preserveDelayMin, 0) + mins;
+          toast(`${task.name} delayed ${mins}m. Clock times preserved.`, "warn");
+          recomputeAndRender();
+          return;
+        }
+
+        task.delayMin = num(task.delayMin, 0) + mins;
+        toast(`${task.name} delayed ${mins}m.`);
+        recomputeAndRender();
+      }
+
+      function applyPreset(name) {
+        const template = name === "quick" ? quickTemplate() : defaultTasks();
+        state.tasks = template;
+        const defaultServe = name === "quick" ? "12:40" : "13:00";
+        state.servingTime = defaultServe;
+        state.servingDate = localDateString(new Date());
+        dom.servingDate.value = state.servingDate;
+        dom.servingTime.value = defaultServe;
+        resetRuntimeOnly(false);
+        toast(`${name === "quick" ? "Quick" : "Classic"} preset loaded.`);
+      }
+
+      function duplicatePlan() {
+        const copy = {
+          id: uid(),
+          name: `Plan copy ${new Date().toLocaleString()}`,
+          state: JSON.parse(JSON.stringify(state))
+        };
+        state.savedPlans.push(copy);
+        saveState();
+        toast("Plan duplicated in local saved copies.");
+      }
+
+      function exportJson() {
+        const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `roast-dinner-plan-${state.servingDate}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      function importJson(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const parsed = JSON.parse(String(reader.result || ""));
+            const normalized = normalizeState(parsed);
+            Object.assign(state, normalized);
+            hydrateTopControls();
+            recomputeAndRender();
+            toast("Plan imported.");
+          } catch (_err) {
+            toast("Import failed: invalid JSON.", "error");
+          }
+        };
+        reader.readAsText(file);
+        event.target.value = "";
+      }
+
+      function processAlerts(data) {
+        const now = Date.now();
+        data.tasks.forEach((task) => {
+          const dueKey = `due-${task.id}`;
+          if ((task.derivedStatus === "due now" || task.derivedStatus === "overdue") && task.notify && !state.alertsFired[dueKey]) {
+            fireAlert(`Start ${task.name}`, task.derivedStatus === "overdue" ? "Task is overdue" : "Task is due now", task.id);
+            state.alertsFired[dueKey] = now;
+          }
+
+          const endKey = `done-${task.id}`;
+          if (task.statusState === "in_progress") {
+            const left = remainingMs(task, now);
+            if (left <= 0 && !state.alertsFired[endKey]) {
+              fireAlert(`${task.name} should be done`, "Mark complete or delay", task.id);
+              state.alertsFired[endKey] = now;
+            }
+          }
+        });
+
+        const serve5Key = "serve-in-5";
+        const diff = data.serveTs - now;
+        if (diff <= 5 * MIN && diff > 4 * MIN && !state.alertsFired[serve5Key]) {
+          fireAlert("Serve in 5 minutes", `Target serve time ${formatClock(data.serveTs, false)}`, "serve");
+          state.alertsFired[serve5Key] = now;
+        }
+      }
+
+      // CUSTOMIZE: alert behavior (audio + visual + notifications) is here.
+      function fireAlert(title, body, taskId) {
+        if (state.settings.visualAlerts) {
+          toast(`${title}: ${body}`, "warn");
+        }
+        if (state.settings.soundAlerts) {
+          maybeChime();
+        }
+        if ("Notification" in window && Notification.permission === "granted") {
+          try {
+            new Notification(title, { body, tag: `roast-${taskId}` });
+          } catch (_err) {
+            // Ignore notification failures.
+          }
+        }
+      }
+
+      function maybeChime() {
+        try {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (!AudioCtx) return;
+          const ctx = new AudioCtx();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.value = 880;
+          gain.gain.value = 0.0001;
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          gain.gain.exponentialRampToValueAtTime(0.07, ctx.currentTime + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.25);
+          osc.stop(ctx.currentTime + 0.28);
+          setTimeout(() => ctx.close(), 350);
+        } catch (_err) {
+          // Ignore audio failures.
+        }
+      }
+
+      function resetRuntimeOnly(reRender = true) {
+        state.tasks.forEach((task) => {
+          task.statusState = "not_started";
+          task.actualStartTs = null;
+          task.actualEndTs = null;
+          task.pausedAtTs = null;
+          task.pausedTotalMs = 0;
+          task.delayMin = 0;
+          task.preserveDelayMin = 0;
+        });
+        state.alertsFired = {};
+        state.sessionActive = false;
+        state.sessionStartedAt = null;
+        if (reRender) {
+          recomputeAndRender();
+        }
+      }
+
+      function recomputeAndRender(withSave = true) {
+        computed = computePlan();
+        renderAll();
+        if (withSave) {
+          saveState();
+        }
+      }
+
+      function hasRuntimeProgress(tasks) {
+        return tasks.some((task) => ["in_progress", "paused", "complete", "skipped"].includes(task.statusState));
+      }
+
+      function serveTimestamp() {
+        return combineDateAndTime(state.servingDate, state.servingTime);
+      }
+
+      function combineDateAndTime(dateStr, timeStr) {
+        const d = (dateStr || localDateString(new Date())).split("-").map(Number);
+        const t = (timeStr || "13:00").split(":").map(Number);
+        return new Date(d[0], d[1] - 1, d[2], t[0] || 0, t[1] || 0, 0, 0).getTime();
+      }
+
+      function scheduleSummary(task) {
+        if (task.scheduleType === "fixed") {
+          return `Fixed at ${task.fixedTime || "(no time)"}`;
+        }
+        if (task.scheduleType === "after") {
+          const dep = state.tasks.find((t) => t.id === task.dependsOnId);
+          return `After ${dep ? dep.name : "(missing task)"}${task.afterOffsetMin ? ` +${task.afterOffsetMin}m` : ""}`;
+        }
+        if (task.scheduleType === "serveOffset") {
+          return `Finish ${task.finishOffsetMin || 0}m before serve`;
+        }
+        return "Manual start";
+      }
+
+      function statusToClass(status) {
+        return `status-${status.replace(/\s+/g, "-")}`;
+      }
+
+      function formatClock(ts, withSeconds) {
+        const opts = {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: Boolean(state.settings.clock12)
+        };
+        if (withSeconds) {
+          opts.second = "2-digit";
+        }
+        return new Intl.DateTimeFormat(undefined, opts).format(new Date(ts));
+      }
+
+      function formatDuration(ms) {
+        const abs = Math.abs(Math.round(ms / 1000));
+        const h = Math.floor(abs / 3600);
+        const m = Math.floor((abs % 3600) / 60);
+        const s = abs % 60;
+        if (h > 0) {
+          return `${h}h ${String(m).padStart(2, "0")}m`;
+        }
+        return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+      }
+
+      function prettyDiff(ms) {
+        const absMin = Math.round(Math.abs(ms) / MIN);
+        if (absMin < 1) {
+          return "now";
+        }
+        if (ms >= 0) {
+          return `in ${absMin}m`;
+        }
+        return `${absMin}m ago`;
+      }
+
+      function signedMin(value) {
+        const n = num(value, 0);
+        return n > 0 ? `+${n}` : String(n);
+      }
+
+      function localDateString(date) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, "0");
+        const d = String(date.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
+      }
+
+      function localTimeString(date) {
+        const h = String(date.getHours()).padStart(2, "0");
+        const m = String(date.getMinutes()).padStart(2, "0");
+        return `${h}:${m}`;
+      }
+
+      function cap(value) {
+        if (!value) return "";
+        return value.charAt(0).toUpperCase() + value.slice(1);
+      }
+
+      function num(value, fallback) {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : fallback;
+      }
+
+      function uid() {
+        return `task-${Math.random().toString(36).slice(2, 10)}`;
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+
+      function allCategories() {
+        const fromTasks = Array.from(new Set(state.tasks.map((task) => task.category).filter(Boolean)));
+        return Array.from(new Set([...DEFAULT_CATEGORIES, ...fromTasks]));
+      }
+
+      function toast(message, kind = "") {
+        const node = document.createElement("div");
+        node.className = `toast${kind ? ` ${kind}` : ""}`;
+        node.textContent = message;
+        dom.toastWrap.appendChild(node);
+        setTimeout(() => {
+          node.remove();
+        }, 4000);
+      }
+
+      updateTaskFormVisibility();
+      openTaskEditor();
+    })();
+  </script>
+</body>
+</html>
+
+
+
