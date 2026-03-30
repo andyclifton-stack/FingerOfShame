@@ -157,6 +157,20 @@ const HUB_ITEMS = [
         cta: "Play Now"
     },
     {
+        id: "spybunnies",
+        title: "Spy Bunnies",
+        description: "Burrow Command mission base where Spy Bunnies crack clues, stay together, and unlock treasure.",
+        type: "game",
+        href: "/spybunnies/",
+        localHref: "https://fingergame.co.uk/spybunnies/",
+        short: "SB",
+        accent: "emerald",
+        status: "new",
+        featured: true,
+        tags: ["bunnies", "missions", "treasure"],
+        cta: "Play Now"
+    },
+    {
         id: "reactionrumble",
         title: "Reaction Rumble",
         description: "Comic-style reaction test madness with penalties, sound modes, and a live kill board.",
