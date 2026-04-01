@@ -92,6 +92,19 @@ const HUB_ITEMS = [
         cta: "Open"
     },
     {
+        id: "gameupdates",
+        title: "Game Updates",
+        description: "Track confirmed news, patches, and launch updates for the racing and action games on watch.",
+        type: "app",
+        href: "/GameUpdates/",
+        short: "GU",
+        accent: "teal",
+        status: "new",
+        featured: true,
+        tags: ["news", "updates", "gaming"],
+        cta: "Open"
+    },
+    {
         id: "alibucks",
         title: "AliBucks",
         description: "The official Alice Starbucks app.",

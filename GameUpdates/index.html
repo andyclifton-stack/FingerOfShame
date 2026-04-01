@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Game Updates | Finger Game Hub</title>
+    <meta name="theme-color" content="#07121f">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="page-shell">
+        <header class="hero">
+            <p class="kicker">Finger Universe</p>
+            <div class="hero-top">
+                <div>
+                    <h1>Game Updates</h1>
+                    <p class="subtitle">Confirmed updates for Assetto Corsa Evo, Assetto Corsa Rally, Wreckfest 2, and Crimson Desert.</p>
+                </div>
+                <a class="back-link" href="/">Back to Hub</a>
+            </div>
+            <div class="hero-meta">
+                <span class="meta-chip">Official sources first</span>
+                <span class="meta-chip" id="last-updated">Last updated: loading...</span>
+            </div>
+        </header>
+
+        <main class="content">
+            <section class="summary-panel">
+                <div>
+                    <p class="section-label">Today</p>
+                    <h2>New updates tracked</h2>
+                </div>
+                <div id="today-summary" class="today-summary" aria-live="polite"></div>
+            </section>
+
+            <section class="summary-panel compact">
+                <div>
+                    <p class="section-label">Coverage</p>
+                    <h2>Tracked games</h2>
+                </div>
+                <div id="tracked-games" class="chip-row" aria-live="polite"></div>
+            </section>
+
+            <section id="updates-by-game" class="game-groups" aria-live="polite"></section>
+
+            <section class="verification-panel">
+                <div>
+                    <p class="section-label">Unconfirmed</p>
+                    <h2>Needs verification</h2>
+                </div>
+                <div id="verification-list" class="verification-list"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+{
+  "updatedAt": "2026-04-01T09:24:31+01:00",
+  "games": [
+    {
+      "name": "Assetto Corsa Evo",
+      "updates": [
+        {
+          "id": "acevo-2026-02-12-update-05",
+          "game": "Assetto Corsa Evo",
+          "date": "2026-02-12",
+          "headline": "Update 0.5 adds Watkins Glen, Paul Ricard, new cars, and free camera mode",
+          "sourceName": "505 Games Support",
+          "sourceUrl": "https://support.505games.com/support/solutions/folders/150000543169",
+          "status": "Official",
+          "summary": "505 Games logged the 0.5 changelog on 12 February 2026, highlighting new laser-scanned tracks, more cars, a free camera mode, DLSS 4.5, and further work on track limits and dynamic track behaviour."
+        }
+      ]
+    },
+    {
+      "name": "Assetto Corsa Rally",
+      "updates": [
+        {
+          "id": "acrally-2025-12-18-update-02",
+          "game": "Assetto Corsa Rally",
+          "date": "2025-12-18",
+          "headline": "Early Access 0.2 expands surfaces with Livigno snow and ice content",
+          "sourceName": "505 Games Support",
+          "sourceUrl": "https://support.505games.com/support/solutions",
+          "status": "Official",
+          "summary": "The official patch notes list Early Access Update 0.2 on 18 December 2025, adding the Livigno scenario, snowy and icy road surfaces, a new rally car, plus bug fixes and performance improvements."
+        }
+      ]
+    },
+    {
+      "name": "Wreckfest 2",
+      "updates": [
+        {
+          "id": "wreckfest2-2025-12-15-content-update-05",
+          "game": "Wreckfest 2",
+          "date": "2025-12-15",
+          "headline": "Content Update #5 adds Grandstar, Phaser, Moorfeld, and Challenge Mode",
+          "sourceName": "Steam",
+          "sourceUrl": "https://store.steampowered.com/app/1203190/Wreckfest_2/",
+          "status": "Official",
+          "summary": "Steam lists Content Update #5 launching on 15 December 2025 with two new vehicles, the Moorfeld track, Challenge Mode, Multiplayer Cup Mode, mud accumulation, and broader stability and audio improvements."
+        }
+      ]
+    },
+    {
+      "name": "Crimson Desert",
+      "updates": [
+        {
+          "id": "crimsondesert-2026-03-19-launch",
+          "game": "Crimson Desert",
+          "date": "2026-03-19",
+          "headline": "Crimson Desert launched on PC, PlayStation 5, and Xbox Series X|S",
+          "sourceName": "Steam",
+          "sourceUrl": "https://store.steampowered.com/app/3321460/Crimson_Desert/",
+          "status": "Official",
+          "summary": "The official Steam page shows Crimson Desert released on 19 March 2026, marking the full launch across PC and current-generation consoles."
+        },
+        {
+          "id": "crimsondesert-2025-09-24-release-date-announcement",
+          "game": "Crimson Desert",
+          "date": "2025-09-24",
+          "headline": "Pearl Abyss confirmed the 19 March 2026 release date and retail editions",
+          "sourceName": "Pearl Abyss",
+          "sourceUrl": "https://www.pearlabyss.com/en-US/Board/Detail?_boardNo=14504",
+          "status": "Official",
+          "summary": "Pearl Abyss announced the physical lineup and confirmed Crimson Desert would release on 19 March 2026 for PC, PlayStation 5, and Xbox Series X|S."
+        }
+      ]
+    }
+  ],
+  "needsVerification": []
+}
