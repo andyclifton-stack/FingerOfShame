@@ -1,6 +1,7 @@
 const lastUpdatedEl = document.getElementById("last-updated");
 const todaySummaryEl = document.getElementById("today-summary");
 const trackedGamesEl = document.getElementById("tracked-games");
+const latestVersionsEl = document.getElementById("latest-versions");
 const updatesByGameEl = document.getElementById("updates-by-game");
 const verificationListEl = document.getElementById("verification-list");
 
@@ -35,11 +36,15 @@ function renderPage(data) {
         .map((game) => `<span class="coverage-chip">${escapeHtml(game.name)}</span>`)
         .join("");
 
+    latestVersionsEl.innerHTML = games
+        .map((game) => `<span class="coverage-chip">${escapeHtml(game.name)}: ${escapeHtml(game.latestVersion || "Unknown")}</span>`)
+        .join("");
+
     if (gamesUpdatedToday.length === 0) {
-        todaySummaryEl.innerHTML = '<span class="summary-chip">No newly confirmed updates found on 1 April 2026.</span>';
+        todaySummaryEl.innerHTML = `<span class="summary-chip">No newly confirmed updates found on ${escapeHtml(formatDate(currentDay))}.</span>`;
     } else {
         todaySummaryEl.innerHTML = gamesUpdatedToday
-            .map((game) => `<span class="summary-chip">${escapeHtml(game.name)}</span>`)
+            .map((game) => `<span class="summary-chip">${escapeHtml(game.name)}: ${escapeHtml(game.latestVersion || "Latest version update")}</span>`)
             .join("");
     }
 
@@ -74,6 +79,7 @@ function renderPage(data) {
 function buildGameGroup(game) {
     const updates = Array.isArray(game.updates) ? game.updates : [];
     const latestDate = updates[0] ? formatDate(updates[0].date) : "No updates recorded";
+    const latestVersion = game.latestVersion || "Unknown";
     const cards = updates.length
         ? updates.map((item) => buildUpdateCard(item)).join("")
         : '<p class="empty-copy">No confirmed updates recorded yet.</p>';
@@ -85,7 +91,7 @@ function buildGameGroup(game) {
                     <p class="section-label">Tracked Game</p>
                     <h2>${escapeHtml(game.name)}</h2>
                 </div>
-                <div class="group-meta">Latest recorded update: ${escapeHtml(latestDate)}</div>
+                <div class="group-meta">Latest version: ${escapeHtml(latestVersion)} | Latest recorded update: ${escapeHtml(latestDate)}</div>
             </div>
             <div class="updates-list">${cards}</div>
         </section>
@@ -94,12 +100,14 @@ function buildGameGroup(game) {
 
 function buildUpdateCard(item) {
     const statusClass = item.status === "Unofficial" ? "unofficial" : "official";
+    const versionChip = item.version ? `<span class="meta-chip">Version ${escapeHtml(item.version)}</span>` : "";
     return `
         <article class="update-card">
             <div class="update-meta">
                 <span class="status-pill ${statusClass}">${escapeHtml(item.status)}</span>
                 <span class="meta-chip">${escapeHtml(formatDate(item.date))}</span>
                 <span class="meta-chip">${escapeHtml(item.game)}</span>
+                ${versionChip}
             </div>
             <h3>${escapeHtml(item.headline)}</h3>
             <p class="update-summary">${escapeHtml(item.summary)}</p>
@@ -115,6 +123,7 @@ function renderError() {
     lastUpdatedEl.textContent = "Last updated: unavailable";
     todaySummaryEl.innerHTML = '<span class="summary-chip">Updates could not be loaded.</span>';
     trackedGamesEl.innerHTML = "";
+    latestVersionsEl.innerHTML = "";
     updatesByGameEl.innerHTML = '<section class="game-group"><p class="empty-copy">The updates feed is currently unavailable.</p></section>';
     verificationListEl.innerHTML = '<p class="empty-copy">Verification data is currently unavailable.</p>';
 }
