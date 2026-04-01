@@ -96,7 +96,7 @@ const HUB_ITEMS = [
         title: "Game Updates",
         description: "Track confirmed news, patches, and launch updates for the racing and action games on watch.",
         type: "app",
-        href: "/GameUpdates/",
+        href: "/FingerOfShame/GameUpdates/",
         short: "GU",
         accent: "teal",
         status: "new",
