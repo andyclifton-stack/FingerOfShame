@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-04-01T09:24:31+01:00",
+  "updatedAt": "2026-04-02T09:13:00+01:00",
   "games": [
     {
       "name": "Assetto Corsa Evo",
@@ -31,8 +31,19 @@
     },
     {
       "name": "Assetto Corsa Rally",
-      "latestVersion": "0.3",
+      "latestVersion": "0.3.1",
       "updates": [
+        {
+          "id": "acrally-2026-03-04-hotfix-031",
+          "game": "Assetto Corsa Rally",
+          "version": "0.3.1",
+          "date": "2026-03-04",
+          "headline": "Hotfix 0.3.1 fixes shifter gear-change problems on most models",
+          "sourceName": "Steam Community",
+          "sourceUrl": "https://steamcommunity.com/app/3917090/allnews/",
+          "status": "Official",
+          "summary": "Supernova Games Studios published Hotfix 0.3.1 as the latest official Assetto Corsa Rally build, addressing gear-change issues on most shifters and correcting the Spanish description for the new cars."
+        },
         {
           "id": "acrally-2026-02-26-update-03",
           "game": "Assetto Corsa Rally",
