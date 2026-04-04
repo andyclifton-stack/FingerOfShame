@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-04-02T09:13:00+01:00",
+  "updatedAt": "2026-04-04T12:49:34+01:00",
   "games": [
     {
       "name": "Assetto Corsa Evo",
@@ -87,8 +87,19 @@
     },
     {
       "name": "Crimson Desert",
-      "latestVersion": "1.01.03",
+      "latestVersion": "1.02.00",
       "updates": [
+        {
+          "id": "crimsondesert-2026-04-04-patch-10200",
+          "game": "Crimson Desert",
+          "version": "1.02.00",
+          "date": "2026-04-04",
+          "headline": "Patch 1.02.00 adds headgear display controls, larger storage, and broad control improvements",
+          "sourceName": "Pearl Abyss",
+          "sourceUrl": "https://crimsondesert.pearlabyss.com/de-de/News/Notice/Detail?_boardNo=80",
+          "status": "Official",
+          "summary": "Pearl Abyss published 1.02.00 as the newest official Crimson Desert update, expanding private storage up to 1,000 slots, adding headgear display options, refining movement controls, and shipping broad stability, UI, and graphics fixes across supported platforms."
+        },
         {
           "id": "crimsondesert-2026-03-31-hotfix-10103",
           "game": "Crimson Desert",
