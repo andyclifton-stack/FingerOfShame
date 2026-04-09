@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Game Updates | Finger Game Hub</title>
     <meta name="theme-color" content="#07121f">
+    <meta name="description" content="Track the latest official versions, patch notes, roadmap updates, and verified game news for Assetto Corsa Evo, Assetto Corsa Rally, Wreckfest 2, and Crimson Desert.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <a class="skip-link" href="#main-content">Skip to updates</a>
     <div class="page-shell">
         <header class="hero">
             <p class="kicker">Finger Universe</p>
@@ -27,40 +29,46 @@
             </div>
         </header>
 
-        <main class="content">
-            <section class="summary-panel">
+        <main id="main-content" class="content">
+            <section class="summary-panel summary-panel-primary">
                 <div>
-                    <p class="section-label">Today</p>
-                    <h2>New updates tracked</h2>
+                    <p class="section-label">This Run</p>
+                    <h2>Newly Added to the Tracker</h2>
+                    <p class="panel-note">Source dates stay tied to the original announcement. Look-back items found later still appear here when they are newly added to the tracker.</p>
                 </div>
                 <div id="today-summary" class="today-summary" aria-live="polite"></div>
             </section>
 
             <section class="summary-panel compact">
-                <div>
-                    <p class="section-label">Coverage</p>
-                    <h2>Tracked games</h2>
-                </div>
+                <p class="section-label">Jump To</p>
+                <h2>Tracked Games</h2>
                 <div id="tracked-games" class="chip-row" aria-live="polite"></div>
             </section>
 
-            <section class="summary-panel compact">
-                <div>
-                    <p class="section-label">Current Builds</p>
-                    <h2>Latest official versions</h2>
+            <details class="summary-panel compact reference-panel">
+                <summary class="panel-toggle">
+                    <div>
+                        <p class="section-label">Reference</p>
+                        <h2>Latest Official Versions</h2>
+                    </div>
+                    <span class="toggle-hint">Expand</span>
+                </summary>
+                <div class="reference-body">
+                    <p class="panel-note">Useful for quick checks, but collapsed by default because version context changes less often than the per-game update history.</p>
+                    <div id="latest-versions" class="chip-row" aria-live="polite"></div>
                 </div>
-                <div id="latest-versions" class="chip-row" aria-live="polite"></div>
-            </section>
+            </details>
 
             <section id="updates-by-game" class="game-groups" aria-live="polite"></section>
 
-            <section class="verification-panel">
-                <div>
+            <details id="verification-panel" class="verification-panel compact">
+                <summary class="panel-toggle">
                     <p class="section-label">Unconfirmed</p>
-                    <h2>Needs verification</h2>
-                </div>
+                    <h2>Needs Verification</h2>
+                    <span class="toggle-hint">Expand</span>
+                </summary>
                 <div id="verification-list" class="verification-list"></div>
-            </section>
+            </details>
         </main>
     </div>
 
