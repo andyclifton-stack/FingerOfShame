@@ -1,0 +1,484 @@
+:root {
+  font-family: "Avenir Next", "Segoe UI", "Trebuchet MS", sans-serif;
+  color: #f6ead0;
+  background:
+    radial-gradient(circle at top, rgba(210, 125, 63, 0.18), transparent 32%),
+    linear-gradient(180deg, #1a1820 0%, #111217 55%, #0a0d13 100%);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  --panel: rgba(17, 22, 31, 0.86);
+  --panel-border: rgba(246, 234, 208, 0.08);
+  --text: #f6ead0;
+  --muted: #b7ab93;
+  --accent-strong: #f0b349;
+  --shadow: 0 24px 60px rgba(3, 5, 10, 0.42);
+  --radius-lg: 28px;
+  --radius-md: 18px;
+  --radius-sm: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.app-shell {
+  min-height: 100vh;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.app-backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 177, 90, 0.09), transparent 22%),
+    radial-gradient(circle at 80% 18%, rgba(88, 132, 88, 0.12), transparent 20%),
+    radial-gradient(circle at 50% 100%, rgba(209, 72, 54, 0.08), transparent 26%);
+  pointer-events: none;
+}
+
+.app-frame {
+  max-width: 1440px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.screen {
+  display: grid;
+  gap: 20px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(14px);
+  padding: 22px;
+}
+
+.hero-card,
+.hero-strip,
+.launch-panel,
+.status-banner {
+  background: linear-gradient(145deg, rgba(27, 33, 44, 0.98), rgba(18, 22, 31, 0.88));
+}
+
+.eyebrow {
+  display: inline-flex;
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+  margin-bottom: 10px;
+}
+
+.section-heading {
+  margin-bottom: 16px;
+}
+
+.section-heading h2,
+.hero-card h1,
+.hero-strip h1 {
+  margin: 0;
+  font-family: Bahnschrift, "Arial Narrow", "Avenir Next Condensed", sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.hero-card h1,
+.hero-strip h1 {
+  font-size: clamp(2rem, 4vw, 3.35rem);
+  line-height: 0.95;
+}
+
+.hero-card p,
+.hero-strip p,
+.resume-card p,
+.status-banner,
+.launch-summary span,
+.score-card__label,
+.turn-row span,
+.turn-total span,
+.hero-score span,
+.hero-score small {
+  color: var(--muted);
+}
+
+.start-screen {
+  grid-template-columns: 1.2fr;
+}
+
+.setup-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.hero-card {
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.resume-card {
+  margin-top: 22px;
+  padding: 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(216, 157, 57, 0.2);
+  background: rgba(216, 157, 57, 0.08);
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mode-grid,
+.player-grid,
+.launch-summary,
+.score-list,
+.turn-list,
+.side-rail {
+  display: grid;
+  gap: 14px;
+}
+
+.mode-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 18px;
+}
+
+.mode-card {
+  border: 1px solid rgba(246, 234, 208, 0.08);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text);
+  min-height: 158px;
+  padding: 18px;
+  text-align: left;
+  display: grid;
+  gap: 8px;
+}
+
+.mode-card strong {
+  font-size: 1.3rem;
+}
+
+.mode-card small {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.mode-card.is-active {
+  border-color: rgba(216, 157, 57, 0.75);
+  background: linear-gradient(180deg, rgba(216, 157, 57, 0.16), rgba(216, 157, 57, 0.04));
+  transform: translateY(-2px);
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.field span {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  min-height: 54px;
+  border: 1px solid rgba(246, 234, 208, 0.1);
+  border-radius: var(--radius-sm);
+  background: rgba(8, 11, 17, 0.76);
+  color: var(--text);
+  padding: 0 16px;
+}
+
+.launch-panel {
+  align-content: start;
+}
+
+.launch-summary {
+  margin-bottom: 22px;
+}
+
+.launch-summary strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 1.15rem;
+}
+
+.button {
+  min-height: 58px;
+  border-radius: 999px;
+  border: 1px solid rgba(246, 234, 208, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  padding: 0 20px;
+  transition:
+    transform 120ms ease,
+    border-color 120ms ease,
+    background 120ms ease;
+}
+
+.button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(246, 234, 208, 0.28);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.button--accent {
+  border-color: rgba(216, 157, 57, 0.48);
+  background: linear-gradient(180deg, rgba(240, 179, 73, 0.95), rgba(194, 117, 35, 0.9));
+  color: #17130f;
+  font-weight: 700;
+}
+
+.button--ghost {
+  background: rgba(204, 97, 83, 0.08);
+  border-color: rgba(204, 97, 83, 0.18);
+}
+
+.button--large {
+  min-height: 64px;
+  width: 100%;
+}
+
+.game-screen {
+  gap: 18px;
+}
+
+.hero-strip {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  align-items: end;
+}
+
+.hero-score {
+  min-width: 220px;
+  padding: 18px 20px;
+  border-radius: 24px;
+  background: rgba(8, 11, 16, 0.38);
+  text-align: right;
+}
+
+.hero-score strong {
+  display: block;
+  font-size: clamp(3rem, 9vw, 5.6rem);
+  line-height: 0.95;
+  font-family: Bahnschrift, "Arial Narrow", sans-serif;
+}
+
+.status-banner {
+  font-weight: 600;
+}
+
+.game-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.95fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.side-rail {
+  align-content: start;
+}
+
+.dartboard-wrap {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-height: min(76vh, 980px);
+  margin: 0 auto;
+}
+
+.dartboard {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+
+.board-trim {
+  fill: #3f2d1f;
+}
+
+.board-backplate {
+  fill: #161b23;
+}
+
+.board-outer {
+  fill: #0d1118;
+}
+
+.board-stroke,
+.ring-stroke {
+  fill: none;
+  stroke: rgba(255, 244, 222, 0.22);
+  stroke-width: 0.85;
+}
+
+.single-slice--light {
+  fill: #dbcaa2;
+}
+
+.single-slice--dark {
+  fill: #20252d;
+}
+
+.double-slice--green,
+.treble-slice--green,
+.bull--outer {
+  fill: #4e8a61;
+}
+
+.double-slice--red,
+.treble-slice--red,
+.bull--inner {
+  fill: #b34840;
+}
+
+.segment-label {
+  fill: #f3ead3;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  user-select: none;
+}
+
+.throw-marker {
+  fill: var(--accent-strong);
+  stroke: #11161d;
+  stroke-width: 1.5;
+}
+
+.throw-marker__halo {
+  fill: none;
+  stroke: rgba(240, 179, 73, 0.42);
+  stroke-width: 1.75;
+}
+
+.throw-marker__label {
+  fill: #11161d;
+  font-size: 7px;
+  font-weight: 800;
+  user-select: none;
+}
+
+.turn-row,
+.turn-total,
+.score-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+}
+
+.turn-row {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.turn-total {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(246, 234, 208, 0.08);
+}
+
+.turn-total strong {
+  font-size: 1.75rem;
+}
+
+.control-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.score-card {
+  padding: 16px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid transparent;
+}
+
+.score-card strong {
+  display: block;
+  font-size: 1.25rem;
+}
+
+.score-card__value {
+  font-family: Bahnschrift, "Arial Narrow", sans-serif;
+  font-size: 2rem;
+}
+
+.score-card.is-current {
+  border-color: rgba(216, 157, 57, 0.4);
+  background: linear-gradient(145deg, rgba(216, 157, 57, 0.1), rgba(255, 255, 255, 0.04));
+}
+
+.score-card.is-winner {
+  border-color: rgba(79, 141, 99, 0.42);
+}
+
+.game-over-screen {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+@media (max-width: 1120px) {
+  .setup-grid,
+  .game-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-strip {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 720px) {
+  .app-shell {
+    padding: 14px;
+  }
+
+  .mode-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .resume-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

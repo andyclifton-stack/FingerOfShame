@@ -5,6 +5,20 @@ const PREF_KEY = "finger_hub_preferences_v1";
 // Add future games/apps here; the grid renders from this list.
 const HUB_ITEMS = [
     {
+        id: "dartscore",
+        title: "DartScore",
+        description: "Tap the dartboard to score real-life 501 and practice games with proper turn flow.",
+        type: "app",
+        href: "/DartScore/",
+        localHref: "http://localhost:5173/",
+        short: "DS",
+        accent: "emerald",
+        status: "new",
+        featured: true,
+        tags: ["darts", "scoreboard", "pub"],
+        cta: "Open"
+    },
+    {
         id: "finger",
         title: "Finger of Shame",
         description: "The ultimate party court. Accuse friends, cast votes, and face the wheel.",
