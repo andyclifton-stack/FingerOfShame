@@ -9,7 +9,7 @@ const HUB_ITEMS = [
         title: "DartScore",
         description: "Tap the dartboard to score real-life 501 and practice games with proper turn flow.",
         type: "app",
-        href: "/DartScore/",
+        href: "/FingerOfShame/DartScore/",
         localHref: "http://localhost:5173/",
         short: "DS",
         accent: "emerald",
