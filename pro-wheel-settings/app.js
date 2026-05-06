@@ -52,22 +52,30 @@ const games = [
     game: 'Assetto Corsa Evo',
     wheel: {
       compatibilityMode: 'PRO',
-      ffbFilter: '5',
-      dampener: 'OFF',
-      angle: '1080'
+      angle: '1080°',
+      sensitivity: '50',
+      strength: '9.2 Nm',
+      ffbFilter: '2',
+      dampener: '16',
+      autoFfbFilter: 'Off',
+      trueforce: '0 on GeForce NOW; 15 to 20 locally'
     },
     sources: ['https://www.logitech.com/content/dam/support/game-menu-settings/pro-wheels-update-images/ace.png'],
     inGame: [
-      { label: 'Steering Lock', value: '1080 deg' },
-      { label: 'FFB Gain', value: '100%' },
-      { label: 'Dynamic Damping', value: '50%' },
-      { label: 'Damper', value: '0%' },
-      { label: 'Damper Gain', value: '30%' },
-      { label: 'Audio-based FFB Effects', value: '100%' },
-      { label: 'Curbs Effects', value: '30%' },
-      { label: 'Road Effects', value: '20%' },
-      { label: 'Tyre Slips Effects', value: '20%' },
-      { label: 'ABS Effects', value: '10%' }
+      { label: 'Steering Lock', value: '1080°' },
+      { label: 'FFB Gain', value: '80%' },
+      { label: 'Dynamic Damping', value: '40%' },
+      { label: 'Minimum Damper', value: '0%' },
+      { label: 'Damper Gain', value: '20%' },
+      { label: 'Speed Sensitivity', value: '0%' },
+      { label: 'Steering Filter', value: '0%' },
+      { label: 'Steering Assist Weight', value: '0%' },
+      { label: 'Road Effects', value: '0 to 5%' },
+      { label: 'Curbs Effects', value: '5%' },
+      { label: 'Tyre Slip Effects', value: '10%' },
+      { label: 'ABS Effects', value: '10%' },
+      { label: 'General Vibrations', value: '25 to 35%' },
+      { label: 'TRUEFORCE / Audio-based FFB', value: '0% on GeForce NOW; 20 to 30% locally' }
     ]
   },
   {
@@ -478,12 +486,20 @@ function renderGamePanel(gameName, options = {}) {
   const game = gameByName.get(gameName);
   if (!game) return '';
 
-  const wheelRows = [
-    ['Compatibility Mode', game.wheel.compatibilityMode],
-    ['FFB Filter', game.wheel.ffbFilter],
-    ['Dampener', game.wheel.dampener],
-    ['Angle', game.wheel.angle]
-  ];
+  const wheelFieldLabels = {
+    compatibilityMode: 'Compatibility Mode',
+    angle: 'Operating Range / Angle',
+    sensitivity: 'Sensitivity',
+    strength: 'Strength / Torque',
+    ffbFilter: 'FFB Filter',
+    dampener: 'Dampener',
+    autoFfbFilter: 'Auto FFB Filter',
+    trueforce: 'TRUEFORCE / Audio Effects'
+  };
+
+  const wheelRows = Object.entries(wheelFieldLabels)
+    .filter(([key]) => game.wheel[key])
+    .map(([key, label]) => [label, game.wheel[key]]);
 
   const wheelHtml = wheelRows
     .map(
