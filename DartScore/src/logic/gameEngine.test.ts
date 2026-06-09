@@ -4,6 +4,7 @@ import {
   applyDartThrow,
   createGame,
   endTurn,
+  replaceTurnDart,
   undoLastDart,
 } from './gameEngine'
 
@@ -49,7 +50,7 @@ function withCurrentScore(state: GameState, score: number): GameState {
 }
 
 describe('gameEngine', () => {
-  it('auto-advances to the next player after three darts', () => {
+  it('waits for review after three darts before advancing', () => {
     let state = createGame({
       playerNames: ['Alice', 'Bob'],
       mode: { type: 'free', targetScore: 100 },
@@ -59,8 +60,14 @@ describe('gameEngine', () => {
     state = applyDartThrow(state, makeThrow(20))
     state = applyDartThrow(state, makeThrow(20))
 
-    expect(state.currentPlayerIndex).toBe(1)
+    expect(state.currentPlayerIndex).toBe(0)
     expect(state.players[0].score).toBe(60)
+    expect(state.turn.darts).toHaveLength(3)
+    expect(state.turn.isComplete).toBe(true)
+
+    state = endTurn(state)
+
+    expect(state.currentPlayerIndex).toBe(1)
     expect(state.turn.darts).toHaveLength(0)
   })
 
@@ -102,8 +109,10 @@ describe('gameEngine', () => {
     state = withCurrentScore(state, 40)
     state = applyDartThrow(state, makeThrow(60, 'T20'))
 
-    expect(state.currentPlayerIndex).toBe(1)
+    expect(state.currentPlayerIndex).toBe(0)
     expect(state.players[0].score).toBe(40)
+    expect(state.turn.isBust).toBe(true)
+    expect(state.turn.isComplete).toBe(true)
 
     state = undoLastDart(state)
 
@@ -111,6 +120,36 @@ describe('gameEngine', () => {
     expect(state.players[0].score).toBe(40)
     expect(state.turn.darts).toHaveLength(0)
     expect(state.turn.startingScore).toBe(40)
+  })
+
+  it('recalculates the active turn when editing a confirmed dart', () => {
+    let state = createGame({
+      playerNames: ['Alice', 'Bob'],
+      mode: { type: 'free', targetScore: 100 },
+    })
+
+    state = applyDartThrow(state, makeThrow(20))
+    state = applyDartThrow(state, makeThrow(40, 'D20'))
+    state = replaceTurnDart(state, state.turn.darts[1].id, makeThrow(10))
+
+    expect(state.players[0].score).toBe(30)
+    expect(state.turn.turnTotal).toBe(30)
+    expect(state.turn.darts[1].score).toBe(10)
+  })
+
+  it('lets a busting dart be edited back to valid play', () => {
+    let state = createGame({
+      playerNames: ['Alice', 'Bob'],
+      mode: { type: 'x01', startingScore: 501, finishRule: 'double-out' },
+    })
+
+    state = withCurrentScore(state, 40)
+    state = applyDartThrow(state, makeThrow(60, 'T20'))
+    state = replaceTurnDart(state, state.turn.darts[0].id, makeThrow(20, 'D10'))
+
+    expect(state.players[0].score).toBe(20)
+    expect(state.turn.isBust).toBe(false)
+    expect(state.turn.isComplete).toBe(false)
   })
 
   it('marks the game over when a player hits the target score', () => {
@@ -123,5 +162,20 @@ describe('gameEngine', () => {
 
     expect(state.status).toBe('game_over')
     expect(state.winnerId).toBe('player-1')
+  })
+
+  it('undoes an accidental winning throw from game over', () => {
+    let state = createGame({
+      playerNames: ['Alice', 'Bob'],
+      mode: { type: 'free', targetScore: 50 },
+    })
+
+    state = applyDartThrow(state, makeThrow(50, '50'))
+    state = undoLastDart(state)
+
+    expect(state.status).toBe('in_progress')
+    expect(state.winnerId).toBeNull()
+    expect(state.players[0].score).toBe(0)
+    expect(state.turn.darts).toHaveLength(0)
   })
 })

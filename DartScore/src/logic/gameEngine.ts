@@ -62,9 +62,14 @@ function createDartId(turnIndex: number, dartIndex: number): string {
     .slice(2, 8)}`
 }
 
-function buildDartThrow(turn: TurnState, throwInput: DartThrowInput): DartThrow {
+function buildDartThrow(
+  turn: TurnState,
+  throwInput: DartThrowInput,
+  dartIndex = turn.darts.length + 1,
+  existingId?: string,
+): DartThrow {
   return {
-    id: createDartId(turn.turnIndex, turn.darts.length),
+    id: existingId ?? createDartId(turn.turnIndex, dartIndex - 1),
     x: throwInput.x,
     y: throwInput.y,
     normalizedX: throwInput.normalizedX,
@@ -72,7 +77,150 @@ function buildDartThrow(turn: TurnState, throwInput: DartThrowInput): DartThrow 
     hit: throwInput.hit,
     score: throwInput.hit.score,
     turnIndex: turn.turnIndex,
-    dartIndex: turn.darts.length + 1,
+    dartIndex,
+  }
+}
+
+function getTurnReviewMessage(state: GameState, turn: TurnState): string {
+  const currentPlayer = state.players[state.currentPlayerIndex]
+
+  if (turn.isBust) {
+    return `${currentPlayer.name} busts. Review the turn, then pass to the next player.`
+  }
+
+  return `${currentPlayer.name} scored ${turn.turnTotal}. Review the turn, then pass to the next player.`
+}
+
+function evaluateTurnFromDarts(
+  state: GameState,
+  darts: DartThrow[],
+): Pick<GameState, 'players' | 'status' | 'winnerId' | 'statusMessage'> & {
+  turn: TurnState
+} {
+  const currentPlayer = state.players[state.currentPlayerIndex]
+  const updatedPlayers = clonePlayers(state.players)
+  const normalizedDarts: DartThrow[] = []
+  let turnTotal = 0
+  let isBust = false
+  let isWinningThrow = false
+  let statusMessage: string | null = null
+
+  if (state.mode.type === 'x01') {
+    let runningScore = state.turn.startingScore
+
+    for (const [index, dart] of darts.entries()) {
+      const nextDart = {
+        ...dart,
+        hit: { ...dart.hit },
+        turnIndex: state.turn.turnIndex,
+        dartIndex: index + 1,
+      }
+      const outcome = applyX01Throw({
+        currentScore: runningScore,
+        hit: nextDart.hit,
+        finishRule: state.mode.finishRule,
+      })
+
+      normalizedDarts.push(nextDart)
+      turnTotal += nextDart.score
+
+      if (outcome.isBust) {
+        isBust = true
+        runningScore = state.turn.startingScore
+        break
+      }
+
+      runningScore = outcome.nextScore
+
+      if (outcome.isWinningThrow) {
+        isWinningThrow = true
+        statusMessage = `${currentPlayer.name} checks out with ${nextDart.hit.label}.`
+        break
+      }
+    }
+
+    const nextTurn: TurnState = {
+      ...cloneTurn(state.turn),
+      darts: normalizedDarts,
+      turnTotal,
+      isBust,
+      isComplete: isBust || normalizedDarts.length === 3 || isWinningThrow,
+    }
+
+    updatedPlayers[state.currentPlayerIndex] = {
+      ...currentPlayer,
+      score: isBust ? state.turn.startingScore : runningScore,
+    }
+
+    if (!statusMessage && nextTurn.isComplete) {
+      statusMessage = getTurnReviewMessage(
+        {
+          ...state,
+          players: updatedPlayers,
+        },
+        nextTurn,
+      )
+    }
+
+    return {
+      players: updatedPlayers,
+      turn: nextTurn,
+      status: isWinningThrow ? 'game_over' : 'in_progress',
+      winnerId: isWinningThrow ? currentPlayer.id : null,
+      statusMessage,
+    }
+  }
+
+  let nextScore = state.turn.startingScore
+
+  for (const [index, dart] of darts.entries()) {
+    const nextDart = {
+      ...dart,
+      hit: { ...dart.hit },
+      turnIndex: state.turn.turnIndex,
+      dartIndex: index + 1,
+    }
+
+    normalizedDarts.push(nextDart)
+    turnTotal += nextDart.score
+    nextScore += nextDart.score
+
+    if (nextScore >= state.mode.targetScore) {
+      isWinningThrow = true
+      statusMessage = `${currentPlayer.name} hits the target with ${nextScore}.`
+      break
+    }
+  }
+
+  const nextTurn: TurnState = {
+    ...cloneTurn(state.turn),
+    darts: normalizedDarts,
+    turnTotal,
+    isBust: false,
+    isComplete: normalizedDarts.length === 3 || isWinningThrow,
+  }
+
+  updatedPlayers[state.currentPlayerIndex] = {
+    ...currentPlayer,
+    score: nextScore,
+  }
+
+  if (!statusMessage && nextTurn.isComplete) {
+    statusMessage = getTurnReviewMessage(
+      {
+        ...state,
+        players: updatedPlayers,
+      },
+      nextTurn,
+    )
+  }
+
+  return {
+    players: updatedPlayers,
+    turn: nextTurn,
+    status: isWinningThrow ? 'game_over' : 'in_progress',
+    winnerId: isWinningThrow ? currentPlayer.id : null,
+    statusMessage,
   }
 }
 
@@ -124,103 +272,50 @@ export function applyDartThrow(
     return state
   }
 
-  const currentPlayer = state.players[state.currentPlayerIndex]
-  const updatedPlayers = clonePlayers(state.players)
   const dart = buildDartThrow(state.turn, throwInput)
-  const nextTurn = {
-    ...cloneTurn(state.turn),
-    darts: [...state.turn.darts, dart],
-    turnTotal: state.turn.turnTotal + dart.score,
-  }
   const undoStack = [...state.undoStack, createUndoSnapshot(state)]
+  const evaluatedTurn = evaluateTurnFromDarts(state, [...state.turn.darts, dart])
 
-  if (state.mode.type === 'x01') {
-    const outcome = applyX01Throw({
-      currentScore: currentPlayer.score,
-      hit: dart.hit,
-      finishRule: state.mode.finishRule,
-    })
-
-    updatedPlayers[state.currentPlayerIndex] = {
-      ...currentPlayer,
-      score: outcome.isBust ? state.turn.startingScore : outcome.nextScore,
-    }
-
-    const nextState: GameState = {
-      ...state,
-      players: updatedPlayers,
-      turn: {
-        ...nextTurn,
-        isBust: outcome.isBust,
-        isComplete: outcome.isBust || outcome.isWinningThrow,
-      },
-      winnerId: outcome.isWinningThrow ? currentPlayer.id : null,
-      status: outcome.isWinningThrow ? 'game_over' : 'in_progress',
-      statusMessage: null,
-      lastUpdatedAt: getNowTimestamp(),
-      undoStack,
-    }
-
-    if (outcome.isBust) {
-      return advancePlayerInternal(
-        nextState,
-        `${currentPlayer.name} busts. Score returns to ${state.turn.startingScore}.`,
-      )
-    }
-
-    if (outcome.isWinningThrow) {
-      return {
-        ...nextState,
-        statusMessage: `${currentPlayer.name} checks out with ${dart.hit.label}.`,
-      }
-    }
-
-    if (nextTurn.darts.length === 3) {
-      return advancePlayerInternal(
-        nextState,
-        `${currentPlayer.name} scored ${nextTurn.turnTotal}.`,
-      )
-    }
-
-    return nextState
-  }
-
-  const nextScore = currentPlayer.score + dart.score
-  updatedPlayers[state.currentPlayerIndex] = {
-    ...currentPlayer,
-    score: nextScore,
-  }
-
-  const nextState: GameState = {
+  return {
     ...state,
-    players: updatedPlayers,
-    turn: {
-      ...nextTurn,
-      isBust: false,
-      isComplete: nextScore >= state.mode.targetScore,
-    },
-    winnerId: nextScore >= state.mode.targetScore ? currentPlayer.id : null,
-    status: nextScore >= state.mode.targetScore ? 'game_over' : 'in_progress',
-    statusMessage: null,
+    ...evaluatedTurn,
     lastUpdatedAt: getNowTimestamp(),
     undoStack,
   }
+}
 
-  if (nextScore >= state.mode.targetScore) {
-    return {
-      ...nextState,
-      statusMessage: `${currentPlayer.name} hits the target with ${nextScore}.`,
-    }
+export function replaceTurnDart(
+  state: GameState,
+  dartId: string,
+  throwInput: DartThrowInput,
+): GameState {
+  if (state.status !== 'in_progress' && state.status !== 'game_over') {
+    return state
   }
 
-  if (nextTurn.darts.length === 3) {
-    return advancePlayerInternal(
-      nextState,
-      `${currentPlayer.name} added ${nextTurn.turnTotal}.`,
-    )
+  const dartIndex = state.turn.darts.findIndex((dart) => dart.id === dartId)
+
+  if (dartIndex === -1) {
+    return state
   }
 
-  return nextState
+  const replacementDart = buildDartThrow(
+    state.turn,
+    throwInput,
+    dartIndex + 1,
+    dartId,
+  )
+  const nextDarts = state.turn.darts.map((dart, index) =>
+    index === dartIndex ? replacementDart : dart,
+  )
+  const evaluatedTurn = evaluateTurnFromDarts(state, nextDarts)
+
+  return {
+    ...state,
+    ...evaluatedTurn,
+    lastUpdatedAt: getNowTimestamp(),
+    undoStack: [...state.undoStack, createUndoSnapshot(state)],
+  }
 }
 
 export function advancePlayer(state: GameState): GameState {
@@ -229,9 +324,13 @@ export function advancePlayer(state: GameState): GameState {
   }
 
   const currentPlayer = state.players[state.currentPlayerIndex]
+  const turnMessage = state.turn.isBust
+    ? `${currentPlayer.name} busts. Score returns to ${state.turn.startingScore}.`
+    : `${currentPlayer.name} scored ${state.turn.turnTotal}.`
+
   return advancePlayerInternal(
     state,
-    `${currentPlayer.name} finished the turn on ${state.turn.turnTotal}.`,
+    turnMessage,
   )
 }
 

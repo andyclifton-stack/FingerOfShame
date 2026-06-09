@@ -79,10 +79,10 @@ export function StartScreen({
     <section className="screen start-screen">
       <div className="hero-card panel">
         <span className="eyebrow">DartScore</span>
-        <h1>Score live darts by tapping the board.</h1>
+        <h1>Score darts with match-night precision.</h1>
         <p>
-          Built for tablet-side scoring with reliable rules, clean turn flow,
-          and a maths-driven SVG dartboard.
+          Built for phone-side scoring with reliable rules, fast turn review,
+          and a precise interactive dartboard.
         </p>
 
         {savedGame && (

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { GameOverScreen } from './components/GameOverScreen'
 import { GameScreen } from './components/GameScreen'
 import { StartScreen } from './components/StartScreen'
@@ -6,6 +6,7 @@ import {
   applyDartThrow,
   createGame,
   endTurn,
+  replaceTurnDart,
   undoLastDart,
 } from './logic/gameEngine'
 import {
@@ -20,6 +21,10 @@ function App() {
     loadSavedGame(),
   )
   const [gameState, setGameState] = useState<GameState | null>(null)
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [gameState?.status, gameState?.turn.turnIndex])
 
   const commitGameState = (nextGameState: GameState | null) => {
     if (!nextGameState) {
@@ -60,6 +65,14 @@ function App() {
     commitGameState(applyDartThrow(gameState, throwInput))
   }
 
+  const handleReplaceDart = (dartId: string, throwInput: DartThrowInput) => {
+    if (!gameState) {
+      return
+    }
+
+    commitGameState(replaceTurnDart(gameState, dartId, throwInput))
+  }
+
   const handleUndo = () => {
     if (!gameState) {
       return
@@ -97,6 +110,7 @@ function App() {
             gameState={gameState}
             onEndTurn={handleEndTurn}
             onNewGame={handleReturnToStart}
+            onReplaceDart={handleReplaceDart}
             onThrow={handleThrow}
             onUndo={handleUndo}
           />
@@ -106,6 +120,7 @@ function App() {
           <GameOverScreen
             gameState={gameState}
             onNewGame={handleReturnToStart}
+            onUndo={handleUndo}
           />
         )}
       </main>

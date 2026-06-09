@@ -4,11 +4,13 @@ import { Scoreboard } from './Scoreboard'
 interface GameOverScreenProps {
   gameState: GameState
   onNewGame: () => void
+  onUndo: () => void
 }
 
 export function GameOverScreen({
   gameState,
   onNewGame,
+  onUndo,
 }: GameOverScreenProps) {
   const winner = gameState.players.find(
     (player) => player.id === gameState.winnerId,
@@ -31,6 +33,14 @@ export function GameOverScreen({
           onClick={onNewGame}
         >
           Start New Game
+        </button>
+        <button
+          className="button button--large"
+          type="button"
+          onClick={onUndo}
+          disabled={gameState.undoStack.length === 0}
+        >
+          Undo Last Dart
         </button>
       </div>
 
