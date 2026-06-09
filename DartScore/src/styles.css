@@ -287,6 +287,28 @@ button {
   border-color: rgba(201, 88, 79, 0.5);
 }
 
+.button--quiet {
+  background: #151b22;
+  border-color: rgba(143, 154, 169, 0.26);
+  color: var(--muted);
+}
+
+.button--quiet:hover:not(:disabled) {
+  background: #1a222b;
+  border-color: rgba(143, 154, 169, 0.42);
+  color: var(--text);
+}
+
+.button--danger-quiet {
+  border-color: rgba(201, 88, 79, 0.3);
+  color: #d19c96;
+}
+
+.button--danger-quiet:hover:not(:disabled) {
+  border-color: rgba(201, 88, 79, 0.52);
+  color: #f0c4bf;
+}
+
 .button--large {
   min-height: 58px;
   width: 100%;
@@ -432,8 +454,31 @@ button {
 
 .action-button-row {
   display: grid;
-  grid-template-columns: 0.9fr 1.25fr 0.8fr;
+  grid-template-columns: 0.72fr 1.5fr 0.64fr;
   gap: 8px;
+}
+
+.confirm-action {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: #11161d;
+}
+
+.confirm-action strong {
+  min-width: 0;
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.15;
+}
+
+.confirm-action .button {
+  min-height: 42px;
+  padding: 0 14px;
 }
 
 .dartboard-panel {
@@ -850,8 +895,24 @@ button {
 
   .action-button-row .button {
     min-height: 38px;
-    padding: 0 8px;
-    font-size: 0.8rem;
+    padding: 0 7px;
+    font-size: 0.78rem;
+  }
+
+  .confirm-action {
+    gap: 6px;
+    padding: 6px;
+    border-radius: var(--radius-sm);
+  }
+
+  .confirm-action strong {
+    font-size: 0.78rem;
+  }
+
+  .confirm-action .button {
+    min-height: 36px;
+    padding: 0 9px;
+    font-size: 0.77rem;
   }
 
   .status-banner {

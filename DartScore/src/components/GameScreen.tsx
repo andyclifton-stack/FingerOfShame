@@ -11,6 +11,8 @@ interface GameScreenProps {
   onNewGame: () => void
 }
 
+type ConfirmationAction = 'undo' | 'new'
+
 export function GameScreen({
   gameState,
   onThrow,
@@ -20,6 +22,8 @@ export function GameScreen({
   onNewGame,
 }: GameScreenProps) {
   const [editingDartId, setEditingDartId] = useState<string | null>(null)
+  const [confirmationAction, setConfirmationAction] =
+    useState<ConfirmationAction | null>(null)
   const modeLabel =
     gameState.mode.type === 'x01'
       ? `${gameState.mode.startingScore} - ${gameState.mode.finishRule === 'double-out' ? 'Double-out' : 'Normal finish'}`
@@ -47,8 +51,26 @@ export function GameScreen({
 
   const handleEndTurn = () => {
     setEditingDartId(null)
+    setConfirmationAction(null)
     onEndTurn()
   }
+
+  const handleConfirmAction = () => {
+    if (confirmationAction === 'undo') {
+      onUndo()
+    }
+
+    if (confirmationAction === 'new') {
+      onNewGame()
+    }
+
+    setConfirmationAction(null)
+  }
+
+  const confirmationCopy =
+    confirmationAction === 'new'
+      ? { confirmLabel: 'New game', title: 'Start a new game?' }
+      : { confirmLabel: 'Undo', title: 'Undo last dart?' }
 
   return (
     <section className="screen game-screen">
@@ -85,37 +107,63 @@ export function GameScreen({
         </div>
 
         <aside className="match-actions-bar">
-          {gameState.statusMessage && (
-            <div className="status-banner" aria-live="polite">
-              {gameState.statusMessage}
+          {confirmationAction ? (
+            <div className="confirm-action" role="alertdialog" aria-live="assertive">
+              <strong>{confirmationCopy.title}</strong>
+              <button
+                className="button button--quiet button--compact"
+                type="button"
+                onClick={() => setConfirmationAction(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className={
+                  confirmationAction === 'new'
+                    ? 'button button--danger button--compact'
+                    : 'button button--accent button--compact'
+                }
+                type="button"
+                onClick={handleConfirmAction}
+              >
+                {confirmationCopy.confirmLabel}
+              </button>
             </div>
-          )}
+          ) : (
+            <>
+              {gameState.statusMessage && (
+                <div className="status-banner" aria-live="polite">
+                  {gameState.statusMessage}
+                </div>
+              )}
 
-          <div className="action-button-row">
-            <button
-              className="button"
-              type="button"
-              onClick={onUndo}
-              disabled={gameState.undoStack.length === 0}
-            >
-              Undo
-            </button>
-            <button
-              className="button button--accent"
-              type="button"
-              onClick={handleEndTurn}
-              disabled={gameState.turn.darts.length === 0}
-            >
-              {actionLabel}
-            </button>
-            <button
-              className="button button--danger"
-              type="button"
-              onClick={onNewGame}
-            >
-              New
-            </button>
-          </div>
+              <div className="action-button-row">
+                <button
+                  className="button button--quiet"
+                  type="button"
+                  onClick={() => setConfirmationAction('undo')}
+                  disabled={gameState.undoStack.length === 0}
+                >
+                  Undo
+                </button>
+                <button
+                  className="button button--accent"
+                  type="button"
+                  onClick={handleEndTurn}
+                  disabled={gameState.turn.darts.length === 0}
+                >
+                  {actionLabel}
+                </button>
+                <button
+                  className="button button--quiet button--danger-quiet"
+                  type="button"
+                  onClick={() => setConfirmationAction('new')}
+                >
+                  New
+                </button>
+              </div>
+            </>
+          )}
         </aside>
       </div>
     </section>

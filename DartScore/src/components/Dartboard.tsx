@@ -76,6 +76,10 @@ function buildThrowInput(svgX: number, svgY: number): DartThrowInput {
   }
 }
 
+function triggerHapticFeedback(pattern: number | number[] = 10) {
+  globalThis.navigator?.vibrate?.(pattern)
+}
+
 export function Dartboard({
   canPlaceNewDart,
   editingDartId,
@@ -135,6 +139,7 @@ export function Dartboard({
       dartId: editingDartId,
       throwInput: nextThrow,
     })
+    triggerHapticFeedback()
   }
 
   const handlePointerMove = (event: ReactPointerEvent<SVGSVGElement>) => {
@@ -171,6 +176,7 @@ export function Dartboard({
 
     onConfirmThrow(activeThrow, editingDartId)
     setPendingPlacement(null)
+    triggerHapticFeedback(18)
   }
 
   const handleCancel = () => {
@@ -180,6 +186,7 @@ export function Dartboard({
   }
 
   const nudgePending = (deltaX: number, deltaY: number) => {
+    triggerHapticFeedback(6)
     setPendingPlacement((currentPlacement) => {
       const currentThrow =
         currentPlacement?.dartId === editingDartId
@@ -373,6 +380,7 @@ export function Dartboard({
                 onPointerDown={(event) => {
                   event.stopPropagation()
                   onSelectDart(marker.id)
+                  triggerHapticFeedback()
                 }}
               >
                 <circle className="throw-marker" r="5.5" />
