@@ -1,10 +1,6 @@
 import { useState } from 'react'
 import type { DartThrowInput, GameState } from '../types/game'
-import { CurrentTurn } from './CurrentTurn'
 import { Dartboard } from './Dartboard'
-import { Scoreboard } from './Scoreboard'
-
-type DrawerTab = 'turn' | 'scores' | 'actions'
 
 interface GameScreenProps {
   gameState: GameState
@@ -15,12 +11,6 @@ interface GameScreenProps {
   onNewGame: () => void
 }
 
-const DRAWER_TABS: Array<{ id: DrawerTab; label: string }> = [
-  { id: 'turn', label: 'Turn' },
-  { id: 'scores', label: 'Scores' },
-  { id: 'actions', label: 'Actions' },
-]
-
 export function GameScreen({
   gameState,
   onThrow,
@@ -29,9 +19,7 @@ export function GameScreen({
   onEndTurn,
   onNewGame,
 }: GameScreenProps) {
-  const [activeDrawerTab, setActiveDrawerTab] = useState<DrawerTab>('turn')
   const [editingDartId, setEditingDartId] = useState<string | null>(null)
-  const currentPlayer = gameState.players[gameState.currentPlayerIndex]
   const modeLabel =
     gameState.mode.type === 'x01'
       ? `${gameState.mode.startingScore} - ${gameState.mode.finishRule === 'double-out' ? 'Double-out' : 'Normal finish'}`
@@ -67,17 +55,23 @@ export function GameScreen({
       <div className="game-layout">
         <div className="match-board-column">
           <header className="match-summary panel">
-            <div>
-              <span className="eyebrow">Current player</span>
-              <h1>{currentPlayer.name}</h1>
-              <p>{modeLabel}</p>
+            <div className="score-strip" aria-label="Player scores">
+              {gameState.players.map((player, index) => (
+                <article
+                  className={index === gameState.currentPlayerIndex ? 'score-chip is-current' : 'score-chip'}
+                  key={player.id}
+                >
+                  <span>{index === gameState.currentPlayerIndex ? 'Throwing' : 'Waiting'}</span>
+                  <strong>{player.name}</strong>
+                  <b>{player.score}</b>
+                </article>
+              ))}
             </div>
 
-            <div className="match-score">
-              <span>{scoreLabel}</span>
-              <strong>{currentPlayer.score}</strong>
-              <small>Dart {nextDartNumber} of 3</small>
-            </div>
+            <p className="match-meta">
+              <span>{modeLabel}</span>
+              <strong>{scoreLabel} - Dart {nextDartNumber} of 3</strong>
+            </p>
           </header>
 
           <Dartboard
@@ -90,79 +84,37 @@ export function GameScreen({
           />
         </div>
 
-        <aside className="side-rail match-drawer">
-          <div className="drawer-tabs" role="tablist" aria-label="Match panels">
-            {DRAWER_TABS.map((tab) => (
-              <button
-                aria-selected={activeDrawerTab === tab.id}
-                className={activeDrawerTab === tab.id ? 'drawer-tab is-active' : 'drawer-tab'}
-                key={tab.id}
-                role="tab"
-                type="button"
-                onClick={() => setActiveDrawerTab(tab.id)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+        <aside className="match-actions-bar">
+          {gameState.statusMessage && (
+            <div className="status-banner" aria-live="polite">
+              {gameState.statusMessage}
+            </div>
+          )}
 
-          <div className="drawer-content">
-            {gameState.statusMessage && (
-              <div className="status-banner panel" aria-live="polite">
-                {gameState.statusMessage}
-              </div>
-            )}
-
-            {activeDrawerTab === 'turn' && (
-              <CurrentTurn
-                editable={gameState.turn.darts.length > 0}
-                onEditDart={setEditingDartId}
-                selectedDartId={editingDartId}
-                turn={gameState.turn}
-              />
-            )}
-
-            {activeDrawerTab === 'scores' && (
-              <Scoreboard
-                currentPlayerIndex={gameState.currentPlayerIndex}
-                modeLabel={modeLabel}
-                players={gameState.players}
-                winnerId={gameState.winnerId}
-              />
-            )}
-
-            {activeDrawerTab === 'actions' && (
-              <section className="panel control-panel">
-                <div className="section-heading">
-                  <span className="eyebrow">Controls</span>
-                  <h2>Match actions</h2>
-                </div>
-
-                <button
-                  className="button"
-                  type="button"
-                  onClick={onUndo}
-                  disabled={gameState.undoStack.length === 0}
-                >
-                  Undo Last Dart
-                </button>
-                <button
-                  className="button button--accent"
-                  type="button"
-                  onClick={handleEndTurn}
-                  disabled={gameState.turn.darts.length === 0}
-                >
-                  {actionLabel}
-                </button>
-                <button
-                  className="button button--danger"
-                  type="button"
-                  onClick={onNewGame}
-                >
-                  New Game
-                </button>
-              </section>
-            )}
+          <div className="action-button-row">
+            <button
+              className="button"
+              type="button"
+              onClick={onUndo}
+              disabled={gameState.undoStack.length === 0}
+            >
+              Undo
+            </button>
+            <button
+              className="button button--accent"
+              type="button"
+              onClick={handleEndTurn}
+              disabled={gameState.turn.darts.length === 0}
+            >
+              {actionLabel}
+            </button>
+            <button
+              className="button button--danger"
+              type="button"
+              onClick={onNewGame}
+            >
+              New
+            </button>
           </div>
         </aside>
       </div>
