@@ -551,6 +551,10 @@ button {
 }
 
 .throw-marker-group {
+  cursor: crosshair;
+}
+
+.throw-marker-group.can-edit {
   cursor: pointer;
 }
 

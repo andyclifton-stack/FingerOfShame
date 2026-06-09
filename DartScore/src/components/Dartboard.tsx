@@ -371,13 +371,22 @@ export function Dartboard({
 
           {markers.map((marker) => {
             const markerIsEditing = marker.id === editingDartId
+            const markerCanBeEdited = !canPlaceNewDart || isEditing
 
             return (
               <g
                 key={marker.id}
-                className={markerIsEditing ? 'throw-marker-group is-editing' : 'throw-marker-group'}
+                className={[
+                  'throw-marker-group',
+                  markerIsEditing ? 'is-editing' : '',
+                  markerCanBeEdited ? 'can-edit' : '',
+                ].filter(Boolean).join(' ')}
                 transform={`translate(${marker.x} ${marker.y})`}
                 onPointerDown={(event) => {
+                  if (!markerCanBeEdited) {
+                    return
+                  }
+
                   event.stopPropagation()
                   onSelectDart(marker.id)
                   triggerHapticFeedback()
