@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import type { CreateGameInput, FinishRule, GameMode, GameState } from '../types/game'
+import { formatModeLabel, formatShortModeLabel } from '../logic/gameModePresentation'
 import { PlayerSetup } from './PlayerSetup'
 
 interface StartScreenProps {
@@ -13,13 +14,48 @@ function buildInitialNames(count: number): string[] {
 }
 
 function describeSavedGame(savedGame: GameState): string {
-  const modeLabel =
-    savedGame.mode.type === 'x01'
-      ? `${savedGame.mode.startingScore} ${savedGame.mode.finishRule === 'double-out' ? 'double-out' : 'straight out'}`
-      : `Free Scoring to ${savedGame.mode.targetScore}`
   const currentPlayer = savedGame.players[savedGame.currentPlayerIndex]
 
-  return `${modeLabel} - ${currentPlayer.name} to throw`
+  return `${formatShortModeLabel(savedGame.mode)} - ${currentPlayer.name} to throw`
+}
+
+type SetupMode = '301' | '501' | 'round-clock' | 'killer' | 'free'
+
+function buildMode(
+  modeChoice: SetupMode,
+  finishRule: FinishRule,
+  freeTargetScore: string,
+  killerLives: number,
+): GameMode {
+  if (modeChoice === '301' || modeChoice === '501') {
+    return {
+      type: 'x01',
+      startingScore: Number.parseInt(modeChoice, 10),
+      finishRule,
+    }
+  }
+
+  if (modeChoice === 'round-clock') {
+    return {
+      type: 'round-clock',
+      finalTarget: 20,
+    }
+  }
+
+  if (modeChoice === 'killer') {
+    return {
+      type: 'killer',
+      lives: killerLives,
+    }
+  }
+
+  return {
+    type: 'free',
+    targetScore: Math.max(
+      1,
+      Number.parseInt(freeTargetScore, 10) || 100,
+    ),
+  }
 }
 
 export function StartScreen({
@@ -27,14 +63,30 @@ export function StartScreen({
   onResumeGame,
   onStartGame,
 }: StartScreenProps) {
-  const [modeType, setModeType] = useState<GameMode['type']>('x01')
+  const [modeChoice, setModeChoice] = useState<SetupMode>('501')
   const [playerCount, setPlayerCount] = useState(2)
   const [playerNames, setPlayerNames] = useState<string[]>(buildInitialNames(4))
   const [finishRule, setFinishRule] = useState<FinishRule>('double-out')
   const [freeTargetScore, setFreeTargetScore] = useState('100')
+  const [killerLives, setKillerLives] = useState(3)
+  const selectedMode = buildMode(
+    modeChoice,
+    finishRule,
+    freeTargetScore,
+    killerLives,
+  )
+  const minPlayers = modeChoice === 'killer' ? 2 : 1
+
+  const handleModeSelect = (nextMode: SetupMode) => {
+    setModeChoice(nextMode)
+
+    if (nextMode === 'killer' && playerCount < 2) {
+      setPlayerCount(2)
+    }
+  }
 
   const handlePlayerCountChange = (nextCount: number) => {
-    setPlayerCount(nextCount)
+    setPlayerCount(Math.max(minPlayers, nextCount))
     setPlayerNames((currentNames) =>
       Array.from(
         { length: 4 },
@@ -54,24 +106,11 @@ export function StartScreen({
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    const mode: GameMode =
-      modeType === 'x01'
-        ? {
-            type: 'x01',
-            startingScore: 501,
-            finishRule,
-          }
-        : {
-            type: 'free',
-            targetScore: Math.max(
-              1,
-              Number.parseInt(freeTargetScore, 10) || 100,
-            ),
-          }
+    const safePlayerCount = Math.max(minPlayers, playerCount)
 
     onStartGame({
-      playerNames: playerNames.slice(0, playerCount),
-      mode,
+      playerNames: playerNames.slice(0, safePlayerCount),
+      mode: selectedMode,
     })
   }
 
@@ -111,19 +150,49 @@ export function StartScreen({
 
           <div className="mode-grid">
             <button
-              className={`mode-card ${modeType === 'x01' ? 'is-active' : ''}`}
+              className={`mode-card ${modeChoice === '301' ? 'is-active' : ''}`}
               type="button"
-              onClick={() => setModeType('x01')}
+              onClick={() => handleModeSelect('301')}
             >
-              <span>501</span>
-              <strong>X01</strong>
-              <small>Countdown scoring with busts and finish rules.</small>
+              <span>301</span>
+              <strong>Countdown</strong>
+              <small>Short checkout game with busts and finish rules.</small>
             </button>
 
             <button
-              className={`mode-card ${modeType === 'free' ? 'is-active' : ''}`}
+              className={`mode-card ${modeChoice === '501' ? 'is-active' : ''}`}
               type="button"
-              onClick={() => setModeType('free')}
+              onClick={() => handleModeSelect('501')}
+            >
+              <span>501</span>
+              <strong>Countdown</strong>
+              <small>Match checkout game with busts and finish rules.</small>
+            </button>
+
+            <button
+              className={`mode-card ${modeChoice === 'round-clock' ? 'is-active' : ''}`}
+              type="button"
+              onClick={() => handleModeSelect('round-clock')}
+            >
+              <span>1-20</span>
+              <strong>Round the Clock</strong>
+              <small>Hit each number in order. First through 20 wins.</small>
+            </button>
+
+            <button
+              className={`mode-card ${modeChoice === 'killer' ? 'is-active' : ''}`}
+              type="button"
+              onClick={() => handleModeSelect('killer')}
+            >
+              <span>Lives</span>
+              <strong>Killer</strong>
+              <small>Own your double, then take lives from opponents.</small>
+            </button>
+
+            <button
+              className={`mode-card ${modeChoice === 'free' ? 'is-active' : ''}`}
+              type="button"
+              onClick={() => handleModeSelect('free')}
             >
               <span>Practice</span>
               <strong>Free Scoring</strong>
@@ -131,7 +200,7 @@ export function StartScreen({
             </button>
           </div>
 
-          {modeType === 'x01' && (
+          {(modeChoice === '301' || modeChoice === '501') && (
             <label className="field">
               <span>Finish rule</span>
               <select
@@ -146,7 +215,7 @@ export function StartScreen({
             </label>
           )}
 
-          {modeType === 'free' && (
+          {modeChoice === 'free' && (
             <label className="field">
               <span>Target score</span>
               <input
@@ -159,9 +228,28 @@ export function StartScreen({
               />
             </label>
           )}
+
+          {modeChoice === 'killer' && (
+            <label className="field">
+              <span>Lives per player</span>
+              <select
+                value={killerLives}
+                onChange={(event) =>
+                  setKillerLives(Number.parseInt(event.target.value, 10))
+                }
+              >
+                {[3, 5, 7].map((lifeCount) => (
+                  <option key={lifeCount} value={lifeCount}>
+                    {lifeCount}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
         </section>
 
         <PlayerSetup
+          minPlayers={minPlayers}
           playerCount={playerCount}
           playerNames={playerNames}
           onPlayerCountChange={handlePlayerCountChange}
@@ -177,15 +265,11 @@ export function StartScreen({
           <div className="launch-summary">
             <div>
               <span>Mode</span>
-              <strong>
-                {modeType === 'x01'
-                  ? `501 - ${finishRule === 'double-out' ? 'Double-out' : 'Normal finish'}`
-                  : `Free Scoring - First to ${Math.max(1, Number.parseInt(freeTargetScore, 10) || 100)}`}
-              </strong>
+              <strong>{formatModeLabel(selectedMode)}</strong>
             </div>
             <div>
               <span>Players</span>
-              <strong>{playerCount}</strong>
+              <strong>{Math.max(minPlayers, playerCount)}</strong>
             </div>
           </div>
 

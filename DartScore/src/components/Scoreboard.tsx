@@ -1,10 +1,16 @@
-import type { Player } from '../types/game'
+import {
+  formatPlayerStatus,
+  formatPlayerValue,
+  formatScoreboardDetail,
+} from '../logic/gameModePresentation'
+import type { GameMode, Player } from '../types/game'
 
 interface ScoreboardProps {
   players: Player[]
   currentPlayerIndex: number
   winnerId: string | null
   modeLabel: string
+  mode: GameMode
 }
 
 export function Scoreboard({
@@ -12,6 +18,7 @@ export function Scoreboard({
   currentPlayerIndex,
   winnerId,
   modeLabel,
+  mode,
 }: ScoreboardProps) {
   return (
     <section className="panel">
@@ -28,15 +35,19 @@ export function Scoreboard({
           >
             <div>
               <span className="score-card__label">
-                {winnerId === player.id
-                  ? 'Winner'
-                  : index === currentPlayerIndex
-                    ? 'Throwing'
-                    : 'Waiting'}
+                {formatPlayerStatus(
+                  player,
+                  mode,
+                  index === currentPlayerIndex,
+                  winnerId === player.id,
+                )}
               </span>
               <strong>{player.name}</strong>
+              <small>{formatScoreboardDetail(player, mode)}</small>
             </div>
-            <span className="score-card__value">{player.score}</span>
+            <span className="score-card__value">
+              {formatPlayerValue(player, mode)}
+            </span>
           </article>
         ))}
       </div>

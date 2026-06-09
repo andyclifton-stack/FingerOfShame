@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { formatShortModeLabel } from '../logic/gameModePresentation'
 import type { GameState } from '../types/game'
 import { Scoreboard } from './Scoreboard'
 
@@ -20,10 +21,7 @@ export function GameOverScreen({
   const winner = gameState.players.find(
     (player) => player.id === gameState.winnerId,
   )
-  const modeLabel =
-    gameState.mode.type === 'x01'
-      ? `${gameState.mode.startingScore} finish`
-      : `Free Scoring to ${gameState.mode.targetScore}`
+  const modeLabel = formatShortModeLabel(gameState.mode)
   const confirmationCopy =
     confirmationAction === 'new'
       ? { confirmLabel: 'New game', title: 'Start a new game?' }
@@ -93,6 +91,7 @@ export function GameOverScreen({
 
       <Scoreboard
         currentPlayerIndex={gameState.currentPlayerIndex}
+        mode={gameState.mode}
         modeLabel={modeLabel}
         players={gameState.players}
         winnerId={gameState.winnerId}

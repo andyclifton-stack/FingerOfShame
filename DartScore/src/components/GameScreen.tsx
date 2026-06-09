@@ -1,4 +1,10 @@
 import { useState } from 'react'
+import {
+  formatModeLabel,
+  formatPlayerStatus,
+  formatPlayerValue,
+  formatScoreLabel,
+} from '../logic/gameModePresentation'
 import type { DartThrowInput, GameState } from '../types/game'
 import { Dartboard } from './Dartboard'
 
@@ -24,11 +30,8 @@ export function GameScreen({
   const [editingDartId, setEditingDartId] = useState<string | null>(null)
   const [confirmationAction, setConfirmationAction] =
     useState<ConfirmationAction | null>(null)
-  const modeLabel =
-    gameState.mode.type === 'x01'
-      ? `${gameState.mode.startingScore} - ${gameState.mode.finishRule === 'double-out' ? 'Double-out' : 'Normal finish'}`
-      : `Free Scoring - First to ${gameState.mode.targetScore}`
-  const scoreLabel = gameState.mode.type === 'x01' ? 'Remaining' : 'Score'
+  const modeLabel = formatModeLabel(gameState.mode)
+  const scoreLabel = formatScoreLabel(gameState.mode)
   const nextDartNumber = Math.min(gameState.turn.darts.length + 1, 3)
   const canPlaceNewDart =
     gameState.status === 'in_progress' &&
@@ -83,9 +86,15 @@ export function GameScreen({
                   className={index === gameState.currentPlayerIndex ? 'score-chip is-current' : 'score-chip'}
                   key={player.id}
                 >
-                  <span>{index === gameState.currentPlayerIndex ? 'Throwing' : 'Waiting'}</span>
+                  <span>
+                    {formatPlayerStatus(
+                      player,
+                      gameState.mode,
+                      index === gameState.currentPlayerIndex,
+                    )}
+                  </span>
                   <strong>{player.name}</strong>
-                  <b>{player.score}</b>
+                  <b>{formatPlayerValue(player, gameState.mode)}</b>
                 </article>
               ))}
             </div>

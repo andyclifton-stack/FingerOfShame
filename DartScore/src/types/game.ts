@@ -15,6 +15,11 @@ export interface Player {
   id: string
   name: string
   score: number
+  roundClockTarget?: number
+  killerTarget?: number
+  killerLives?: number
+  killerIsActive?: boolean
+  isEliminated?: boolean
 }
 
 export type GameMode =
@@ -26,6 +31,14 @@ export type GameMode =
   | {
       type: 'free'
       targetScore: number
+    }
+  | {
+      type: 'round-clock'
+      finalTarget: number
+    }
+  | {
+      type: 'killer'
+      lives: number
     }
 
 export interface DartboardHit {
@@ -52,6 +65,7 @@ export interface DartThrow {
 export interface TurnState {
   playerId: string
   startingScore: number
+  startingPlayers?: Player[]
   darts: DartThrow[]
   turnTotal: number
   isBust: boolean

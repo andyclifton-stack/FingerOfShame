@@ -1,4 +1,5 @@
 interface PlayerSetupProps {
+  minPlayers?: number
   playerCount: number
   playerNames: string[]
   onPlayerCountChange: (playerCount: number) => void
@@ -6,6 +7,7 @@ interface PlayerSetupProps {
 }
 
 export function PlayerSetup({
+  minPlayers = 1,
   playerCount,
   playerNames,
   onPlayerCountChange,
@@ -26,11 +28,13 @@ export function PlayerSetup({
             onPlayerCountChange(Number.parseInt(event.target.value, 10))
           }
         >
-          {[1, 2, 3, 4].map((count) => (
-            <option key={count} value={count}>
-              {count}
-            </option>
-          ))}
+          {[1, 2, 3, 4]
+            .filter((count) => count >= minPlayers)
+            .map((count) => (
+              <option key={count} value={count}>
+                {count}
+              </option>
+            ))}
         </select>
       </label>
 

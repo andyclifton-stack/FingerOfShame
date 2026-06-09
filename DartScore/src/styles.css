@@ -725,6 +725,13 @@ button {
   font-size: 1.1rem;
 }
 
+.score-card small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.78rem;
+  margin-top: 4px;
+}
+
 .score-card__value {
   font-size: 2.2rem;
 }
