@@ -705,21 +705,26 @@ button {
   .match-summary {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 116px;
-    padding: 12px;
+    padding: 10px;
   }
 
   .match-summary p {
-    margin-top: 5px;
-    font-size: 0.9rem;
+    margin-top: 4px;
+    font-size: 0.82rem;
   }
 
   .match-score {
     min-width: 0;
-    padding: 9px 10px;
+    padding: 8px 9px;
   }
 
   .match-score strong {
-    font-size: 2.25rem;
+    font-size: 2.05rem;
+  }
+
+  .match-score span,
+  .match-score small {
+    font-size: 0.8rem;
   }
 
   .dartboard-panel {
@@ -736,15 +741,38 @@ button {
 
   .dartboard-actions {
     grid-template-columns: 1fr;
+    margin-top: 8px;
+  }
+
+  .dartboard-preview {
+    min-height: 42px;
+    padding: 0 12px;
+  }
+
+  .dartboard-preview strong {
+    font-size: 0.96rem;
   }
 
   .dartboard-action-buttons {
     display: grid;
     grid-template-columns: 1fr 1fr;
+    gap: 7px;
   }
 
   .precision-controls {
     grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-top: 7px;
+  }
+
+  .button--compact {
+    min-height: 40px;
+    padding: 0 12px;
+  }
+
+  .precision-button {
+    min-height: 34px;
+    font-size: 0.86rem;
   }
 
   .match-drawer {

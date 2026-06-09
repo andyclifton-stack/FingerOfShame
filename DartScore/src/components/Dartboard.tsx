@@ -205,6 +205,7 @@ export function Dartboard({
     : canPlaceNewDart
       ? 'Place dart'
       : 'Turn ready'
+  const controlsVisible = Boolean(activeThrow)
 
   return (
     <section className="panel dartboard-panel">
@@ -418,60 +419,58 @@ export function Dartboard({
           <strong>{previewLabel}</strong>
         </div>
 
-        <div className="dartboard-action-buttons">
-          <button
-            className="button button--compact"
-            type="button"
-            onClick={handleCancel}
-            disabled={!pendingThrow && !isEditing}
-          >
-            {isEditing ? 'Cancel' : 'Clear'}
-          </button>
-          <button
-            className="button button--accent button--compact"
-            type="button"
-            onClick={handleConfirmThrow}
-            disabled={!activeThrow}
-          >
-            {isEditing ? 'Save Dart' : 'Confirm Dart'}
-          </button>
-        </div>
+        {controlsVisible && (
+          <div className="dartboard-action-buttons">
+            <button
+              className="button button--compact"
+              type="button"
+              onClick={handleCancel}
+            >
+              {isEditing ? 'Cancel' : 'Clear'}
+            </button>
+            <button
+              className="button button--accent button--compact"
+              type="button"
+              onClick={handleConfirmThrow}
+            >
+              {isEditing ? 'Save Dart' : 'Confirm Dart'}
+            </button>
+          </div>
+        )}
       </div>
 
-      <div className="precision-controls" aria-label="Fine adjustment controls">
-        <button
-          className="precision-button"
-          type="button"
-          onClick={() => nudgePending(0, -NUDGE_STEP)}
-          disabled={!activeThrow}
-        >
-          Up
-        </button>
-        <button
-          className="precision-button"
-          type="button"
-          onClick={() => nudgePending(-NUDGE_STEP, 0)}
-          disabled={!activeThrow}
-        >
-          Left
-        </button>
-        <button
-          className="precision-button"
-          type="button"
-          onClick={() => nudgePending(NUDGE_STEP, 0)}
-          disabled={!activeThrow}
-        >
-          Right
-        </button>
-        <button
-          className="precision-button"
-          type="button"
-          onClick={() => nudgePending(0, NUDGE_STEP)}
-          disabled={!activeThrow}
-        >
-          Down
-        </button>
-      </div>
+      {controlsVisible && (
+        <div className="precision-controls" aria-label="Fine adjustment controls">
+          <button
+            className="precision-button"
+            type="button"
+            onClick={() => nudgePending(0, -NUDGE_STEP)}
+          >
+            Up
+          </button>
+          <button
+            className="precision-button"
+            type="button"
+            onClick={() => nudgePending(-NUDGE_STEP, 0)}
+          >
+            Left
+          </button>
+          <button
+            className="precision-button"
+            type="button"
+            onClick={() => nudgePending(NUDGE_STEP, 0)}
+          >
+            Right
+          </button>
+          <button
+            className="precision-button"
+            type="button"
+            onClick={() => nudgePending(0, NUDGE_STEP)}
+          >
+            Down
+          </button>
+        </div>
+      )}
     </section>
   )
 }
