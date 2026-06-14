@@ -32,6 +32,19 @@ const HUB_ITEMS = [
         cta: "Play Now"
     },
     {
+        id: "imposter",
+        title: "Imposter",
+        description: "Pass one phone around, reveal secret cards, give clues, and spot the imposter at the dinner table.",
+        type: "game",
+        href: "imposter/",
+        short: "IM",
+        accent: "teal",
+        featured: true,
+        status: "new",
+        tags: ["words", "family", "party"],
+        cta: "Play Now"
+    },
+    {
         id: "diceduel",
         title: "Dice Duel",
         description: "A 1v1 strategy battle. Roll, reposition, and outplay your opponent.",
