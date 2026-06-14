@@ -86,12 +86,14 @@ const CARD_VISIBLE_SECONDS = 10;
 const app = document.getElementById("app");
 const categoryNames = Object.keys(WORD_BANK);
 let activeTimerIds = [];
+let screenReaderUtterance = null;
 
 const state = {
   screen: "setup",
   setup: loadSettings(),
   round: null,
-  error: ""
+  error: "",
+  readerActive: false
 };
 
 render();
@@ -99,20 +101,25 @@ render();
 // Main render switch for the single-page app.
 function render() {
   clearRevealTimers();
+  app.classList.remove("is-card-screen", "is-holding-card");
 
   if (state.screen === "setup") {
+    cancelScreenReader();
     renderSetup();
     return;
   }
   if (state.screen === "pass") {
+    cancelScreenReader();
     renderPass();
     return;
   }
   if (state.screen === "countdown") {
+    cancelScreenReader();
     renderCountdown();
     return;
   }
   if (state.screen === "card") {
+    cancelScreenReader();
     renderCard();
     return;
   }
@@ -121,9 +128,11 @@ function render() {
     return;
   }
   if (state.screen === "preReveal") {
+    cancelScreenReader();
     renderPreReveal();
     return;
   }
+  cancelScreenReader();
   renderResult();
 }
 
@@ -322,21 +331,42 @@ function renderCard() {
 function renderGame() {
   const round = state.round;
   app.innerHTML = `
-    <div class="screen">
-      <section class="category-banner">
-        <p class="secret-label">Category</p>
-        <strong>${escapeHtml(round.category)}</strong>
+    <div class="screen game-screen">
+      <section class="table-card category-banner">
+        <div>
+          <p class="secret-label">Category</p>
+          <strong>${escapeHtml(round.category)}</strong>
+        </div>
+        <span class="table-token" aria-hidden="true">?</span>
       </section>
 
-      <section>
-        <h3>Clue order</h3>
-        <ol class="order-list">
-          ${round.clueOrder.map((player) => `<li>${escapeHtml(player.name)}</li>`).join("")}
+      <section class="reader-card" aria-label="Read this screen aloud">
+        <div>
+          <p class="secret-label">Voice helper</p>
+          <h3>Read this screen</h3>
+          <p>Hear the category, clue order, steps, and rules.</p>
+        </div>
+        <div class="reader-actions">
+          <button class="secondary-button" type="button" data-action="read-screen">Read screen</button>
+          <button class="quiet-button" type="button" data-action="stop-reading" hidden>Stop reading</button>
+        </div>
+      </section>
+
+      <section class="table-card">
+        <div class="section-heading">
+          <p class="secret-label">Round path</p>
+          <h3>Clue order</h3>
+        </div>
+        <ol class="order-list player-order-list">
+          ${round.clueOrder.map((player, index) => `<li><span>${index + 1}</span>${escapeHtml(player.name)}</li>`).join("")}
         </ol>
       </section>
 
-      <section>
-        <h3>How to play</h3>
+      <section class="table-card">
+        <div class="section-heading">
+          <p class="secret-label">Table flow</p>
+          <h3>How to play</h3>
+        </div>
         <ol class="steps-list">
           <li>Go round the table and give one clue each.</li>
           <li>Optional second clue round.</li>
@@ -355,6 +385,7 @@ function renderGame() {
     </div>
   `;
   bindRoundButtons();
+  bindReaderButtons();
   app.querySelector("[data-action='start-vote']").addEventListener("click", () => {
     state.screen = "preReveal";
     render();
@@ -376,8 +407,11 @@ function renderRules() {
   ];
 
   return `
-    <section>
-      <h3>Rules</h3>
+    <section class="table-card rules-card">
+      <div class="section-heading">
+        <p class="secret-label">Fair play</p>
+        <h3>Rules</h3>
+      </div>
       <ul class="rules-list">
         ${rules.map((rule) => `<li>${escapeHtml(rule)}</li>`).join("")}
       </ul>
@@ -620,6 +654,99 @@ function cleanName(value) {
   return String(value || "").trim().slice(0, 24);
 }
 
+// Screen reader controls for the shared gameplay screen.
+function bindReaderButtons() {
+  const readButton = app.querySelector("[data-action='read-screen']");
+  const stopButton = app.querySelector("[data-action='stop-reading']");
+
+  if (readButton) {
+    readButton.addEventListener("click", readGameScreen);
+  }
+  if (stopButton) {
+    stopButton.addEventListener("click", cancelScreenReader);
+  }
+  updateReaderControls();
+}
+
+function readGameScreen() {
+  if (!state.round || !("speechSynthesis" in window)) {
+    return;
+  }
+
+  const text = buildGameScreenReadout();
+  cancelScreenReader(false);
+  screenReaderUtterance = createUtterance(text);
+  screenReaderUtterance.onend = () => {
+    state.readerActive = false;
+    screenReaderUtterance = null;
+    updateReaderControls();
+  };
+  screenReaderUtterance.onerror = screenReaderUtterance.onend;
+  state.readerActive = true;
+  updateReaderControls();
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(screenReaderUtterance);
+}
+
+function buildGameScreenReadout() {
+  const rules = [
+    "Everyone knows the category.",
+    "Everyone except the imposter knows the secret word.",
+    "Clues should relate to the word but should not give it away too obviously.",
+    "You cannot say the secret word.",
+    "You cannot say a word that contains the secret word.",
+    "You cannot say a word that rhymes with the secret word.",
+    "You cannot give I don't know as a clue.",
+    "The imposter wins if they avoid being caught.",
+    "If caught, the imposter can still win by correctly guessing the secret word.",
+    "The other players win if they catch the imposter and the imposter fails to guess the word."
+  ];
+  const order = state.round.clueOrder
+    .map((player, index) => `${index + 1}. ${player.name}`)
+    .join(". ");
+
+  return [
+    `Category: ${state.round.category}.`,
+    `Clue order: ${order}.`,
+    "How to play.",
+    "One. Go round the table and give one clue each.",
+    "Two. Optional second clue round.",
+    "Three. Discuss and vote for the imposter.",
+    "Four. If caught, the imposter gets one guess at the word.",
+    "Rules.",
+    ...rules
+  ].join(" ");
+}
+
+function updateReaderControls() {
+  const readButton = app.querySelector("[data-action='read-screen']");
+  const stopButton = app.querySelector("[data-action='stop-reading']");
+  const hasSpeech = "speechSynthesis" in window;
+
+  if (readButton) {
+    readButton.textContent = hasSpeech ? (state.readerActive ? "Read from start" : "Read screen") : "Voice unavailable";
+    readButton.disabled = !hasSpeech;
+  }
+  if (stopButton) {
+    stopButton.hidden = !state.readerActive;
+  }
+}
+
+function cancelScreenReader(updateControls = true) {
+  if (screenReaderUtterance) {
+    screenReaderUtterance.onend = null;
+    screenReaderUtterance.onerror = null;
+  }
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+  }
+  state.readerActive = false;
+  screenReaderUtterance = null;
+  if (updateControls) {
+    updateReaderControls();
+  }
+}
+
 // Timed reveal and speech helpers.
 function scheduleRevealCountdown(player) {
   speak(`${player.name}. Get ready.`, true);
@@ -749,15 +876,7 @@ function speak(text, cancelCurrent = false) {
   }
 
   try {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.88;
-    utterance.pitch = 1;
-    utterance.volume = 1;
-    const voices = window.speechSynthesis.getVoices();
-    utterance.voice =
-      voices.find((voice) => voice.lang === "en-GB") ||
-      voices.find((voice) => voice.lang.startsWith("en")) ||
-      null;
+    const utterance = createUtterance(text);
     if (cancelCurrent) {
       window.speechSynthesis.cancel();
     }
@@ -765,6 +884,19 @@ function speak(text, cancelCurrent = false) {
   } catch (error) {
     // Voice prompts are helpful, but the visual timers still run without them.
   }
+}
+
+function createUtterance(text) {
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 0.88;
+  utterance.pitch = 1;
+  utterance.volume = 1;
+  const voices = window.speechSynthesis.getVoices();
+  utterance.voice =
+    voices.find((voice) => voice.lang === "en-GB") ||
+    voices.find((voice) => voice.lang.startsWith("en")) ||
+    null;
+  return utterance;
 }
 
 // Random helpers.
