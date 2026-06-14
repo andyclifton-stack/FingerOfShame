@@ -185,7 +185,18 @@ function renderSetup() {
 
 function modeButton(mode, label) {
   const activeClass = state.setup.mode === mode ? " is-active" : "";
-  return `<button class="option-button${activeClass}" type="button" data-mode="${mode}">${escapeHtml(label)}</button>`;
+  const meta = {
+    random: ["Mystery Deck", "Surprise category and secret word."],
+    category: ["Choose Category", "Pick the theme, then let the app choose the word."],
+    custom: ["Custom Secret", "Write your own category and word."]
+  };
+  const [title, detail] = meta[mode] || [label, ""];
+  return `
+    <button class="option-button${activeClass}" type="button" data-mode="${mode}">
+      <span>${escapeHtml(title)}</span>
+      <small>${escapeHtml(detail)}</small>
+    </button>
+  `;
 }
 
 function nameInput(index) {
@@ -290,6 +301,10 @@ function renderCountdown() {
     <div class="screen">
       <section class="pass-card countdown-card">
         <p class="secret-label">${escapeHtml(player.name)}</p>
+        <div class="card-back" aria-hidden="true">
+          <span>?</span>
+          <small>Card locked</small>
+        </div>
         <p id="countdown-number" class="countdown-number">${PRE_REVEAL_COUNTDOWN_SECONDS}</p>
         <p id="countdown-line" class="lead">Get ready. Your card is about to appear.</p>
       </section>
@@ -352,6 +367,8 @@ function renderGame() {
         </div>
       </section>
 
+      ${renderClueHost(round)}
+
       <section class="table-card">
         <div class="section-heading">
           <p class="secret-label">Round path</p>
@@ -377,15 +394,21 @@ function renderGame() {
 
       ${renderRules()}
 
-      <div class="two-actions">
+      <div class="sticky-actions">
         <button class="primary-button" type="button" data-action="start-vote">Start table vote</button>
-        <button class="secondary-button" type="button" data-action="new-round">New round, same players</button>
+        <details class="more-actions">
+          <summary>More</summary>
+          <div class="more-menu">
+            <button class="secondary-button" type="button" data-action="new-round">New round, same players</button>
+            <button class="quiet-button" type="button" data-action="new-game">New game</button>
+          </div>
+        </details>
       </div>
-      <button class="quiet-button" type="button" data-action="new-game">New game</button>
     </div>
   `;
   bindRoundButtons();
   bindReaderButtons();
+  bindClueButtons();
   app.querySelector("[data-action='start-vote']").addEventListener("click", () => {
     state.screen = "preReveal";
     render();
@@ -393,17 +416,11 @@ function renderGame() {
 }
 
 function renderRules() {
-  const rules = [
-    "Everyone knows the category.",
-    "Everyone except the imposter knows the secret word.",
-    "Clues should relate to the word but should not give it away too obviously.",
-    "You cannot say the secret word.",
-    "You cannot say a word that contains the secret word.",
-    "You cannot say a word that rhymes with the secret word.",
-    "You cannot give \"I don't know\" as a clue.",
-    "The imposter wins if they avoid being caught.",
-    "If caught, the imposter can still win by correctly guessing the secret word.",
-    "The other players win if they catch the imposter and the imposter fails to guess the word."
+  const rules = getRules();
+  const topRules = [
+    "Do not say the secret word.",
+    "Do not say a word that contains it or rhymes with it.",
+    "No \"I don't know\" clues."
   ];
 
   return `
@@ -412,9 +429,15 @@ function renderRules() {
         <p class="secret-label">Fair play</p>
         <h3>Rules</h3>
       </div>
-      <ul class="rules-list">
-        ${rules.map((rule) => `<li>${escapeHtml(rule)}</li>`).join("")}
+      <ul class="rules-list top-rules">
+        ${topRules.map((rule) => `<li>${escapeHtml(rule)}</li>`).join("")}
       </ul>
+      <details class="rules-drawer">
+        <summary>Show all rules</summary>
+        <ul class="rules-list">
+        ${rules.map((rule) => `<li>${escapeHtml(rule)}</li>`).join("")}
+        </ul>
+      </details>
     </section>
   `;
 }
@@ -505,6 +528,7 @@ function startRound() {
     revealOrder: shuffle([...players]),
     clueOrder: shuffle([...players]),
     revealIndex: 0,
+    clueStep: 0,
     passAnnouncement: true
   };
   state.screen = "pass";
@@ -554,6 +578,70 @@ function bindRoundButtons() {
       render();
     });
   }
+}
+
+function renderClueHost(round) {
+  const status = getClueStatus(round);
+  return `
+    <section class="table-card clue-host-card">
+      <div class="section-heading">
+        <p class="secret-label">${escapeHtml(status.phase)}</p>
+        <h3>${escapeHtml(status.title)}</h3>
+      </div>
+      <div class="current-player-token">${escapeHtml(status.playerName)}</div>
+      <p>${escapeHtml(status.hint)}</p>
+      <div class="clue-controls">
+        <button class="quiet-button" type="button" data-action="prev-clue"${round.clueStep <= 0 ? " disabled" : ""}>Back</button>
+        <button class="secondary-button" type="button" data-action="next-clue">${escapeHtml(status.nextLabel)}</button>
+      </div>
+    </section>
+  `;
+}
+
+function bindClueButtons() {
+  const nextButton = app.querySelector("[data-action='next-clue']");
+  const prevButton = app.querySelector("[data-action='prev-clue']");
+
+  if (nextButton) {
+    nextButton.addEventListener("click", () => {
+      state.round.clueStep = Math.min(state.round.players.length * 2, state.round.clueStep + 1);
+      render();
+    });
+  }
+  if (prevButton) {
+    prevButton.addEventListener("click", () => {
+      state.round.clueStep = Math.max(0, state.round.clueStep - 1);
+      render();
+    });
+  }
+}
+
+function getClueStatus(round) {
+  const totalPlayers = round.clueOrder.length;
+  const step = Math.min(round.clueStep || 0, totalPlayers * 2);
+
+  if (step >= totalPlayers * 2) {
+    return {
+      phase: "Discussion",
+      title: "Discuss and vote",
+      playerName: "Table talk",
+      hint: "Both clue rounds are complete. Talk it through, then start the table vote.",
+      nextLabel: "Clues done"
+    };
+  }
+
+  const roundNumber = step < totalPlayers ? 1 : 2;
+  const player = round.clueOrder[step % totalPlayers];
+  const isLast = step === totalPlayers * 2 - 1;
+  return {
+    phase: roundNumber === 1 ? "Round 1 clues" : "Optional round 2",
+    title: `${player.name}'s clue`,
+    playerName: player.name,
+    hint: roundNumber === 1
+      ? "Give one clue that points at the word without making it obvious."
+      : "Optional second clue. Keep it short and suspiciously normal.",
+    nextLabel: isLast ? "Finish clues" : "Next clue"
+  };
 }
 
 // Setup helpers.
@@ -689,18 +777,7 @@ function readGameScreen() {
 }
 
 function buildGameScreenReadout() {
-  const rules = [
-    "Everyone knows the category.",
-    "Everyone except the imposter knows the secret word.",
-    "Clues should relate to the word but should not give it away too obviously.",
-    "You cannot say the secret word.",
-    "You cannot say a word that contains the secret word.",
-    "You cannot say a word that rhymes with the secret word.",
-    "You cannot give I don't know as a clue.",
-    "The imposter wins if they avoid being caught.",
-    "If caught, the imposter can still win by correctly guessing the secret word.",
-    "The other players win if they catch the imposter and the imposter fails to guess the word."
-  ];
+  const rules = getRules();
   const order = state.round.clueOrder
     .map((player, index) => `${index + 1}. ${player.name}`)
     .join(". ");
@@ -716,6 +793,21 @@ function buildGameScreenReadout() {
     "Rules.",
     ...rules
   ].join(" ");
+}
+
+function getRules() {
+  return [
+    "Everyone knows the category.",
+    "Everyone except the imposter knows the secret word.",
+    "Clues should relate to the word but should not give it away too obviously.",
+    "You cannot say the secret word.",
+    "You cannot say a word that contains the secret word.",
+    "You cannot say a word that rhymes with the secret word.",
+    "You cannot give \"I don't know\" as a clue.",
+    "The imposter wins if they avoid being caught.",
+    "If caught, the imposter can still win by correctly guessing the secret word.",
+    "The other players win if they catch the imposter and the imposter fails to guess the word."
+  ];
 }
 
 function updateReaderControls() {
