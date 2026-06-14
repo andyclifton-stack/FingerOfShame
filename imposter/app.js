@@ -81,7 +81,7 @@ const SETTINGS_KEY = "imposter_settings_v1";
 const MIN_PLAYERS = 3;
 const MAX_PLAYERS = 10;
 const PRE_REVEAL_COUNTDOWN_SECONDS = 3;
-const CARD_VISIBLE_SECONDS = 3;
+const CARD_VISIBLE_SECONDS = 5;
 
 const app = document.getElementById("app");
 const categoryNames = Object.keys(WORD_BANK);
@@ -293,6 +293,8 @@ function renderCard() {
   const round = state.round;
   const player = currentRevealPlayer();
   const isImposter = player.index === round.imposterIndex;
+  round.cardHoldActive = false;
+  round.cardTimerExpired = false;
   app.innerHTML = `
     <div class="screen">
       <section class="secret-card">
@@ -302,14 +304,17 @@ function renderCard() {
           : `<p class="secret-label">Secret word</p><p class="secret-word">${escapeHtml(round.word)}</p>`}
         <p class="lead">Category: <strong>${escapeHtml(round.category)}</strong></p>
         <div class="auto-hide">
-          <span>Hiding in <strong id="card-countdown">${CARD_VISIBLE_SECONDS}</strong></span>
+          <span id="hold-status">Hiding in <strong id="card-countdown">${CARD_VISIBLE_SECONDS}</strong>. Hold anywhere if you need longer.</span>
           <div class="timer-track" aria-hidden="true"><div class="timer-fill"></div></div>
         </div>
+        <p class="hold-hint" aria-hidden="true">Press and hold anywhere on this screen to keep the card open.</p>
         <button class="quiet-button" type="button" data-action="hide-card">Hide now</button>
       </section>
     </div>
   `;
   app.querySelector("[data-action='hide-card']").addEventListener("click", finishCardReveal);
+  bindCardHoldEvents();
+  speak("Hold the screen if you need longer. After the timer finishes, release to hide.");
   scheduleCardAutoHide();
 }
 
@@ -481,6 +486,9 @@ function beginRevealCountdown() {
 }
 
 function finishCardReveal() {
+  if (!state.round || state.screen !== "card") {
+    return;
+  }
   state.round.revealIndex += 1;
   if (state.round.revealIndex >= state.round.players.length) {
     state.screen = "game";
@@ -644,7 +652,83 @@ function scheduleCardAutoHide() {
       }
     }, delay);
   }
-  scheduleTimer(finishCardReveal, CARD_VISIBLE_SECONDS * 1000);
+  scheduleTimer(() => {
+    if (!state.round || state.screen !== "card") {
+      return;
+    }
+    state.round.cardTimerExpired = true;
+    const countdown = document.getElementById("card-countdown");
+    if (countdown) {
+      countdown.textContent = "0";
+    }
+    if (state.round.cardHoldActive) {
+      updateHoldStatus("Release to hide the card.");
+      return;
+    }
+    finishCardReveal();
+  }, CARD_VISIBLE_SECONDS * 1000);
+}
+
+function bindCardHoldEvents() {
+  app.addEventListener("contextmenu", preventCardContextMenu);
+  app.addEventListener("pointerdown", startCardHold);
+  app.addEventListener("pointerup", stopCardHold);
+  app.addEventListener("pointercancel", stopCardHold);
+  document.addEventListener("mousedown", startCardHold);
+  document.addEventListener("mouseup", stopCardHold);
+  document.addEventListener("touchstart", startCardHold, { passive: true });
+  document.addEventListener("touchend", stopCardHold);
+  document.addEventListener("touchcancel", stopCardHold);
+}
+
+function preventCardContextMenu(event) {
+  if (state.screen === "card") {
+    event.preventDefault();
+  }
+}
+
+function startCardHold(event) {
+  const target = event.target;
+  if (state.screen !== "card" || (target && target.closest && target.closest("button"))) {
+    return;
+  }
+  state.round.cardHoldActive = true;
+  app.classList.add("is-holding-card");
+  updateHoldStatus(state.round.cardTimerExpired ? "Release to hide the card." : "Holding. The card will stay open if the timer finishes.");
+  try {
+    if (typeof event.pointerId === "number") {
+      app.setPointerCapture(event.pointerId);
+    }
+  } catch (error) {
+    // Pointer capture is a convenience, not a requirement.
+  }
+}
+
+function stopCardHold(event) {
+  if (!state.round || state.screen !== "card" || !state.round.cardHoldActive) {
+    return;
+  }
+  state.round.cardHoldActive = false;
+  app.classList.remove("is-holding-card");
+  try {
+    if (typeof event.pointerId === "number") {
+      app.releasePointerCapture(event.pointerId);
+    }
+  } catch (error) {
+    // Ignored.
+  }
+  if (state.round.cardTimerExpired) {
+    finishCardReveal();
+    return;
+  }
+  updateHoldStatus(`Hiding in ${document.getElementById("card-countdown")?.textContent || CARD_VISIBLE_SECONDS}. Hold anywhere if you need longer.`);
+}
+
+function updateHoldStatus(text) {
+  const status = document.getElementById("hold-status");
+  if (status) {
+    status.textContent = text;
+  }
 }
 
 function scheduleTimer(callback, delay) {

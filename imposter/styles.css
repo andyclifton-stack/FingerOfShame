@@ -299,6 +299,17 @@ h3 {
   text-align: center;
 }
 
+.secret-card {
+  touch-action: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.is-holding-card .secret-card {
+  border-color: var(--good);
+  box-shadow: 0 0 0 4px rgba(39, 120, 95, 0.16);
+  transform: scale(1.01);
+}
+
 .countdown-card {
   min-height: 55svh;
 }
@@ -363,7 +374,20 @@ h3 {
   border-radius: inherit;
   background: var(--accent);
   transform-origin: left center;
-  animation: drain 3s linear forwards;
+  animation: drain 5s linear forwards;
+}
+
+.hold-hint {
+  margin: 0;
+  max-width: 320px;
+  color: var(--brand);
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.is-holding-card .hold-hint {
+  color: var(--good);
 }
 
 .category-banner {
