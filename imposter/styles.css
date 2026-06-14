@@ -114,11 +114,21 @@ h3 {
   padding: 16px;
 }
 
+.app-panel.is-card-screen {
+  min-height: calc(100svh - 83px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  padding: 0;
+  overflow: hidden;
+}
+
 .screen {
   min-height: 100%;
   display: grid;
   align-content: start;
   gap: 15px;
+}
+
+.card-screen {
+  min-height: inherit;
 }
 
 .lead {
@@ -301,13 +311,27 @@ h3 {
 
 .secret-card {
   touch-action: none;
+  user-select: none;
   transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.card-screen .secret-card {
+  min-height: inherit;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+  padding: 22px 18px;
+  background:
+    linear-gradient(180deg, rgba(217, 238, 240, 0.92), rgba(255, 253, 248, 0.98) 38%),
+    #ffffff;
+  cursor: pointer;
 }
 
 .is-holding-card .secret-card {
   border-color: var(--good);
-  box-shadow: 0 0 0 4px rgba(39, 120, 95, 0.16);
-  transform: scale(1.01);
+  box-shadow: inset 0 0 0 6px rgba(39, 120, 95, 0.2);
+  transform: none;
 }
 
 .countdown-card {
@@ -374,20 +398,26 @@ h3 {
   border-radius: inherit;
   background: var(--accent);
   transform-origin: left center;
-  animation: drain 5s linear forwards;
+  animation: drain 10s linear forwards;
 }
 
 .hold-hint {
-  margin: 0;
-  max-width: 320px;
+  margin: 4px 0 0;
+  max-width: 340px;
+  border: 2px dashed rgba(18, 52, 59, 0.28);
+  border-radius: 8px;
+  padding: 12px 14px;
   color: var(--brand);
-  font-size: 0.9rem;
+  background: rgba(217, 238, 240, 0.72);
+  font-size: 0.98rem;
   font-weight: 800;
   line-height: 1.35;
 }
 
 .is-holding-card .hold-hint {
   color: var(--good);
+  border-color: rgba(39, 120, 95, 0.55);
+  background: rgba(39, 120, 95, 0.12);
 }
 
 .category-banner {
@@ -469,6 +499,10 @@ h3 {
 
   .app-panel {
     padding: 22px;
+  }
+
+  .app-panel.is-card-screen {
+    padding: 0;
   }
 
   .setup-grid {

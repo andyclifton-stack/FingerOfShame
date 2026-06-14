@@ -81,7 +81,7 @@ const SETTINGS_KEY = "imposter_settings_v1";
 const MIN_PLAYERS = 3;
 const MAX_PLAYERS = 10;
 const PRE_REVEAL_COUNTDOWN_SECONDS = 3;
-const CARD_VISIBLE_SECONDS = 5;
+const CARD_VISIBLE_SECONDS = 10;
 
 const app = document.getElementById("app");
 const categoryNames = Object.keys(WORD_BANK);
@@ -295,8 +295,9 @@ function renderCard() {
   const isImposter = player.index === round.imposterIndex;
   round.cardHoldActive = false;
   round.cardTimerExpired = false;
+  app.classList.add("is-card-screen");
   app.innerHTML = `
-    <div class="screen">
+    <div class="screen card-screen">
       <section class="secret-card">
         <p class="secret-label">${escapeHtml(player.name)}</p>
         ${isImposter
@@ -304,17 +305,17 @@ function renderCard() {
           : `<p class="secret-label">Secret word</p><p class="secret-word">${escapeHtml(round.word)}</p>`}
         <p class="lead">Category: <strong>${escapeHtml(round.category)}</strong></p>
         <div class="auto-hide">
-          <span id="hold-status">Hiding in <strong id="card-countdown">${CARD_VISIBLE_SECONDS}</strong>. Hold anywhere if you need longer.</span>
+          <span id="hold-status">Hiding in <strong id="card-countdown">${CARD_VISIBLE_SECONDS}</strong>. Hold anywhere on the screen if you need longer.</span>
           <div class="timer-track" aria-hidden="true"><div class="timer-fill"></div></div>
         </div>
-        <p class="hold-hint" aria-hidden="true">Press and hold anywhere on this screen to keep the card open.</p>
+        <p class="hold-hint" aria-hidden="true">The whole screen is the hold area.</p>
         <button class="quiet-button" type="button" data-action="hide-card">Hide now</button>
       </section>
     </div>
   `;
   app.querySelector("[data-action='hide-card']").addEventListener("click", finishCardReveal);
   bindCardHoldEvents();
-  speak("Hold the screen if you need longer. After the timer finishes, release to hide.");
+  speak("You have ten seconds. Hold anywhere on the screen if you need longer. After the timer finishes, release to hide.");
   scheduleCardAutoHide();
 }
 
@@ -489,6 +490,7 @@ function finishCardReveal() {
   if (!state.round || state.screen !== "card") {
     return;
   }
+  app.classList.remove("is-card-screen", "is-holding-card");
   state.round.revealIndex += 1;
   if (state.round.revealIndex >= state.round.players.length) {
     state.screen = "game";
@@ -721,7 +723,7 @@ function stopCardHold(event) {
     finishCardReveal();
     return;
   }
-  updateHoldStatus(`Hiding in ${document.getElementById("card-countdown")?.textContent || CARD_VISIBLE_SECONDS}. Hold anywhere if you need longer.`);
+  updateHoldStatus(`Hiding in ${document.getElementById("card-countdown")?.textContent || CARD_VISIBLE_SECONDS}. Hold anywhere on the screen if you need longer.`);
 }
 
 function updateHoldStatus(text) {

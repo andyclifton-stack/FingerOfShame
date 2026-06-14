@@ -2,7 +2,7 @@
 
 A simple dinner-table imposter word game for one shared phone.
 
-Private cards use a timed reveal flow: tap when the named player is ready, then the app speaks their name, counts down, shows the card for five seconds, and announces who to pass to next. The player can press and hold anywhere on the card screen to keep it visible after the timer ends, then release to hide it. Browsers may block speech on some devices, but the visual countdown and auto-hide still work.
+Private cards use a timed reveal flow: tap when the named player is ready, then the app speaks their name, counts down, shows the card for ten seconds, and announces who to pass to next. The full card screen is a hold area: press and hold anywhere to keep it visible after the timer ends, then release to hide it. Browsers may block speech on some devices, but the visual countdown and auto-hide still work.
 
 ## Open locally
 
