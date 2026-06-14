@@ -80,9 +80,12 @@ const WORD_BANK = {
 const SETTINGS_KEY = "imposter_settings_v1";
 const MIN_PLAYERS = 3;
 const MAX_PLAYERS = 10;
+const PRE_REVEAL_COUNTDOWN_SECONDS = 3;
+const CARD_VISIBLE_SECONDS = 3;
 
 const app = document.getElementById("app");
 const categoryNames = Object.keys(WORD_BANK);
+let activeTimerIds = [];
 
 const state = {
   screen: "setup",
@@ -95,12 +98,18 @@ render();
 
 // Main render switch for the single-page app.
 function render() {
+  clearRevealTimers();
+
   if (state.screen === "setup") {
     renderSetup();
     return;
   }
   if (state.screen === "pass") {
     renderPass();
+    return;
+  }
+  if (state.screen === "countdown") {
+    renderCountdown();
     return;
   }
   if (state.screen === "card") {
@@ -253,14 +262,31 @@ function renderPass() {
       <section class="pass-card">
         <p class="secret-label">Pass the phone to</p>
         <p class="big-name">${escapeHtml(player.name)}</p>
-        <button class="primary-button" type="button" data-action="show-card">Show my card</button>
+        <p class="lead">Keep the phone facing down until they are ready.</p>
+        <button class="primary-button" type="button" data-action="show-card">Ready for my card</button>
       </section>
     </div>
   `;
-  app.querySelector("[data-action='show-card']").addEventListener("click", () => {
-    state.screen = "card";
-    render();
-  });
+  app.querySelector("[data-action='show-card']").addEventListener("click", beginRevealCountdown);
+
+  if (round.passAnnouncement) {
+    round.passAnnouncement = false;
+    speak(`Please pass to ${player.name}.`);
+  }
+}
+
+function renderCountdown() {
+  const player = currentRevealPlayer();
+  app.innerHTML = `
+    <div class="screen">
+      <section class="pass-card countdown-card">
+        <p class="secret-label">${escapeHtml(player.name)}</p>
+        <p id="countdown-number" class="countdown-number">${PRE_REVEAL_COUNTDOWN_SECONDS}</p>
+        <p id="countdown-line" class="lead">Get ready. Your card is about to appear.</p>
+      </section>
+    </div>
+  `;
+  scheduleRevealCountdown(player);
 }
 
 function renderCard() {
@@ -275,11 +301,16 @@ function renderCard() {
           ? `<p class="secret-word imposter-word">You are the Imposter</p>`
           : `<p class="secret-label">Secret word</p><p class="secret-word">${escapeHtml(round.word)}</p>`}
         <p class="lead">Category: <strong>${escapeHtml(round.category)}</strong></p>
-        <button class="primary-button" type="button" data-action="hide-card">Hide card</button>
+        <div class="auto-hide">
+          <span>Hiding in <strong id="card-countdown">${CARD_VISIBLE_SECONDS}</strong></span>
+          <div class="timer-track" aria-hidden="true"><div class="timer-fill"></div></div>
+        </div>
+        <button class="quiet-button" type="button" data-action="hide-card">Hide now</button>
       </section>
     </div>
   `;
-  app.querySelector("[data-action='hide-card']").addEventListener("click", nextReveal);
+  app.querySelector("[data-action='hide-card']").addEventListener("click", finishCardReveal);
+  scheduleCardAutoHide();
 }
 
 function renderGame() {
@@ -433,7 +464,8 @@ function startRound() {
     imposterIndex: randomInt(players.length),
     revealOrder: shuffle([...players]),
     clueOrder: shuffle([...players]),
-    revealIndex: 0
+    revealIndex: 0,
+    passAnnouncement: true
   };
   state.screen = "pass";
   render();
@@ -443,10 +475,24 @@ function currentRevealPlayer() {
   return state.round.revealOrder[state.round.revealIndex];
 }
 
-function nextReveal() {
-  state.round.revealIndex += 1;
-  state.screen = state.round.revealIndex >= state.round.players.length ? "game" : "pass";
+function beginRevealCountdown() {
+  state.screen = "countdown";
   render();
+}
+
+function finishCardReveal() {
+  state.round.revealIndex += 1;
+  if (state.round.revealIndex >= state.round.players.length) {
+    state.screen = "game";
+  } else {
+    state.round.passAnnouncement = true;
+    state.screen = "pass";
+  }
+  render();
+
+  if (state.screen === "game") {
+    speak("All cards have been seen. Start the clue round.");
+  }
 }
 
 function bindRoundButtons() {
@@ -562,6 +608,77 @@ function defaultName(index) {
 
 function cleanName(value) {
   return String(value || "").trim().slice(0, 24);
+}
+
+// Timed reveal and speech helpers.
+function scheduleRevealCountdown(player) {
+  speak(`${player.name}. Get ready.`, true);
+  for (let step = PRE_REVEAL_COUNTDOWN_SECONDS; step >= 1; step -= 1) {
+    const delay = (PRE_REVEAL_COUNTDOWN_SECONDS - step) * 1000 + 450;
+    scheduleTimer(() => {
+      const number = document.getElementById("countdown-number");
+      const line = document.getElementById("countdown-line");
+      if (number) {
+        number.textContent = String(step);
+      }
+      if (line) {
+        line.textContent = step === 1 ? "Here is your card." : "Your card is about to appear.";
+      }
+      speak(String(step));
+    }, delay);
+  }
+  scheduleTimer(() => {
+    speak("Here is your card.");
+    state.screen = "card";
+    render();
+  }, PRE_REVEAL_COUNTDOWN_SECONDS * 1000 + 650);
+}
+
+function scheduleCardAutoHide() {
+  for (let remaining = CARD_VISIBLE_SECONDS - 1; remaining >= 1; remaining -= 1) {
+    const delay = (CARD_VISIBLE_SECONDS - remaining) * 1000;
+    scheduleTimer(() => {
+      const countdown = document.getElementById("card-countdown");
+      if (countdown) {
+        countdown.textContent = String(remaining);
+      }
+    }, delay);
+  }
+  scheduleTimer(finishCardReveal, CARD_VISIBLE_SECONDS * 1000);
+}
+
+function scheduleTimer(callback, delay) {
+  const timerId = window.setTimeout(callback, delay);
+  activeTimerIds.push(timerId);
+}
+
+function clearRevealTimers() {
+  activeTimerIds.forEach((timerId) => window.clearTimeout(timerId));
+  activeTimerIds = [];
+}
+
+function speak(text, cancelCurrent = false) {
+  if (!("speechSynthesis" in window)) {
+    return;
+  }
+
+  try {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.88;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    const voices = window.speechSynthesis.getVoices();
+    utterance.voice =
+      voices.find((voice) => voice.lang === "en-GB") ||
+      voices.find((voice) => voice.lang.startsWith("en")) ||
+      null;
+    if (cancelCurrent) {
+      window.speechSynthesis.cancel();
+    }
+    window.speechSynthesis.speak(utterance);
+  } catch (error) {
+    // Voice prompts are helpful, but the visual timers still run without them.
+  }
 }
 
 // Random helpers.

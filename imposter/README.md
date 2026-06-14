@@ -2,6 +2,8 @@
 
 A simple dinner-table imposter word game for one shared phone.
 
+Private cards use a timed reveal flow: tap when the named player is ready, then the app speaks their name, counts down, shows the card for three seconds, hides it, and announces who to pass to next. Browsers may block speech on some devices, but the visual countdown and auto-hide still work.
+
 ## Open locally
 
 From the `FingerOfShame` folder, run:
