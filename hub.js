@@ -19,6 +19,19 @@ const HUB_ITEMS = [
         cta: "Open"
     },
     {
+        id: "servicetenure",
+        title: "Service Tenure Dashboard",
+        description: "Desk tablet dashboard with clock, tenure tracker, timer, notes, and offline PWA support.",
+        type: "app",
+        href: "/ServiveTenure/",
+        short: "ST",
+        accent: "emerald",
+        status: "new",
+        featured: true,
+        tags: ["dashboard", "clock", "tenure", "tablet"],
+        cta: "Open"
+    },
+    {
         id: "finger",
         title: "Finger of Shame",
         description: "The ultimate party court. Accuse friends, cast votes, and face the wheel.",
