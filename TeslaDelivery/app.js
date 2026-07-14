@@ -585,7 +585,7 @@ function renderOverview() {
 
         <section class="privacy-card">
             <p><strong>Your details stay here.</strong> Vehicle information, progress, notes and photographs are stored only in this browser. Clearing its website data will remove them.</p>
-            <button class="button button-quiet danger-text" type="button" data-action="reset">Reset all checklist data</button>
+            <button class="button button-quiet danger-text" type="button" data-action="reset">Reset checklist progress</button>
         </section>
     `;
     hydrateVehiclePhotoDisplays();
@@ -968,14 +968,18 @@ function registerServiceWorker() {
 }
 
 async function resetEverything() {
-    localStorage.removeItem(STORAGE_KEY);
-    try { await clearPhotos(); } catch (error) { /* storage may already be empty */ }
+    const profile = { ...session.profile };
+    const configured = session.configured;
+    let photosCleared = true;
+    try { await clearChecklistPhotos(); } catch (error) { photosCleared = false; }
     session = newSession();
+    session.profile = profile;
+    session.configured = configured;
+    saveSession();
     closeDialog(elements.resetDialog);
-    showToast("Checklist reset.");
+    showToast(photosCleared ? "Checklist reset. Car details kept." : "Checklist reset, but some check photographs could not be removed.");
     history.replaceState({ teslaDeliveryView: "overview" }, "", historyUrl("overview"));
     render();
-    window.setTimeout(() => openVehicleDialog(true), 200);
 }
 
 async function shareReport() {
@@ -1069,11 +1073,17 @@ async function deletePhotoRecord(photoId) {
     });
 }
 
-async function clearPhotos() {
+async function clearChecklistPhotos() {
     const db = await openPhotoDb();
     return new Promise((resolve, reject) => {
         const transaction = db.transaction(PHOTO_STORE, "readwrite");
-        transaction.objectStore(PHOTO_STORE).clear();
+        const request = transaction.objectStore(PHOTO_STORE).openCursor();
+        request.onsuccess = () => {
+            const cursor = request.result;
+            if (!cursor) return;
+            if (cursor.value.itemId !== VEHICLE_PHOTO_ITEM_ID) cursor.delete();
+            cursor.continue();
+        };
         transaction.oncomplete = resolve;
         transaction.onerror = () => reject(transaction.error);
     });
