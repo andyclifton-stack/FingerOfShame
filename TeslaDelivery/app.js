@@ -4,7 +4,7 @@ const STORAGE_KEY = "teslaDelivery:v1:session";
 const CONTENT_VERSION = 1;
 const PHOTO_DB_NAME = "tesla-delivery-v1";
 const PHOTO_STORE = "photos";
-const MAX_PHOTOS_PER_ISSUE = 5;
+const MAX_PHOTOS_PER_ITEM = 5;
 
 const SECTIONS = [
     {
@@ -291,6 +291,7 @@ const ALL_ITEMS = ITEM_SECTIONS.flatMap((section) => section.items.map((item) =>
     sectionTitle: section.title
 })));
 const ITEM_MAP = new Map(ALL_ITEMS.map((item) => [item.id, item]));
+const PHOTO_TASK_SECTION_ID = "photos";
 
 const elements = {
     appView: document.getElementById("app-view"),
@@ -550,7 +551,7 @@ function renderOverview() {
 
         <section class="section-card">
             <div class="section-card-head">
-                <div><p class="eyebrow">Evidence</p><h2>${stats.issue ? `${stats.issue} issue${stats.issue === 1 ? "" : "s"} recorded` : "No issues recorded"}</h2><p>${stats.critical ? `${stats.critical} marked critical. ` : ""}Prepare a photo report whenever you need it.</p></div>
+                <div><p class="eyebrow">Evidence</p><h2>${stats.issue ? `${stats.issue} issue${stats.issue === 1 ? "" : "s"} recorded` : "Build a photo record"}</h2><p>${stats.critical ? `${stats.critical} marked critical. ` : ""}Photos attached while checking the car appear automatically in the final report.</p></div>
                 <button class="button button-secondary" type="button" data-action="report">Open report</button>
             </div>
         </section>
@@ -635,6 +636,7 @@ function renderCheckItem(item, itemIndex) {
     const response = session.responses[id] || {};
     const status = response.status || "";
     const issuePanel = status === "issue" ? renderIssuePanel(id, response) : "";
+    const evidencePanel = isPhotoEnabled(id, status) ? renderEvidencePanel(id, status) : "";
     return `
         <article class="check-item" data-status="${status}" id="item-${id}">
             <div class="item-copy">
@@ -648,6 +650,7 @@ function renderCheckItem(item, itemIndex) {
                 ${statusButton(id, "na", "N/A", status)}
             </div>
             ${issuePanel}
+            ${evidencePanel}
         </article>
     `;
 }
@@ -664,10 +667,27 @@ function renderIssuePanel(itemId, response) {
             </div>
             <label class="issue-label" for="notes-${itemId}">What did you find?</label>
             <textarea class="issue-notes" id="notes-${itemId}" data-item-id="${itemId}" placeholder="Describe the fault, damage and exact location…">${escapeHtml(response.notes || "")}</textarea>
+        </div>
+    `;
+}
+
+function renderEvidencePanel(itemId, status) {
+    const item = ITEM_MAP.get(itemId);
+    const isPhotoTask = item?.sectionId === PHOTO_TASK_SECTION_ID;
+    const isIssue = status === "issue";
+    return `
+        <div class="evidence-panel">
+            <div class="evidence-head">
+                <div>
+                    <span class="evidence-kicker">${isPhotoTask ? "Photo task" : "Issue evidence"}</span>
+                    <p>${isPhotoTask ? "Take this photograph here. Adding it will mark the check as passed." : isIssue ? "Add close and wider photographs so the issue is clear in your report." : "Photograph anything you want included in the report."}</p>
+                </div>
+                <label class="photo-add photo-camera">${cameraIcon()}<span>Take photo</span><input class="photo-input" data-item-id="${itemId}" type="file" accept="image/*" capture="environment" aria-label="Take photo for ${escapeHtml(item?.title || "this check")}"></label>
+            </div>
             <div class="photo-row" data-photo-row data-item-id="${itemId}"></div>
-            <div class="photo-actions">
-                <label class="photo-add">＋ Add photo<input class="photo-input" data-item-id="${itemId}" type="file" accept="image/*" capture="environment" multiple></label>
-                <span class="photo-count" data-photo-count="${itemId}">0 of ${MAX_PHOTOS_PER_ISSUE}</span>
+            <div class="evidence-footer">
+                <span class="photo-count" data-photo-count="${itemId}">0 of ${MAX_PHOTOS_PER_ITEM}</span>
+                <span>Saved only on this device</span>
             </div>
         </div>
     `;
@@ -676,10 +696,19 @@ function renderIssuePanel(itemId, response) {
 async function renderReport() {
     session.currentView = "report";
     saveSession();
+    elements.appView.innerHTML = `<section class="section-hero"><p class="eyebrow">Preparing report</p><h1>Gathering your evidence…</h1><p class="lead">Loading photographs saved on this device.</p></section>`;
+
     const stats = getStats();
     const issues = ALL_ITEMS.filter((item) => session.responses[item.id]?.status === "issue");
+    const allPhotos = await getAllPhotos().catch(() => []);
+    const photosByItem = new Map();
+    allPhotos.forEach((photo) => {
+        if (!photosByItem.has(photo.itemId)) photosByItem.set(photo.itemId, []);
+        photosByItem.get(photo.itemId).push(photo);
+    });
+    const conditionEvidence = ALL_ITEMS.filter((item) => session.responses[item.id]?.status !== "issue" && photosByItem.has(item.id));
     const profile = session.profile;
-    const reportTitle = profile.registration ? `Delivery report · ${profile.registration.toUpperCase()}` : "Delivery issue report";
+    const reportTitle = profile.registration ? `Delivery report · ${profile.registration.toUpperCase()}` : "Delivery report";
 
     elements.appView.innerHTML = `
         <article class="report-document">
@@ -702,6 +731,7 @@ async function renderReport() {
                 <div class="report-stat"><strong>${stats.issue}</strong><span>Issues</span></div>
                 <div class="report-stat"><strong>${stats.critical}</strong><span>Critical</span></div>
                 <div class="report-stat"><strong>${stats.pass}</strong><span>Passed</span></div>
+                <div class="report-stat"><strong>${allPhotos.length}</strong><span>Photos</span></div>
             </div>
             <div class="report-actions no-print">
                 <button class="button button-primary" type="button" data-action="print">Print / Save PDF</button>
@@ -710,34 +740,49 @@ async function renderReport() {
             </div>
             <section>
                 <p class="eyebrow">Recorded findings</p>
-                ${issues.length ? `<div class="report-issues" id="report-issues"><p class="fine-print">Loading photographs…</p></div>` : `<div class="report-empty"><strong>No issues recorded</strong><p>Your checklist currently contains no items marked Issue.</p></div>`}
+                ${issues.length ? `<div class="report-issues" id="report-issues"></div>` : `<div class="report-empty"><strong>No issues recorded</strong><p>Your checklist currently contains no items marked Issue.</p></div>`}
             </section>
+            ${conditionEvidence.length ? `<section class="report-evidence-section"><p class="eyebrow">Condition evidence</p><p class="fine-print">Photographs taken during checks that are not marked as issues.</p><div class="report-issues" id="report-evidence"></div></section>` : ""}
             <p class="fine-print">This report is a personal handover record produced by an independent checklist. It is not a Tesla service record and does not replace reporting issues in the Tesla app.</p>
         </article>
     `;
 
-    if (!issues.length) return;
-    const issueHtml = await Promise.all(issues.map(async (item) => {
+    const issueHtml = issues.map((item) => {
         const response = session.responses[item.id];
-        const photos = await getPhotos(item.id).catch(() => []);
-        const photoHtml = photos.length ? `<div class="report-photos">${photos.map((photo) => {
-            const url = makeObjectUrl(photo.blob);
-            return `<img src="${url}" alt="Evidence photograph for ${escapeHtml(item.title)}">`;
-        }).join("")}</div>` : "";
         return `
             <article class="report-issue">
                 <div class="report-issue-head"><div><p class="eyebrow">${escapeHtml(item.sectionTitle)}</p><h3>${escapeHtml(item.title)}</h3></div><span class="severity-badge">${escapeHtml(severityLabel(response.severity))}</span></div>
                 <p>${escapeHtml(response.notes || "No written note added.")}</p>
-                ${photoHtml}
+                ${renderReportPhotos(photosByItem.get(item.id) || [], item.title)}
             </article>`;
-    }));
+    });
     const container = document.getElementById("report-issues");
     if (container) container.innerHTML = issueHtml.join("");
+
+    const evidenceHtml = conditionEvidence.map((item) => {
+        const status = session.responses[item.id]?.status;
+        return `
+            <article class="report-issue">
+                <div class="report-issue-head"><div><p class="eyebrow">${escapeHtml(item.sectionTitle)}</p><h3>${escapeHtml(item.title)}</h3></div><span class="severity-badge evidence-badge">${escapeHtml(status === "pass" ? "Passed" : status === "na" ? "N/A" : "Photo only")}</span></div>
+                ${renderReportPhotos(photosByItem.get(item.id) || [], item.title)}
+            </article>`;
+    });
+    const evidenceContainer = document.getElementById("report-evidence");
+    if (evidenceContainer) evidenceContainer.innerHTML = evidenceHtml.join("");
+}
+
+function renderReportPhotos(photos, itemTitle) {
+    if (!photos.length) return "";
+    return `<div class="report-photos">${photos.map((photo) => {
+        const url = makeObjectUrl(photo.blob);
+        return `<img src="${url}" alt="Evidence photograph for ${escapeHtml(itemTitle)}">`;
+    }).join("")}</div>`;
 }
 
 function setItemStatus(itemId, status) {
     const response = ensureResponse(itemId);
     response.status = status;
+    response.photoAutoCompleted = false;
     if (status === "issue" && !response.severity) response.severity = "attention";
     response.updatedAt = new Date().toISOString();
     saveSession();
@@ -876,10 +921,11 @@ async function resetEverything() {
 
 async function shareReport() {
     const issues = ALL_ITEMS.filter((item) => session.responses[item.id]?.status === "issue");
+    const photos = await getAllPhotos().catch(() => []);
     const profile = session.profile;
     const lines = [
         `Tesla Model 3 delivery report${profile.registration ? ` — ${profile.registration.toUpperCase()}` : ""}`,
-        `${issues.length} issue${issues.length === 1 ? "" : "s"} recorded.`,
+        `${issues.length} issue${issues.length === 1 ? "" : "s"} and ${photos.length} photo${photos.length === 1 ? "" : "s"} recorded.`,
         ""
     ];
     issues.forEach((item, index) => {
@@ -934,6 +980,16 @@ async function getPhotos(itemId) {
     });
 }
 
+async function getAllPhotos() {
+    const db = await openPhotoDb();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(PHOTO_STORE, "readonly");
+        const request = transaction.objectStore(PHOTO_STORE).getAll();
+        request.onsuccess = () => resolve(request.result.sort((a, b) => a.createdAt.localeCompare(b.createdAt)));
+        request.onerror = () => reject(request.error);
+    });
+}
+
 async function putPhoto(photo) {
     const db = await openPhotoDb();
     return new Promise((resolve, reject) => {
@@ -968,12 +1024,16 @@ async function addPhotos(itemId, files) {
     if (!files.length) return;
     try {
         const existing = await getPhotos(itemId);
-        const allowed = Math.max(0, MAX_PHOTOS_PER_ISSUE - existing.length);
+        const allowed = Math.max(0, MAX_PHOTOS_PER_ITEM - existing.length);
         if (!allowed) {
-            showToast(`A maximum of ${MAX_PHOTOS_PER_ISSUE} photographs can be saved for each issue.`);
+            showToast(`A maximum of ${MAX_PHOTOS_PER_ITEM} photographs can be saved for each check.`);
             return;
         }
         const candidates = files.filter((file) => file.type.startsWith("image/")).slice(0, allowed);
+        if (!candidates.length) {
+            showToast("Choose a photograph to add to this check.");
+            return;
+        }
         for (const file of candidates) {
             const blob = await compressImage(file);
             await putPhoto({
@@ -984,9 +1044,20 @@ async function addPhotos(itemId, files) {
                 createdAt: new Date().toISOString()
             });
         }
-        if (files.length > allowed) showToast(`Saved ${allowed} photo${allowed === 1 ? "" : "s"}; the limit is ${MAX_PHOTOS_PER_ISSUE} per issue.`);
+        const item = ITEM_MAP.get(itemId);
+        const response = ensureResponse(itemId);
+        const autoCompleted = item?.sectionId === PHOTO_TASK_SECTION_ID && !response.status;
+        if (autoCompleted) {
+            response.status = "pass";
+            response.photoAutoCompleted = true;
+            response.updatedAt = new Date().toISOString();
+            saveSession();
+        }
+
+        if (files.length > allowed) showToast(`Saved ${allowed} photo${allowed === 1 ? "" : "s"}; the limit is ${MAX_PHOTOS_PER_ITEM} per check.`);
         else showToast(`${candidates.length} photo${candidates.length === 1 ? "" : "s"} saved on this device.`);
-        await hydrateVisiblePhotos();
+        if (autoCompleted) render();
+        else await hydrateVisiblePhotos();
     } catch (error) {
         showToast("The photograph could not be saved. Check browser storage and try again.");
     }
@@ -995,6 +1066,17 @@ async function addPhotos(itemId, files) {
 async function removePhoto(photoId, itemId) {
     try {
         await deletePhotoRecord(photoId);
+        const remaining = await getPhotos(itemId);
+        const response = session.responses[itemId];
+        if (!remaining.length && response?.photoAutoCompleted) {
+            response.status = "";
+            response.photoAutoCompleted = false;
+            response.updatedAt = new Date().toISOString();
+            saveSession();
+            render();
+            showToast("Photograph removed and the photo task reopened.");
+            return;
+        }
         showToast("Photograph removed.");
         await hydrateVisiblePhotos();
     } catch (error) {
@@ -1012,9 +1094,9 @@ async function hydrateVisiblePhotos() {
             return `<div class="photo-thumb"><img src="${url}" alt="Saved evidence photograph"><button class="photo-remove" type="button" data-photo-id="${photo.id}" data-item-id="${itemId}" aria-label="Remove photograph">×</button></div>`;
         }).join("");
         const count = document.querySelector(`[data-photo-count="${itemId}"]`);
-        if (count) count.textContent = `${photos.length} of ${MAX_PHOTOS_PER_ISSUE}`;
+        if (count) count.textContent = `${photos.length} of ${MAX_PHOTOS_PER_ITEM}`;
         const input = document.querySelector(`.photo-input[data-item-id="${itemId}"]`);
-        if (input) input.disabled = photos.length >= MAX_PHOTOS_PER_ISSUE;
+        if (input) input.disabled = photos.length >= MAX_PHOTOS_PER_ITEM;
     }
 }
 
@@ -1091,6 +1173,11 @@ function severityLabel(value) {
     return "Needs attention";
 }
 
+function isPhotoEnabled(itemId, status) {
+    const item = ITEM_MAP.get(itemId);
+    return item?.sectionId === PHOTO_TASK_SECTION_ID || status === "issue";
+}
+
 function parseSectionIndex(view) {
     if (typeof view !== "string" || !view.startsWith("section-")) return -1;
     const index = Number(view.slice(8));
@@ -1111,6 +1198,10 @@ function formatDateTime(value) {
 
 function arrowIcon() {
     return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>`;
+}
+
+function cameraIcon() {
+    return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5h3l1.4-2h7.2l1.4 2h3v11H4v-11Z"/><circle cx="12" cy="13" r="3.5"/></svg>`;
 }
 
 function escapeHtml(value) {
