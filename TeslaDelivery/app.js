@@ -686,6 +686,10 @@ async function renderReport() {
 
     const stats = getStats();
     const checkedItems = ALL_ITEMS.filter((item) => ["pass", "issue"].includes(session.responses[item.id]?.status));
+    const issues = checkedItems
+        .filter((item) => session.responses[item.id]?.status === "issue")
+        .sort((left, right) => severityRank(session.responses[left.id]?.severity) - severityRank(session.responses[right.id]?.severity));
+    const passedItems = checkedItems.filter((item) => session.responses[item.id]?.status === "pass");
     const checkedIds = new Set(checkedItems.map((item) => item.id));
     const allPhotos = await getAllPhotos().catch(() => []);
     const reportPhotos = allPhotos.filter((photo) => photo.itemId === VEHICLE_PHOTO_ITEM_ID || checkedIds.has(photo.itemId));
@@ -727,26 +731,37 @@ async function renderReport() {
                 <button class="button button-secondary" type="button" data-action="share">Share summary</button>
                 <button class="button button-secondary" type="button" data-action="navigator">Back to checklist</button>
             </div>
-            <section>
-                <p class="eyebrow">Completed checks</p>
-                ${checkedItems.length ? `<div class="report-issues" id="report-checks"></div>` : `<div class="report-empty"><strong>No completed checks recorded</strong><p>Only items marked Pass or Issue appear in this report.</p></div>`}
+            <section class="report-issue-section">
+                <div class="report-section-heading"><div><p class="eyebrow">Priority review</p><h2>Issues</h2></div><strong>${issues.length}</strong></div>
+                ${issues.length ? `<div class="report-issues" id="report-issues"></div>` : `<div class="report-empty"><strong>No issues recorded</strong><p>Nothing in the checklist is currently marked Issue.</p></div>`}
+            </section>
+            <section class="report-passed-section">
+                <div class="report-section-heading"><div><p class="eyebrow">Checked and passed</p><h2>Completed checks</h2></div><strong>${passedItems.length}</strong></div>
+                ${passedItems.length ? `<ul class="report-check-list" id="report-passed"></ul>` : `<p class="report-list-empty">No checks have been marked Pass.</p>`}
             </section>
             <p class="fine-print">This report is a personal handover record produced by an independent checklist. It is not a Tesla service record and does not replace reporting issues in the Tesla app.</p>
         </article>
     `;
 
-    const checkedHtml = checkedItems.map((item) => {
+    const issueHtml = issues.map((item) => {
         const response = session.responses[item.id];
-        const isIssue = response.status === "issue";
         return `
-            <article class="report-issue">
-                <div class="report-issue-head"><div><p class="eyebrow">${escapeHtml(item.sectionTitle)}</p><h3>${escapeHtml(item.title)}</h3></div><span class="severity-badge ${isIssue ? "" : "evidence-badge"}">${escapeHtml(isIssue ? severityLabel(response.severity) : "Passed")}</span></div>
-                ${isIssue ? `<p>${escapeHtml(response.notes || "No written note added.")}</p>` : ""}
+            <article class="report-issue severity-${escapeHtml(response.severity || "attention")}">
+                <div class="report-issue-head"><div><p class="eyebrow">${escapeHtml(item.sectionTitle)}</p><h3>${escapeHtml(item.title)}</h3></div><span class="severity-badge severity-badge-${escapeHtml(response.severity || "attention")}">${escapeHtml(severityLabel(response.severity))}</span></div>
+                <p>${escapeHtml(response.notes || "No written note added.")}</p>
                 ${renderReportPhotos(photosByItem.get(item.id) || [], item.title)}
             </article>`;
     });
-    const container = document.getElementById("report-checks");
-    if (container) container.innerHTML = checkedHtml.join("");
+    const issueContainer = document.getElementById("report-issues");
+    if (issueContainer) issueContainer.innerHTML = issueHtml.join("");
+
+    const passedHtml = passedItems.map((item) => `
+        <li>
+            <span class="report-check-mark" aria-hidden="true">✓</span>
+            <div class="report-check-copy"><span>${escapeHtml(item.title)}</span>${renderReportPhotos(photosByItem.get(item.id) || [], item.title)}</div>
+        </li>`).join("");
+    const passedContainer = document.getElementById("report-passed");
+    if (passedContainer) passedContainer.innerHTML = passedHtml;
 }
 
 function renderReportPhotos(photos, itemTitle) {
@@ -937,6 +952,10 @@ async function resetEverything() {
 
 async function shareReport() {
     const checkedItems = ALL_ITEMS.filter((item) => ["pass", "issue"].includes(session.responses[item.id]?.status));
+    const issues = checkedItems
+        .filter((item) => session.responses[item.id]?.status === "issue")
+        .sort((left, right) => severityRank(session.responses[left.id]?.severity) - severityRank(session.responses[right.id]?.severity));
+    const passedItems = checkedItems.filter((item) => session.responses[item.id]?.status === "pass");
     const checkedIds = new Set(checkedItems.map((item) => item.id));
     const allPhotos = await getAllPhotos().catch(() => []);
     const photos = allPhotos.filter((photo) => photo.itemId === VEHICLE_PHOTO_ITEM_ID || checkedIds.has(photo.itemId));
@@ -947,12 +966,16 @@ async function shareReport() {
         `${checkedItems.length} completed check${checkedItems.length === 1 ? "" : "s"}, ${issueCount} issue${issueCount === 1 ? "" : "s"} and ${photos.length} photo${photos.length === 1 ? "" : "s"} recorded.`,
         ""
     ];
-    checkedItems.forEach((item, index) => {
+    lines.push("ISSUES");
+    if (!issues.length) lines.push("None recorded.");
+    issues.forEach((item, index) => {
         const response = session.responses[item.id];
-        const label = response.status === "issue" ? `ISSUE · ${severityLabel(response.severity)}` : "PASS";
-        lines.push(`${index + 1}. [${label}] ${item.sectionTitle}: ${item.title}`);
-        if (response.status === "issue" && response.notes) lines.push(`   ${response.notes}`);
+        lines.push(`${index + 1}. [${severityLabel(response.severity)}] ${item.title}`);
+        if (response.notes) lines.push(`   ${response.notes}`);
     });
+    lines.push("", "CHECKED AND PASSED");
+    if (!passedItems.length) lines.push("None recorded.");
+    passedItems.forEach((item) => lines.push(`✓ ${item.title}`));
     lines.push("", "Photographs and full details are available in the saved checklist report on this device.");
     const text = lines.join("\n");
 
@@ -1256,6 +1279,12 @@ function severityLabel(value) {
     if (value === "critical") return "Critical";
     if (value === "minor") return "Minor";
     return "Needs attention";
+}
+
+function severityRank(value) {
+    if (value === "critical") return 0;
+    if (value === "attention") return 1;
+    return 2;
 }
 
 function isPhotoEnabled(itemId, status) {

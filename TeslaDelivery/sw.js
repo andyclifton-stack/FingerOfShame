@@ -1,11 +1,11 @@
 "use strict";
 
-const CACHE_NAME = "tesla-delivery-shell-v8";
+const CACHE_NAME = "tesla-delivery-shell-v9";
 const APP_SHELL = [
     "./",
     "./index.html",
-    "./styles.css?v=6",
-    "./app.js?v=8",
+    "./styles.css?v=7",
+    "./app.js?v=9",
     "./manifest.webmanifest",
     "./icon-192.svg",
     "./icon-512.svg",
