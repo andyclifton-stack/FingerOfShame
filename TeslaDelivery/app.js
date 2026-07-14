@@ -583,11 +583,6 @@ function renderOverview() {
             </div>
         </section>
 
-        <section class="install-card">
-            <div><p class="eyebrow">No signal? No problem.</p><h2>Keep it available offline</h2><p>Add the checklist to your Home Screen or simply revisit it once before delivery day.</p></div>
-            <button class="button button-secondary" type="button" data-action="install">How to install</button>
-        </section>
-
         <section class="privacy-card">
             <p><strong>Your details stay here.</strong> Vehicle information, progress, notes and photographs are stored only in this browser. Clearing its website data will remove them.</p>
             <button class="button button-quiet danger-text" type="button" data-action="reset">Reset all checklist data</button>
