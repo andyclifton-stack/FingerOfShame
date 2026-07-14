@@ -1,10 +1,12 @@
 "use strict";
 
 const STORAGE_KEY = "teslaDelivery:v1:session";
+const THEME_KEY = "teslaDelivery:theme";
 const CONTENT_VERSION = 1;
 const PHOTO_DB_NAME = "tesla-delivery-v1";
 const PHOTO_STORE = "photos";
 const MAX_PHOTOS_PER_ITEM = 5;
+const VEHICLE_PHOTO_ITEM_ID = "__vehicle-profile__";
 
 const SECTIONS = [
     {
@@ -310,6 +312,9 @@ const elements = {
     nativeInstall: document.getElementById("native-install-button"),
     resetDialog: document.getElementById("reset-dialog"),
     offlineBanner: document.getElementById("offline-banner"),
+    themeToggle: document.getElementById("theme-toggle"),
+    themeColour: document.getElementById("theme-colour"),
+    vehiclePhotoRemove: document.getElementById("vehicle-photo-remove"),
     toast: document.getElementById("toast")
 };
 
@@ -319,6 +324,8 @@ let photoDbPromise = null;
 let toastTimer = null;
 const objectUrls = new Set();
 
+applyTheme(document.documentElement.dataset.theme === "dark" ? "dark" : "light", false);
+initialiseNavigationHistory();
 bindStaticEvents();
 render();
 updateOnlineState();
@@ -376,8 +383,23 @@ function saveSession() {
     }
 }
 
+function toggleTheme() {
+    applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+}
+
+function applyTheme(theme, persist = true) {
+    const isDark = theme === "dark";
+    document.documentElement.dataset.theme = isDark ? "dark" : "light";
+    elements.themeColour.content = isDark ? "#111110" : "#f6f5f3";
+    elements.themeToggle.setAttribute("aria-label", isDark ? "Use light mode" : "Use dark mode");
+    elements.themeToggle.title = isDark ? "Use light mode" : "Use dark mode";
+    if (!persist) return;
+    try { localStorage.setItem(THEME_KEY, isDark ? "dark" : "light"); } catch (error) { /* preference is optional */ }
+}
+
 function bindStaticEvents() {
     document.getElementById("home-button").addEventListener("click", () => navigateTo("overview"));
+    elements.themeToggle.addEventListener("click", toggleTheme);
     document.getElementById("edit-vehicle-button").addEventListener("click", () => openVehicleDialog(false));
     document.getElementById("navigator-button").addEventListener("click", openNavigator);
     elements.navPosition.addEventListener("click", openNavigator);
@@ -392,6 +414,11 @@ function bindStaticEvents() {
         render();
     });
     elements.vehicleForm.addEventListener("submit", saveVehicleProfile);
+    document.querySelectorAll(".vehicle-photo-input").forEach((input) => input.addEventListener("change", (event) => {
+        replaceVehiclePhoto(Array.from(event.target.files || []));
+        event.target.value = "";
+    }));
+    elements.vehiclePhotoRemove.addEventListener("click", removeVehiclePhoto);
 
     document.getElementById("navigator-close").addEventListener("click", () => closeDialog(elements.navigatorDialog));
     document.getElementById("install-close").addEventListener("click", () => closeDialog(elements.installDialog));
@@ -406,6 +433,7 @@ function bindStaticEvents() {
 
     window.addEventListener("online", updateOnlineState);
     window.addEventListener("offline", updateOnlineState);
+    window.addEventListener("popstate", handleHistoryNavigation);
     window.addEventListener("beforeinstallprompt", (event) => {
         event.preventDefault();
         deferredInstallPrompt = event;
@@ -470,6 +498,7 @@ function openVehicleDialog(isFirstRun) {
     }
     document.getElementById("vehicle-close").hidden = isFirstRun;
     openDialog(elements.vehicleDialog);
+    hydrateVehiclePhotoDisplays();
 }
 
 function saveVehicleProfile(event) {
@@ -513,9 +542,6 @@ function renderOverview() {
 
     elements.appView.innerHTML = `
         <section class="overview-hero">
-            <p class="eyebrow">UK Model 3 · Delivery day</p>
-            <h1>A calm, clear handover.</h1>
-            <p class="lead">Work through the car in about 20–30 minutes. Record meaningful damage or faults, keep evidence together and avoid getting lost in tiny cosmetic differences.</p>
             <div class="hero-actions">
                 <button class="button button-primary" type="button" data-action="resume">${escapeHtml(resumeLabel)} ${arrowIcon()}</button>
                 <button class="button button-secondary" type="button" data-action="navigator">View sections</button>
@@ -523,6 +549,7 @@ function renderOverview() {
         </section>
 
         <section class="vehicle-summary" aria-label="Vehicle details">
+            <button class="vehicle-profile-photo vehicle-photo-button" type="button" data-action="edit-vehicle" data-vehicle-photo aria-label="Add or replace the car photograph"></button>
             <div class="vehicle-summary-head">
                 <div><h2>${escapeHtml(profileTitle)}</h2><p>${escapeHtml(profileSubtitle)}</p></div>
                 <button class="text-button" type="button" data-action="edit-vehicle">Edit</button>
@@ -566,6 +593,7 @@ function renderOverview() {
             <button class="button button-quiet danger-text" type="button" data-action="reset">Reset all checklist data</button>
         </section>
     `;
+    hydrateVehiclePhotoDisplays();
 }
 
 function renderSection(index) {
@@ -707,6 +735,7 @@ async function renderReport() {
         photosByItem.get(photo.itemId).push(photo);
     });
     const conditionEvidence = ALL_ITEMS.filter((item) => session.responses[item.id]?.status !== "issue" && photosByItem.has(item.id));
+    const vehiclePhoto = (photosByItem.get(VEHICLE_PHOTO_ITEM_ID) || [])[0];
     const profile = session.profile;
     const reportTitle = profile.registration ? `Delivery report · ${profile.registration.toUpperCase()}` : "Delivery report";
 
@@ -718,6 +747,7 @@ async function renderReport() {
                 <p class="lead">Prepared ${escapeHtml(formatDateTime(new Date().toISOString()))}. Information and photographs remain stored on this device.</p>
             </header>
             <section class="vehicle-summary">
+                ${vehiclePhoto ? `<div class="vehicle-profile-photo report-vehicle-photo"><img src="${makeObjectUrl(vehiclePhoto.blob)}" alt="Vehicle profile photograph"></div>` : ""}
                 <div class="vehicle-summary-head"><div><h2>${escapeHtml(profile.variant || "Tesla Model 3")}</h2><p>${escapeHtml([profile.deliveryType, formatDate(profile.deliveryDate)].filter(Boolean).join(" · ") || "Delivery details not entered")}</p></div></div>
                 <div class="vehicle-data">
                     ${vehicleDatum("Registration", profile.registration)}
@@ -834,11 +864,44 @@ function getResumeView() {
 }
 
 function navigateTo(view) {
-    session.currentView = view;
+    const safeView = normaliseView(view);
+    if (history.state?.teslaDeliveryView !== safeView) {
+        history.pushState({ teslaDeliveryView: safeView }, "", historyUrl(safeView));
+    }
+    session.currentView = safeView;
     saveSession();
     render();
     window.scrollTo({ top: 0, behavior: "smooth" });
     elements.main.focus({ preventScroll: true });
+}
+
+function initialiseNavigationHistory() {
+    const restoredView = normaliseView(session.currentView);
+    history.replaceState({ teslaDeliveryView: "overview" }, "", historyUrl("overview"));
+    if (restoredView !== "overview") {
+        history.pushState({ teslaDeliveryView: restoredView }, "", historyUrl(restoredView));
+    }
+    session.currentView = restoredView;
+}
+
+function handleHistoryNavigation(event) {
+    const view = event.state?.teslaDeliveryView;
+    if (!view) return;
+    session.currentView = normaliseView(view);
+    saveSession();
+    render();
+    window.scrollTo({ top: 0, behavior: "auto" });
+    elements.main.focus({ preventScroll: true });
+}
+
+function normaliseView(view) {
+    if (view === "overview" || view === "report") return view;
+    const index = parseSectionIndex(view);
+    return index >= 0 && index < SECTIONS.length ? `section-${index}` : "overview";
+}
+
+function historyUrl(view) {
+    return `${location.pathname}${location.search}#${view}`;
 }
 
 function goPrevious() {
@@ -915,6 +978,7 @@ async function resetEverything() {
     session = newSession();
     closeDialog(elements.resetDialog);
     showToast("Checklist reset.");
+    history.replaceState({ teslaDeliveryView: "overview" }, "", historyUrl("overview"));
     render();
     window.setTimeout(() => openVehicleDialog(true), 200);
 }
@@ -1018,6 +1082,61 @@ async function clearPhotos() {
         transaction.oncomplete = resolve;
         transaction.onerror = () => reject(transaction.error);
     });
+}
+
+async function replaceVehiclePhoto(files) {
+    const file = files.find((candidate) => candidate.type.startsWith("image/"));
+    if (!file) {
+        if (files.length) showToast("Choose an image of the car.");
+        return;
+    }
+    try {
+        const blob = await compressImage(file);
+        const existing = await getPhotos(VEHICLE_PHOTO_ITEM_ID);
+        const primaryId = existing[0]?.id || (globalThis.crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`);
+        await putPhoto({
+            id: primaryId,
+            itemId: VEHICLE_PHOTO_ITEM_ID,
+            name: file.name || "vehicle-photo.jpg",
+            blob,
+            createdAt: new Date().toISOString()
+        });
+        for (const extra of existing.slice(1)) await deletePhotoRecord(extra.id);
+        await hydrateVehiclePhotoDisplays();
+        if (session.currentView === "report") renderReport();
+        showToast(existing.length ? "Car photograph replaced." : "Car photograph saved on this device.");
+    } catch (error) {
+        showToast("The car photograph could not be saved. Check browser storage and try again.");
+    }
+}
+
+async function removeVehiclePhoto() {
+    try {
+        const photos = await getPhotos(VEHICLE_PHOTO_ITEM_ID);
+        for (const photo of photos) await deletePhotoRecord(photo.id);
+        await hydrateVehiclePhotoDisplays();
+        if (session.currentView === "report") renderReport();
+        showToast("Car photograph removed.");
+    } catch (error) {
+        showToast("The car photograph could not be removed.");
+    }
+}
+
+async function hydrateVehiclePhotoDisplays() {
+    const [photo] = await getPhotos(VEHICLE_PHOTO_ITEM_ID).catch(() => []);
+    const slots = Array.from(document.querySelectorAll("[data-vehicle-photo]"));
+    if (!slots.length) return;
+    slots.forEach((slot) => {
+        const oldUrl = slot.querySelector("img")?.src;
+        if (oldUrl && objectUrls.has(oldUrl)) {
+            URL.revokeObjectURL(oldUrl);
+            objectUrls.delete(oldUrl);
+        }
+        slot.innerHTML = photo
+            ? `<img src="${makeObjectUrl(photo.blob)}" alt="Photograph of your Model 3">`
+            : `<div class="vehicle-photo-empty" aria-hidden="true">${carIcon()}<span>Add car photo</span></div>`;
+    });
+    elements.vehiclePhotoRemove.hidden = !photo;
 }
 
 async function addPhotos(itemId, files) {
@@ -1161,6 +1280,10 @@ function tipCard(text) {
 
 function vehicleDatum(label, value) {
     return `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value || "Not added")}</strong></div>`;
+}
+
+function carIcon() {
+    return `<svg viewBox="0 0 48 24" aria-hidden="true"><path d="M7 16h34l-2.3-6.1a4 4 0 0 0-3.7-2.6H15.2a4 4 0 0 0-3.5 2.1L8.2 16M5 16v3h3m32-3v3h-3M13 16l2-5h19l2 5M12 19a2 2 0 1 0 4 0m17 0a2 2 0 1 0 4 0"/></svg>`;
 }
 
 function statBox(value, label) {
