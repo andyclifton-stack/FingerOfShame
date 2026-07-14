@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#f6f5f3">
+    <meta name="description" content="A private, offline-ready UK Tesla Model 3 delivery checklist with issue notes and photo evidence.">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Tesla Delivery">
+    <title>Tesla Delivery | Model 3 Checklist</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icon-192.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <a class="skip-link" href="#app-main">Skip to checklist</a>
+
+    <div class="app-shell">
+        <header class="site-header no-print">
+            <button class="brand-button" id="home-button" type="button" aria-label="Return to checklist overview">
+                <span class="brand-mark" aria-hidden="true">M3</span>
+                <span class="brand-copy">
+                    <strong>Tesla Delivery</strong>
+                    <small>Independent checklist</small>
+                </span>
+            </button>
+            <div class="header-actions">
+                <button class="icon-button" id="edit-vehicle-button" type="button" aria-label="Edit vehicle details" title="Edit vehicle details">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l11-11-4-4L4 16v4Zm12.5-16.5 4 4 1-1a1.4 1.4 0 0 0 0-2l-2-2a1.4 1.4 0 0 0-2 0l-1 1Z"/></svg>
+                </button>
+                <button class="icon-button" id="navigator-button" type="button" aria-label="Open section navigator" title="Sections">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M5 12h14M5 18h14"/></svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="offline-banner no-print" id="offline-banner" hidden>You’re offline. Your checklist and saved progress are still available.</div>
+
+        <main id="app-main" tabindex="-1">
+            <div id="app-view" aria-live="polite"></div>
+        </main>
+
+        <nav class="bottom-nav no-print" id="bottom-nav" aria-label="Checklist navigation" hidden>
+            <button class="nav-button nav-button-secondary" id="previous-button" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+                <span>Back</span>
+            </button>
+            <button class="nav-position" id="nav-position" type="button" aria-label="Open section navigator">
+                <span id="nav-position-label">Section</span>
+                <strong id="nav-position-count">1 of 1</strong>
+            </button>
+            <button class="nav-button nav-button-primary" id="next-button" type="button">
+                <span>Next</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+        </nav>
+    </div>
+
+    <dialog class="app-dialog vehicle-dialog" id="vehicle-dialog">
+        <form id="vehicle-form" method="dialog">
+            <div class="dialog-header">
+                <div>
+                    <p class="eyebrow">Private to this device</p>
+                    <h2>Your delivery</h2>
+                </div>
+                <button class="dialog-close" id="vehicle-close" type="button" aria-label="Close vehicle details">×</button>
+            </div>
+            <p class="dialog-intro">Add what you know now. You can return and edit this at any time.</p>
+            <div class="form-grid">
+                <label>
+                    <span>Delivery type</span>
+                    <select name="deliveryType">
+                        <option value="Collection">Collection</option>
+                        <option value="Home delivery">Home delivery</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Delivery date</span>
+                    <input name="deliveryDate" type="date">
+                </label>
+                <label>
+                    <span>Registration</span>
+                    <input name="registration" type="text" autocomplete="off" autocapitalize="characters" maxlength="12" spellcheck="false" placeholder="e.g. AB26 CDE">
+                </label>
+                <label>
+                    <span>VIN</span>
+                    <input name="vin" type="text" autocomplete="off" autocapitalize="characters" maxlength="17" spellcheck="false" placeholder="17-character VIN">
+                </label>
+                <label class="form-span-2">
+                    <span>Model 3 variant</span>
+                    <input name="variant" type="text" list="variant-list" autocomplete="off" placeholder="e.g. Long Range AWD">
+                    <datalist id="variant-list">
+                        <option value="Rear-Wheel Drive"></option>
+                        <option value="Long Range Rear-Wheel Drive"></option>
+                        <option value="Long Range All-Wheel Drive"></option>
+                        <option value="Performance All-Wheel Drive"></option>
+                    </datalist>
+                </label>
+                <label>
+                    <span>Paint colour</span>
+                    <input name="paint" type="text" autocomplete="off" placeholder="Your ordered colour">
+                </label>
+                <label>
+                    <span>Wheels</span>
+                    <input name="wheels" type="text" autocomplete="off" placeholder="Size and design">
+                </label>
+                <label class="form-span-2">
+                    <span>Interior</span>
+                    <input name="interior" type="text" autocomplete="off" placeholder="Colour and trim">
+                </label>
+            </div>
+            <div class="dialog-actions">
+                <button class="button button-quiet" id="vehicle-skip" type="button">Skip for now</button>
+                <button class="button button-primary" type="submit">Save details</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog class="app-dialog navigator-dialog" id="navigator-dialog">
+        <div class="dialog-header sticky-dialog-header">
+            <div>
+                <p class="eyebrow">Jump to</p>
+                <h2>Checklist sections</h2>
+            </div>
+            <button class="dialog-close" id="navigator-close" type="button" aria-label="Close section navigator">×</button>
+        </div>
+        <div id="navigator-list" class="navigator-list"></div>
+    </dialog>
+
+    <dialog class="app-dialog install-dialog" id="install-dialog">
+        <div class="dialog-header">
+            <div>
+                <p class="eyebrow">Ready when reception isn’t</p>
+                <h2>Use offline</h2>
+            </div>
+            <button class="dialog-close" id="install-close" type="button" aria-label="Close install instructions">×</button>
+        </div>
+        <div class="install-options">
+            <section>
+                <span class="install-number">1</span>
+                <div><strong>iPhone / iPad</strong><p>Open in Safari, tap Share, then choose <em>Add to Home Screen</em>.</p></div>
+            </section>
+            <section>
+                <span class="install-number">2</span>
+                <div><strong>Android</strong><p>Open the browser menu and choose <em>Install app</em> or <em>Add to Home screen</em>.</p></div>
+            </section>
+        </div>
+        <button class="button button-primary button-full" id="native-install-button" type="button" hidden>Install now</button>
+        <p class="fine-print">Installation is optional. After the first online visit, the checklist can reopen offline in this browser.</p>
+    </dialog>
+
+    <dialog class="app-dialog reset-dialog" id="reset-dialog">
+        <div class="dialog-header">
+            <div>
+                <p class="eyebrow danger-text">Permanent action</p>
+                <h2>Start over?</h2>
+            </div>
+            <button class="dialog-close" id="reset-close" type="button" aria-label="Cancel reset">×</button>
+        </div>
+        <p>This removes vehicle details, checklist progress, issue notes and all saved photographs from this device.</p>
+        <div class="dialog-actions">
+            <button class="button button-quiet" id="reset-cancel" type="button">Keep my checklist</button>
+            <button class="button button-danger" id="reset-confirm" type="button">Delete and reset</button>
+        </div>
+    </dialog>
+
+    <div class="toast no-print" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="app.js" defer></script>
+</body>
+</html>

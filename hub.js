@@ -32,6 +32,19 @@ const HUB_ITEMS = [
         cta: "Open"
     },
     {
+        id: "tesladelivery",
+        title: "Tesla Delivery",
+        description: "A calm, offline-ready Model 3 handover checklist with progress, issue notes, photos, and a printable report.",
+        type: "app",
+        href: "/FingerOfShame/TeslaDelivery/",
+        localHref: "http://localhost:8081/TeslaDelivery/",
+        short: "M3",
+        accent: "crimson",
+        status: "new",
+        tags: ["tesla", "delivery", "checklist", "car"],
+        cta: "Open"
+    },
+    {
         id: "finger",
         title: "Finger of Shame",
         description: "The ultimate party court. Accuse friends, cast votes, and face the wheel.",
