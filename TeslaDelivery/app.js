@@ -2,7 +2,7 @@
 
 const STORAGE_KEY = "teslaDelivery:v1:session";
 const THEME_KEY = "teslaDelivery:theme";
-const CONTENT_VERSION = 1;
+const CONTENT_VERSION = 2;
 const PHOTO_DB_NAME = "tesla-delivery-v1";
 const PHOTO_STORE = "photos";
 const MAX_PHOTOS_PER_ITEM = 5;
@@ -17,12 +17,11 @@ const SECTIONS = [
         tip: "Allow roughly 20–30 minutes at the car, ideally in daylight. Focus on real damage and faults rather than microscopic differences.",
         items: [
             ["before-tasks", "Complete every outstanding task in the Tesla app."],
-            ["before-order", "Check the registration, VIN, colour, wheels, interior and variant match your order."],
+            ["before-documents-v2", "Have your driving licence and any required trade-in documents ready."],
+            ["before-order", "Have your order configuration and final invoice available for comparison."],
             ["before-insurance", "Arrange insurance from the delivery date."],
-            ["before-phone", "Charge your phone and make sure the Tesla app is logged in."],
-            ["before-kit", "Bring a small torch and a clean microfibre cloth."],
-            ["before-charging", "Confirm home charging is ready or know where you will charge first."],
-            ["before-time", "Leave enough time so you are not rushed."]
+            ["before-phone", "Charge your phone, enable Bluetooth and make sure the Tesla app is logged in."],
+            ["before-charging", "Know where you will charge first and add a payment method if needed."]
         ]
     },
     {
@@ -34,7 +33,6 @@ const SECTIONS = [
         items: [
             ["photos-corners", "Take a photograph from all four corners."],
             ["photos-wheels", "Photograph each wheel."],
-            ["photos-sides", "Photograph the front, rear and both sides."],
             ["photos-odometer", "Photograph the odometer and any warning messages."],
             ["photos-defects", "Record every visible defect with close and wider context photographs."]
         ]
@@ -52,7 +50,6 @@ const SECTIONS = [
             ["identity-paint", "Paint colour is correct."],
             ["identity-wheels", "Wheel size and design are correct."],
             ["identity-interior", "Interior colour and trim are correct."],
-            ["identity-software", "Any paid software options appear against the vehicle."],
             ["identity-mileage", "Mileage is reasonably low for a newly delivered car."]
         ]
     },
@@ -63,14 +60,12 @@ const SECTIONS = [
         intro: "Walk around slowly, then repeat the check from a lower angle to catch marks along the lower edges.",
         tip: "Look closely at bumper corners, door sills, wheel arches, the boot loading edge, front boot opening, handles and the underside of the side skirts.",
         items: [
-            ["exterior-damage", "No scratches, chips, dents, scuffs or polish marks."],
-            ["exterior-transport", "No transport damage around bumpers and lower edges."],
-            ["exterior-paint", "Paint colour and finish are consistent between panels."],
-            ["exterior-edges", "Door edges and sills are undamaged."],
-            ["exterior-openings", "Paint around the boot and front boot openings is undamaged."],
+            ["exterior-body-v2", "Body panels and bumpers have no dents, scratches, chips, scuffs or transport damage."],
+            ["exterior-paint", "Paint finish is consistent, without obvious polish or buffer marks."],
+            ["exterior-lower-v2", "Door edges, sills, wheel arches and visible lower edges are undamaged."],
             ["exterior-glass", "Roof glass, windscreen and windows have no chips, scratches or cracks."],
             ["exterior-trim", "Exterior trim is secure and not lifting."],
-            ["exterior-cameras", "Cameras are clean, correctly fitted and undamaged."],
+            ["exterior-cameras", "Camera lenses and housings are clean, secure and undamaged."],
             ["exterior-plates", "Number plates are straight and securely fitted."]
         ]
     },
@@ -81,15 +76,10 @@ const SECTIONS = [
         intro: "Small variations can be normal. Look for anything obviously crooked, rubbing or stopping proper closure.",
         tip: "Close the front boot by pressing down with both hands either side of the badge—never slam it or press in the centre.",
         items: [
-            ["alignment-doors", "All four doors open and close without excessive force."],
-            ["alignment-windows", "Windows lower slightly as a door opens and rise again when it closes."],
-            ["alignment-handles", "All door handles operate correctly."],
-            ["alignment-gaps", "Panel gaps look reasonably consistent from left to right."],
-            ["alignment-frunk-open", "Front boot opens and latches properly."],
-            ["alignment-frunk-flush", "Front boot sits flush when closed."],
-            ["alignment-boot", "Powered rear boot opens fully and closes cleanly."],
-            ["alignment-boot-rub", "Rear boot does not rub against adjacent panels."],
-            ["alignment-chargeport", "Charge-port door opens and closes electronically."],
+            ["alignment-doors-v2", "Every door handle, door and frameless window operates and closes correctly."],
+            ["alignment-gaps", "No panel is obviously misaligned, rubbing or interfering with operation."],
+            ["alignment-frunk-v2", "Front boot opens, latches and sits flush when closed."],
+            ["alignment-boot-v2", "Powered rear boot opens fully, closes cleanly and does not rub."],
             ["alignment-seals", "Rubber seals are properly fitted, not folded, torn or hanging loose."],
             ["alignment-moisture", "No water or unexpected moisture is present in the boot or front boot."]
         ]
@@ -103,11 +93,8 @@ const SECTIONS = [
         items: [
             ["wheels-rims", "No wheel-rim scratches or kerb damage."],
             ["wheels-tyres", "No cuts, bulges or obvious tyre damage."],
-            ["wheels-spec", "All four tyres have the expected matching make and specification."],
-            ["wheels-valves", "Valve caps are present."],
-            ["wheels-covers", "Wheel covers are secure, if fitted."],
-            ["wheels-inflation", "Tyres do not appear visibly underinflated."],
-            ["wheels-pressure", "Tyre pressures appear without warnings after a short drive.", "Mark N/A until you have driven if readings are not yet available."]
+            ["wheels-spec-v2", "Tyre sizes and specifications are appropriate for the fitted wheels."],
+            ["wheels-covers", "Wheel covers or centre caps are present and secure, where fitted."]
         ]
     },
     {
@@ -117,13 +104,8 @@ const SECTIONS = [
         intro: "Use reflections from a nearby surface or ask someone to help confirm the exterior lights.",
         tip: "Substantial condensation, cracks or a loose light unit should be recorded—not just whether the lamp illuminates.",
         items: [
-            ["lights-headlights", "Dipped and main-beam headlights work."],
-            ["lights-indicators", "Indicators and hazard lights work."],
-            ["lights-brakes", "Brake lights work."],
-            ["lights-rear", "Rear lights and reversing lights work."],
-            ["lights-interior", "Interior, boot and front-boot lights work."],
-            ["lights-units", "Light units are securely fitted."],
-            ["lights-condensation", "No cracks or substantial condensation inside light units."],
+            ["lights-headlights-v2", "Dipped and main-beam headlights work; lamp units are secure and undamaged."],
+            ["lights-signals-v2", "Indicators, hazards, rear lights, brake lights and reversing lights work."],
             ["lights-mirrors", "Mirrors fold, unfold and adjust correctly."],
             ["lights-wipers", "Windscreen wipers and washers operate without catching anything."]
         ]
@@ -133,19 +115,13 @@ const SECTIONS = [
         title: "Interior condition",
         shortTitle: "Interior",
         intro: "Check every seating position and the high-touch surfaces while the cabin is still clean and empty.",
-        tip: "Use N/A for an item your order does not include, such as optional floor mats.",
+        tip: "Focus on visible condition and safety equipment; small convenience features can be checked later.",
         items: [
-            ["interior-seats", "Seats are clean and free from marks, cuts or damaged stitching."],
-            ["interior-front-seats", "Driver and passenger seats move through their full range."],
-            ["interior-rear", "Rear seats and head restraints are correctly fitted."],
+            ["interior-seats-v2", "Seat upholstery is clean and free from marks, cuts or damaged stitching."],
+            ["interior-seat-fit-v2", "Front seats adjust correctly; rear seats and head restraints are secure."],
             ["interior-belts", "Seatbelts extend, retract and latch correctly."],
-            ["interior-trim", "Dashboard, centre console and door trims are unmarked."],
-            ["interior-headlining", "Headlining is clean and securely fitted."],
-            ["interior-carpets", "Carpets are dry and properly installed."],
-            ["interior-mats", "Floor mats are present if included in your order."],
-            ["interior-storage", "Cupholders, storage compartments and armrests open correctly."],
-            ["interior-glovebox", "Glovebox opens from the touchscreen."],
-            ["interior-loose", "No loose trim, rattling panels or exposed clips."]
+            ["interior-trim-v2", "Dashboard, console, door trims, headlining and carpets are clean and undamaged."],
+            ["interior-loose", "No loose trim, exposed clips or obviously detached panels."]
         ]
     },
     {
@@ -155,16 +131,12 @@ const SECTIONS = [
         intro: "Check the main display, rear display where fitted, driving controls and every available camera view.",
         tip: "Some features calibrate after driving, but persistent camera, restraint, braking, steering or electrical warnings are not normal handover behaviour.",
         items: [
-            ["screens-main", "Main touchscreen has no cracks, scratches or dead pixels."],
-            ["screens-touch", "Touch response works across the entire main display."],
-            ["screens-rear", "Rear touchscreen works correctly, where fitted."],
+            ["screens-display-v2", "Main and rear displays are undamaged, without obvious dead pixels."],
+            ["screens-touch-v2", "Touch response works across the main display and rear display, where fitted."],
             ["screens-warnings", "No persistent warning or fault messages are displayed."],
-            ["screens-wheel", "Steering-wheel controls and scroll wheels work."],
-            ["screens-horn", "Horn works."],
+            ["screens-driver-controls-v2", "Steering-wheel controls, scroll wheels and horn work."],
             ["screens-gears", "Gear selection works normally."],
-            ["screens-reverse", "Reversing camera displays a clear picture."],
-            ["screens-side", "Side-camera views appear when indicating."],
-            ["screens-park", "Parking visualisation starts without camera errors."],
+            ["screens-cameras-v2", "Reversing and side-camera views are clear, with no parking-camera errors."],
             ["screens-steering", "Electric steering-wheel adjustment works."]
         ]
     },
@@ -175,35 +147,24 @@ const SECTIONS = [
         intro: "Run heating and cooling long enough to feel a clear temperature difference and listen for abnormal cabin noise.",
         tip: "Heat-pump hums, fan noise and occasional mechanical clunks can be normal as the battery and climate system begin operating.",
         items: [
-            ["climate-cold", "Air conditioning produces noticeably cold air."],
-            ["climate-warm", "Heating produces warm air."],
-            ["climate-vents", "Air flows from all expected vents."],
-            ["climate-fan", "Fan works at low and high speeds without abnormal noise."],
-            ["climate-front-heat", "Heated front seats work."],
-            ["climate-front-vent", "Ventilated front seats work, where fitted."],
-            ["climate-rear-heat", "Heated rear seats work, where fitted."],
+            ["climate-system-v2", "Heating, cooling, fan speeds and expected vents produce a clear response."],
+            ["climate-front-seats-v2", "Driver-seat heating and ventilation work, where fitted."],
             ["climate-wheel", "Heated steering wheel works, where fitted."],
-            ["climate-rear-control", "Rear passengers can control climate from the rear display, where fitted."],
-            ["climate-smell", "No strong damp, chemical or burning smells."]
+            ["climate-rear-v2", "Rear display, rear climate and rear heated seats work, where fitted."]
         ]
     },
     {
         id: "connectivity",
-        title: "Phone, keys & connectivity",
+        title: "Set up phone & keys",
         shortTitle: "Phone & keys",
-        intro: "Confirm you can unlock, start and connect to the car before relying on your phone key.",
+        intro: "Tesla may release full app access only after delivery is accepted. Complete these checks before relying on the phone key.",
         tip: "Keep one key card in your wallet rather than leaving every backup inside the car.",
         items: [
             ["connectivity-app", "Vehicle appears correctly in your Tesla app."],
-            ["connectivity-phone-key", "Phone key is paired."],
-            ["connectivity-unlock", "Phone unlocks the car."],
-            ["connectivity-drive", "Car permits driving using the phone key."],
+            ["connectivity-phone-v2", "Phone key pairs, unlocks the car and permits driving."],
             ["connectivity-cards", "Every supplied key card works."],
             ["connectivity-bluetooth", "Bluetooth connects for calls and audio."],
-            ["connectivity-data", "Mobile data and maps load."],
-            ["connectivity-voice", "Voice commands respond."],
-            ["connectivity-wireless", "Both wireless phone-charging positions work."],
-            ["connectivity-usb", "USB-C ports work where practical to test."]
+            ["connectivity-data-v2", "Mobile data, maps and wireless phone charging work."]
         ]
     },
     {
@@ -213,31 +174,26 @@ const SECTIONS = [
         intro: "Check the charging hardware, recording drive and every accessory that should be with your order.",
         tip: "A three-pin Tesla Mobile Connector is not included with new UK orders unless it was purchased separately.",
         items: [
-            ["charging-door", "Charge-port door opens from the touchscreen and app."],
-            ["charging-socket", "Charging socket is undamaged."],
+            ["charging-port-v2", "Charge-port door opens and closes; the socket is clean and undamaged."],
             ["charging-cable", "Type 2 charging cable is present if included with your vehicle."],
             ["charging-usb", "Dashcam/Sentry USB drive is present in the glovebox and recognised."],
-            ["charging-emergency", "Tow eye and any other listed emergency items are present."],
-            ["charging-accessories", "Any separately ordered accessories are included."]
+            ["charging-emergency", "Tow eye and any listed emergency items are present."],
+            ["charging-accessories-v2", "Included mats and separately ordered accessories are present."]
         ]
     },
     {
         id: "drive",
-        title: "Brief test drive",
-        shortTitle: "Test drive",
-        intro: "Before leaving the immediate area, check the car at low and normal road speeds where safe.",
+        title: "First drive checks",
+        shortTitle: "First drive",
+        intro: "These checks normally happen after handover. Stop safely and report promptly if anything feels wrong.",
         tip: "A single click, parking-brake clunk, low-speed pedestrian sound or battery-conditioning hum can be normal.",
         items: [
-            ["drive-steering", "Steering is straight and the car does not pull noticeably to one side."],
-            ["drive-vibration", "No steering-wheel vibration."],
-            ["drive-brakes", "Brakes operate smoothly."],
-            ["drive-regen", "Regenerative braking behaves normally."],
-            ["drive-noises", "No loud knocks, scraping or persistent rattles."],
+            ["drive-steering-v2", "Steering is straight, without noticeable pulling or steering-wheel vibration."],
+            ["drive-brakes-v2", "Brakes and regenerative braking respond smoothly."],
+            ["drive-noises", "No loud knocks, scraping or persistent rattles are heard."],
             ["drive-acceleration", "Acceleration is smooth."],
-            ["drive-indicators", "Indicators and automatic cancellation behave correctly."],
-            ["drive-cameras", "Reversing and parking cameras continue working."],
-            ["drive-warnings", "No new warning messages appear."],
-            ["drive-pressure", "Tyre-pressure readings appear after driving."]
+            ["drive-systems-v2", "No new warnings appear and reversing/parking cameras continue working."],
+            ["drive-pressure", "Tyre-pressure readings appear without a pressure warning."]
         ]
     },
     {
@@ -245,42 +201,49 @@ const SECTIONS = [
         type: "guide",
         title: "Before you accept the car",
         shortTitle: "Acceptance decision",
-        intro: "Ask Tesla to resolve or formally record a serious issue before you take the vehicle.",
+        intro: "Complete the priority checks before confirming delivery where the handover process allows. For home delivery, photograph and report promptly if the driver cannot wait.",
         guideItems: [
-            ["Significant dents, scratches or paint damage", "Minor marks can still be recorded without necessarily refusing the whole car."],
-            ["Cracked glass", "Include roof glass, windscreen and windows."],
-            ["A damaged tyre or wheel", "Do not drive away on visibly unsafe damage."],
-            ["A door, boot or front boot that will not latch", "This is an operational and safety concern."],
-            ["A badly misaligned panel that rubs or interferes", "Different-looking gaps alone are less important than interference."],
-            ["A dead or repeatedly freezing touchscreen", "Record repeated failures, not just a single slow moment during setup."],
-            ["Serious steering, brake, restraint, battery or electrical warnings", "Persistent critical warnings need attention before driving."],
-            ["Cameras that do not work and prevent safe manoeuvring", "Especially reversing and parking views."],
-            ["The wrong colour, trim, wheels or vehicle variant", "Confirm the delivered configuration against the order."]
+            ["Wrong car or configuration", "Do not confirm that the vehicle matches the order if its VIN, variant, colour, wheels or interior are wrong."],
+            ["Unsafe tyre, wheel or cracked glass", "Do not drive a vehicle with visibly unsafe damage."],
+            ["A door, boot or front boot will not latch", "This needs attention before the vehicle is driven."],
+            ["Persistent safety-critical warning", "Brake, steering, restraint, battery or electrical warnings need Tesla’s advice before driving."],
+            ["Screen or camera failure prevents safe operation", "A brief setup delay is different from a repeated or persistent failure."],
+            ["Significant transport or body damage", "Photograph it and agree a written resolution before accepting if you would not be content with a repair."],
+            ["Minor cosmetic point", "Record it promptly, but a small mark or harmless panel-gap variation does not automatically make the car unsafe or justify rejecting it."]
         ]
     },
     {
         id: "reporting",
         type: "guide",
-        title: "Report anything you find",
+        title: "If you find something later",
         shortTitle: "Reporting issues",
-        intro: "Create a clear handover trail before leaving wherever possible.",
+        intro: "Finding something after handover does not mean you have lost the ability to report it. Make a clear record and contact the right party promptly.",
         guideItems: [
-            ["Show the defect", "Point it out to the delivery representative before leaving, where possible."],
-            ["Get it recorded", "Ask for the issue to be recorded against the vehicle."],
-            ["Keep clear evidence", "Take close and wider photographs that show the defect and its location."],
-            ["Open a Tesla service request", "In the Tesla app, select Service and describe each issue."],
-            ["Attach the photographs", "Add the relevant images to the service request."],
-            ["Keep screenshots", "Save screenshots of the submitted request and any response."],
-            ["Report promptly", "Owner-club guidance suggests reporting before leaving or within the first 100 miles; this is not an official Tesla deadline."]
+            ["Record when you found it", "Note the date, time and mileage, then take a close photograph and a wider location photograph."],
+            ["Open a Tesla service request", "In the Tesla app choose Service, select the relevant topic and describe the concern clearly."],
+            ["Attach evidence", "Add photographs and include other concerns in the same appointment using Add Another Concern."],
+            ["Keep the trail", "Retain the report, screenshots and Tesla messages."],
+            ["Treat safety issues differently", "Stop driving if a tyre, glass, brake, steering or critical warning makes the car unsafe; contact Tesla or Roadside Assistance."],
+            ["Warranty and consumer rights are separate", "Tesla’s warranty is additional to statutory rights. For a serious unresolved fault, obtain advice appropriate to whether you purchased, financed or leased the car."]
         ]
     }
 ];
 
+const SECTION_ORDER = [
+    "before", "identity", "photos", "exterior", "wheels", "alignment", "lights",
+    "interior", "screens", "climate", "charging", "acceptance", "connectivity",
+    "drive", "reporting"
+];
+SECTIONS.sort((left, right) => SECTION_ORDER.indexOf(left.id) - SECTION_ORDER.indexOf(right.id));
+
 const SOURCES = [
     ["Tesla UK delivery-day guidance", "https://www.tesla.com/en_gb/support/delivery-day"],
+    ["Tesla UK after taking delivery", "https://www.tesla.com/en_gb/support/after-taking-delivery"],
+    ["Tesla UK service appointments", "https://www.tesla.com/en_gb/support/service-visits"],
     ["Tesla UK vehicle warranty", "https://www.tesla.com/en_gb/support/vehicle-warranty"],
     ["Tesla UK Mobile Connector guidance", "https://www.tesla.com/en_gb/support/charging/mobile-connector"],
     ["Model 3 normal operating sounds", "https://www.tesla.com/ownersmanual/model3/en_gb/GUID-AA58ED67-9C93-4EE6-8B19-9FDABE018787.html"],
+    ["UK Consumer Rights Act guidance", "https://www.gov.uk/government/publications/consumer-rights-act-2015/consumer-rights-act-2015"],
     ["Tesla Owners UK delivery checklist (unofficial)", "https://teslaowners.uk/new-car-collection-checklist/"]
 ];
 
@@ -650,7 +613,7 @@ function renderGuideSection(section, index) {
             `).join("")}
         </ol>
         ${sources}
-        ${section.id === "reporting" ? `<div class="report-actions"><button class="button button-primary" type="button" data-action="report">Prepare issue report ${arrowIcon()}</button></div>` : ""}
+        ${section.id === "reporting" ? `<div class="report-actions"><button class="button button-primary" type="button" data-action="report">Prepare delivery report ${arrowIcon()}</button></div>` : ""}
     `;
 }
 
@@ -722,14 +685,15 @@ async function renderReport() {
     elements.appView.innerHTML = `<section class="section-hero"><p class="eyebrow">Preparing report</p><h1>Gathering your evidence…</h1><p class="lead">Loading photographs saved on this device.</p></section>`;
 
     const stats = getStats();
-    const issues = ALL_ITEMS.filter((item) => session.responses[item.id]?.status === "issue");
+    const checkedItems = ALL_ITEMS.filter((item) => ["pass", "issue"].includes(session.responses[item.id]?.status));
+    const checkedIds = new Set(checkedItems.map((item) => item.id));
     const allPhotos = await getAllPhotos().catch(() => []);
+    const reportPhotos = allPhotos.filter((photo) => photo.itemId === VEHICLE_PHOTO_ITEM_ID || checkedIds.has(photo.itemId));
     const photosByItem = new Map();
-    allPhotos.forEach((photo) => {
+    reportPhotos.forEach((photo) => {
         if (!photosByItem.has(photo.itemId)) photosByItem.set(photo.itemId, []);
         photosByItem.get(photo.itemId).push(photo);
     });
-    const conditionEvidence = ALL_ITEMS.filter((item) => session.responses[item.id]?.status !== "issue" && photosByItem.has(item.id));
     const vehiclePhoto = (photosByItem.get(VEHICLE_PHOTO_ITEM_ID) || [])[0];
     const profile = session.profile;
     const reportTitle = profile.registration ? `Delivery report · ${profile.registration.toUpperCase()}` : "Delivery report";
@@ -756,7 +720,7 @@ async function renderReport() {
                 <div class="report-stat"><strong>${stats.issue}</strong><span>Issues</span></div>
                 <div class="report-stat"><strong>${stats.critical}</strong><span>Critical</span></div>
                 <div class="report-stat"><strong>${stats.pass}</strong><span>Passed</span></div>
-                <div class="report-stat"><strong>${allPhotos.length}</strong><span>Photos</span></div>
+                <div class="report-stat"><strong>${reportPhotos.length}</strong><span>Photos</span></div>
             </div>
             <div class="report-actions no-print">
                 <button class="button button-primary" type="button" data-action="print">Print / Save PDF</button>
@@ -764,36 +728,25 @@ async function renderReport() {
                 <button class="button button-secondary" type="button" data-action="navigator">Back to checklist</button>
             </div>
             <section>
-                <p class="eyebrow">Recorded findings</p>
-                ${issues.length ? `<div class="report-issues" id="report-issues"></div>` : `<div class="report-empty"><strong>No issues recorded</strong><p>Your checklist currently contains no items marked Issue.</p></div>`}
+                <p class="eyebrow">Completed checks</p>
+                ${checkedItems.length ? `<div class="report-issues" id="report-checks"></div>` : `<div class="report-empty"><strong>No completed checks recorded</strong><p>Only items marked Pass or Issue appear in this report.</p></div>`}
             </section>
-            ${conditionEvidence.length ? `<section class="report-evidence-section"><p class="eyebrow">Condition evidence</p><p class="fine-print">Photographs taken during checks that are not marked as issues.</p><div class="report-issues" id="report-evidence"></div></section>` : ""}
             <p class="fine-print">This report is a personal handover record produced by an independent checklist. It is not a Tesla service record and does not replace reporting issues in the Tesla app.</p>
         </article>
     `;
 
-    const issueHtml = issues.map((item) => {
+    const checkedHtml = checkedItems.map((item) => {
         const response = session.responses[item.id];
+        const isIssue = response.status === "issue";
         return `
             <article class="report-issue">
-                <div class="report-issue-head"><div><p class="eyebrow">${escapeHtml(item.sectionTitle)}</p><h3>${escapeHtml(item.title)}</h3></div><span class="severity-badge">${escapeHtml(severityLabel(response.severity))}</span></div>
-                <p>${escapeHtml(response.notes || "No written note added.")}</p>
+                <div class="report-issue-head"><div><p class="eyebrow">${escapeHtml(item.sectionTitle)}</p><h3>${escapeHtml(item.title)}</h3></div><span class="severity-badge ${isIssue ? "" : "evidence-badge"}">${escapeHtml(isIssue ? severityLabel(response.severity) : "Passed")}</span></div>
+                ${isIssue ? `<p>${escapeHtml(response.notes || "No written note added.")}</p>` : ""}
                 ${renderReportPhotos(photosByItem.get(item.id) || [], item.title)}
             </article>`;
     });
-    const container = document.getElementById("report-issues");
-    if (container) container.innerHTML = issueHtml.join("");
-
-    const evidenceHtml = conditionEvidence.map((item) => {
-        const status = session.responses[item.id]?.status;
-        return `
-            <article class="report-issue">
-                <div class="report-issue-head"><div><p class="eyebrow">${escapeHtml(item.sectionTitle)}</p><h3>${escapeHtml(item.title)}</h3></div><span class="severity-badge evidence-badge">${escapeHtml(status === "pass" ? "Passed" : status === "na" ? "N/A" : "Photo only")}</span></div>
-                ${renderReportPhotos(photosByItem.get(item.id) || [], item.title)}
-            </article>`;
-    });
-    const evidenceContainer = document.getElementById("report-evidence");
-    if (evidenceContainer) evidenceContainer.innerHTML = evidenceHtml.join("");
+    const container = document.getElementById("report-checks");
+    if (container) container.innerHTML = checkedHtml.join("");
 }
 
 function renderReportPhotos(photos, itemTitle) {
@@ -931,7 +884,7 @@ function renderNavigatorList() {
         const statusText = counts ? `${counts.total - counts.outstanding} of ${counts.total} resolved` : "Guide";
         const progress = counts ? `${Math.round(((counts.total - counts.outstanding) / counts.total) * 100)}%` : "→";
         return `<button class="navigator-item" type="button" data-navigate="section-${index}"><span class="navigator-step">${index + 1}</span><span class="navigator-copy"><strong>${escapeHtml(section.shortTitle)}</strong><span>${statusText}</span></span><span class="navigator-progress">${progress}</span></button>`;
-    }).join("") + `<button class="navigator-item" type="button" data-navigate="report"><span class="navigator-step">R</span><span class="navigator-copy"><strong>Issue report</strong><span>Review, print or share</span></span><span class="navigator-progress">→</span></button>`;
+    }).join("") + `<button class="navigator-item" type="button" data-navigate="report"><span class="navigator-step">R</span><span class="navigator-copy"><strong>Delivery report</strong><span>Review, print or share</span></span><span class="navigator-progress">→</span></button>`;
 
     elements.navigatorList.querySelectorAll("[data-navigate]").forEach((button) => {
         button.addEventListener("click", () => {
@@ -983,25 +936,29 @@ async function resetEverything() {
 }
 
 async function shareReport() {
-    const issues = ALL_ITEMS.filter((item) => session.responses[item.id]?.status === "issue");
-    const photos = await getAllPhotos().catch(() => []);
+    const checkedItems = ALL_ITEMS.filter((item) => ["pass", "issue"].includes(session.responses[item.id]?.status));
+    const checkedIds = new Set(checkedItems.map((item) => item.id));
+    const allPhotos = await getAllPhotos().catch(() => []);
+    const photos = allPhotos.filter((photo) => photo.itemId === VEHICLE_PHOTO_ITEM_ID || checkedIds.has(photo.itemId));
+    const issueCount = checkedItems.filter((item) => session.responses[item.id]?.status === "issue").length;
     const profile = session.profile;
     const lines = [
         `Tesla Model 3 delivery report${profile.registration ? ` — ${profile.registration.toUpperCase()}` : ""}`,
-        `${issues.length} issue${issues.length === 1 ? "" : "s"} and ${photos.length} photo${photos.length === 1 ? "" : "s"} recorded.`,
+        `${checkedItems.length} completed check${checkedItems.length === 1 ? "" : "s"}, ${issueCount} issue${issueCount === 1 ? "" : "s"} and ${photos.length} photo${photos.length === 1 ? "" : "s"} recorded.`,
         ""
     ];
-    issues.forEach((item, index) => {
+    checkedItems.forEach((item, index) => {
         const response = session.responses[item.id];
-        lines.push(`${index + 1}. [${severityLabel(response.severity)}] ${item.title}`);
-        if (response.notes) lines.push(`   ${response.notes}`);
+        const label = response.status === "issue" ? `ISSUE · ${severityLabel(response.severity)}` : "PASS";
+        lines.push(`${index + 1}. [${label}] ${item.sectionTitle}: ${item.title}`);
+        if (response.status === "issue" && response.notes) lines.push(`   ${response.notes}`);
     });
     lines.push("", "Photographs and full details are available in the saved checklist report on this device.");
     const text = lines.join("\n");
 
     if (navigator.share) {
         try {
-            await navigator.share({ title: "Tesla delivery issue report", text });
+            await navigator.share({ title: "Tesla delivery report", text });
             return;
         } catch (error) {
             if (error?.name === "AbortError") return;
