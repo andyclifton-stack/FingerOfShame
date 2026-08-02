@@ -24,7 +24,7 @@ const HUB_ITEMS = [
         title: "Service Tenure Dashboard",
         description: "Desk tablet dashboard with clock, tenure tracker, timer, notes, and offline PWA support.",
         type: "app",
-        href: "/ServiveTenure/",
+        href: "/service-tenure/dashboard.html",
         short: "ST",
         accent: "emerald",
         status: "new",
