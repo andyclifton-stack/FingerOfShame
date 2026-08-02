@@ -294,6 +294,10 @@ h1 {
     opacity: 0.92;
 }
 
+.hub-card.is-archived {
+    opacity: 0.78;
+}
+
 .card-head {
     display: flex;
     justify-content: space-between;
@@ -391,6 +395,13 @@ h1 {
     border: 1px solid rgba(156, 173, 197, 0.2);
 }
 
+.card-actions {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    align-items: stretch;
+}
+
 .card-action {
     margin-top: auto;
     width: 100%;
@@ -403,6 +414,25 @@ h1 {
     text-transform: uppercase;
     letter-spacing: 0.08em;
     text-align: center;
+}
+
+.archive-action {
+    min-width: 74px;
+    border-radius: 11px;
+    border: 1px solid rgba(156, 173, 197, 0.34);
+    background: rgba(7, 18, 31, 0.84);
+    color: #cfe3fa;
+    font: 800 0.68rem/1 "Space Grotesk", sans-serif;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.archive-action:hover,
+.archive-action:focus-visible {
+    border-color: #7dd3fc;
+    color: #f8fafc;
+    outline: none;
 }
 
 .hub-card.is-locked .card-action {

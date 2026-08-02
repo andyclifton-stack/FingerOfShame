@@ -1,6 +1,7 @@
 const SHARE_URL = "https://fingergame.co.uk/";
 const RECENT_KEY = "finger_hub_recent_v1";
 const PREF_KEY = "finger_hub_preferences_v1";
+const ARCHIVE_KEY = "finger_hub_archived_v1";
 
 // Add future games/apps here; the grid renders from this list.
 const HUB_ITEMS = [
@@ -268,6 +269,7 @@ const HUB_ITEMS = [
 const itemById = new Map(HUB_ITEMS.map((item) => [item.id, item]));
 const isLocalHost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 const recentMap = loadRecent();
+const archivedIds = loadArchived();
 const state = {
     filter: "all",
     query: "",
@@ -284,6 +286,7 @@ const el = {
     visibleCount: document.getElementById("visible-count"),
     gameCount: document.getElementById("game-count"),
     appCount: document.getElementById("app-count"),
+    archivedCount: document.getElementById("archived-count"),
     installBtn: document.getElementById("install-btn"),
     shareBtn: document.getElementById("share-btn"),
     whatsappBtn: document.getElementById("whatsapp-btn"),
@@ -328,6 +331,13 @@ function bindEvents() {
     });
 
     el.grid.addEventListener("click", (event) => {
+        const archiveButton = event.target.closest("[data-archive-id]");
+        if (archiveButton) {
+            event.stopPropagation();
+            toggleArchived(archiveButton.dataset.archiveId);
+            return;
+        }
+
         const card = event.target.closest(".hub-card");
         if (!card) {
             return;
@@ -336,6 +346,9 @@ function bindEvents() {
     });
 
     el.grid.addEventListener("keydown", (event) => {
+        if (event.target.closest("[data-archive-id]")) {
+            return;
+        }
         if (event.key !== "Enter" && event.key !== " ") {
             return;
         }
@@ -382,13 +395,16 @@ function render() {
 function buildCard(item, index) {
     const card = document.createElement("article");
     card.className = item.locked ? "hub-card is-locked" : "hub-card";
+    if (archivedIds.has(item.id)) {
+        card.classList.add("is-archived");
+    }
     card.dataset.id = item.id;
     card.dataset.type = item.type;
     card.dataset.accent = item.accent || "slate";
     card.style.setProperty("--stagger", `${Math.min(index, 18) * 45}ms`);
     card.tabIndex = 0;
     card.setAttribute("role", item.locked ? "button" : "link");
-    card.setAttribute("aria-label", `${item.title}. ${item.description}`);
+    card.setAttribute("aria-label", `${item.title}. ${item.description}${archivedIds.has(item.id) ? ". Archived" : ""}`);
 
     const avatar = item.logo
         ? `<div class="avatar has-image"><img src="${escapeHtml(item.logo)}" alt="${escapeHtml(item.title)} logo"></div>`
@@ -402,6 +418,8 @@ function buildCard(item, index) {
         .slice(0, 3)
         .map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`)
         .join("");
+    const isArchived = archivedIds.has(item.id);
+    const archiveLabel = isArchived ? "Restore" : "Archive";
 
     card.innerHTML = `
         <div class="card-head">
@@ -411,7 +429,10 @@ function buildCard(item, index) {
         <h2 class="card-title">${escapeHtml(item.title)}</h2>
         <p class="card-description">${escapeHtml(item.description)}</p>
         <div class="tags">${tags}</div>
-        <div class="card-action">${escapeHtml(resolveActionLabel(item))}</div>
+        <div class="card-actions">
+            <div class="card-action">${escapeHtml(resolveActionLabel(item))}</div>
+            <button class="archive-action" type="button" data-archive-id="${escapeHtml(item.id)}" aria-label="${escapeHtml(archiveLabel)} ${escapeHtml(item.title)}">${escapeHtml(archiveLabel)}</button>
+        </div>
     `;
 
     return card;
@@ -462,10 +483,19 @@ function renderStats(visibleItems) {
     el.visibleCount.textContent = String(visibleItems.length);
     el.gameCount.textContent = String(visibleGames);
     el.appCount.textContent = String(visibleApps);
+    el.archivedCount.textContent = String(archivedIds.size);
 }
 
 function getVisibleItems() {
     const filtered = HUB_ITEMS.filter((item) => {
+        const isArchived = archivedIds.has(item.id);
+        if (state.filter === "archived") {
+            if (!isArchived) {
+                return false;
+            }
+        } else if (isArchived) {
+            return false;
+        }
         if (state.filter === "game" && item.type !== "game") {
             return false;
         }
@@ -533,6 +563,20 @@ function activateCard(id) {
     markPlayed(item.id);
     const targetHref = resolveHref(item);
     window.location.href = targetHref;
+}
+
+function toggleArchived(id) {
+    if (!itemById.has(id)) {
+        return;
+    }
+
+    if (archivedIds.has(id)) {
+        archivedIds.delete(id);
+    } else {
+        archivedIds.add(id);
+    }
+    saveArchived();
+    render();
 }
 
 function resolveHref(item) {
@@ -616,7 +660,7 @@ function hydratePreferences() {
         parsed = null;
     }
 
-    if (parsed && (parsed.filter === "all" || parsed.filter === "game" || parsed.filter === "app" || parsed.filter === "locked")) {
+    if (parsed && (parsed.filter === "all" || parsed.filter === "game" || parsed.filter === "app" || parsed.filter === "locked" || parsed.filter === "archived")) {
         state.filter = parsed.filter;
     }
     if (parsed && (parsed.sort === "featured" || parsed.sort === "recent" || parsed.sort === "az")) {
@@ -651,6 +695,26 @@ function loadRecent() {
         // ignored
     }
     return {};
+}
+
+function loadArchived() {
+    try {
+        const parsed = JSON.parse(localStorage.getItem(ARCHIVE_KEY) || "[]");
+        if (Array.isArray(parsed)) {
+            return new Set(parsed.filter((id) => itemById.has(id)));
+        }
+    } catch (error) {
+        // ignored
+    }
+    return new Set();
+}
+
+function saveArchived() {
+    try {
+        localStorage.setItem(ARCHIVE_KEY, JSON.stringify(Array.from(archivedIds)));
+    } catch (error) {
+        // ignored
+    }
 }
 
 async function shareHub() {
