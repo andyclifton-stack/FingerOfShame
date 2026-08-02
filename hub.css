@@ -364,6 +364,11 @@ h1 {
     color: #fca5a5;
 }
 
+.badge.status-archived {
+    border-color: rgba(148, 163, 184, 0.42);
+    color: #cbd5e1;
+}
+
 .card-title {
     margin: 0;
     font-family: "Space Grotesk", sans-serif;

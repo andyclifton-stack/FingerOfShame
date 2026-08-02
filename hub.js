@@ -387,6 +387,7 @@ function render() {
         el.grid.appendChild(buildCard(item, index));
     });
 
+    el.emptyState.textContent = getEmptyStateMessage();
     el.emptyState.hidden = visibleItems.length > 0;
     renderFeatured(visibleItems);
     renderStats(visibleItems);
@@ -419,7 +420,7 @@ function buildCard(item, index) {
         .map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`)
         .join("");
     const isArchived = archivedIds.has(item.id);
-    const archiveLabel = isArchived ? "Restore" : "Archive";
+    const archiveLabel = isArchived ? "Unarchive" : "Archive";
 
     card.innerHTML = `
         <div class="card-head">
@@ -543,6 +544,16 @@ function getVisibleItems() {
     });
 }
 
+function getEmptyStateMessage() {
+    if (state.filter === "archived") {
+        if (archivedIds.size === 0) {
+            return "Archived games and apps will appear here after you archive them from the main hub.";
+        }
+        return "No archived entries match your current search. Clear search to view everything archived.";
+    }
+    return "No entries match your current filter. Try clearing search or switching tabs.";
+}
+
 function activateCard(id) {
     const item = itemById.get(id);
     if (!item) {
@@ -596,6 +607,9 @@ function resolveActionLabel(item) {
 function getBadgeData(item) {
     const badges = [];
 
+    if (archivedIds.has(item.id)) {
+        badges.push({ label: "Archived", className: "status-archived" });
+    }
     if (item.featured) {
         badges.push({ label: "Featured", className: "" });
     }
