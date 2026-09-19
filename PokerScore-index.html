@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gentleman's Poker Elite</title>
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22 fill=%22%23e74c3c%22>♦</text></svg>">
@@ -11,756 +11,27 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-    <style>
-        :root {
-            --felt-green: #0a3d2a;
-            --table-border: #5d4037;
-            --gold: #d4af37;
-            --bg-dark: #0f1418;
-            --danger: #e74c3c;
-            --success: #27ae60;
-            --whatsapp: #25D366;
-            --grey: #7f8c8d;
-            --text-light: #f1f1f1;
-            --glass: rgba(255, 255, 255, 0.05);
-        }
-
-        body {
-            font-family: 'Georgia', serif;
-            background-color: var(--bg-dark);
-            background-image: radial-gradient(circle at center, #1a2a22 0%, #05080a 100%);
-            color: var(--text-light);
-            margin: 0;
-            padding: 15px;
-            min-height: 100vh;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding-bottom: 80px;
-        }
-
-        /* --- WOODEN PLAQUE HEADER --- */
-        header {
-            text-align: center;
-            padding: 10px 0 30px 0;
-            position: relative;
-        }
-
-        .wooden-plaque {
-            background: linear-gradient(#5d4037, #3e2723);
-            background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.02) 0px, rgba(255, 255, 255, 0.02) 1px, transparent 1px, transparent 15px), linear-gradient(to bottom, #5d4037, #2d1b18);
-            border: 4px solid #8b5a2b;
-            outline: 2px solid var(--gold);
-            border-radius: 15px;
-            padding: 15px 30px;
-            display: inline-block;
-            box-shadow: inset 0 0 20px #000, 0 10px 20px rgba(0, 0, 0, 0.5);
-            position: relative;
-            min-width: 300px;
-        }
-
-        .wooden-plaque::before,
-        .wooden-plaque::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            width: 100%;
-            left: 0;
-            height: 10px;
-            pointer-events: none;
-        }
-
-        h1 {
-            font-size: 1.6rem;
-            color: var(--gold);
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            margin: 0;
-            text-shadow: 1px 1px 0px #000, -1px -1px 0px rgba(255, 255, 255, 0.2);
-            font-weight: bold;
-        }
-
-        @media (max-width: 600px) {
-            h1 {
-                font-size: 1.2rem;
-                letter-spacing: 1px;
-            }
-
-            .wooden-plaque {
-                padding: 12px 15px;
-                width: 100%;
-                box-sizing: border-box;
-            }
-        }
-
-        /* Lobby */
-        .lobby-card {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 15px;
-            border-radius: 15px;
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            margin-bottom: 20px;
-            transition: max-height 0.3s ease-out, opacity 0.3s;
-            overflow: hidden;
-        }
-
-        .lobby-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-        }
-
-        .lobby-content {
-            margin-top: 15px;
-        }
-
-        .lobby-card.collapsed .lobby-content {
-            display: none;
-        }
-
-        .toggle-icon {
-            font-size: 0.8rem;
-            color: #888;
-        }
-
-        .chip-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-
-        .chip {
-            padding: 10px 16px;
-            background: #222;
-            border: 1px solid #444;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.95rem;
-            user-select: none;
-        }
-
-        .chip.selected {
-            background: var(--gold);
-            color: black;
-            border-color: #fff;
-            font-weight: bold;
-            box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
-        }
-
-        .chip.deselected {
-            opacity: 0.4;
-            filter: grayscale(1);
-            transform: scale(0.95);
-        }
-
-        /* Hidden New Player Section */
-        #newPlayerSection {
-            display: none;
-            margin-top: 10px;
-        }
-
-        .input-group {
-            display: flex;
-            gap: 8px;
-        }
-
-        input[type="text"] {
-            flex-grow: 1;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #444;
-            background: #111;
-            color: white;
-            font-size: 1rem;
-        }
-
-        .btn-link {
-            background: none;
-            border: none;
-            color: #666;
-            font-size: 0.8rem;
-            cursor: pointer;
-            padding: 0;
-            text-decoration: underline;
-            margin-bottom: 10px;
-        }
-
-        .btn-link:hover {
-            color: var(--gold);
-        }
-
-        .btn-main {
-            background: var(--gold);
-            color: black;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-            transition: transform 0.1s;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-        }
-
-        .btn-main:active {
-            transform: translateY(2px);
-        }
-
-        .btn-main:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            filter: grayscale(1);
-        }
-
-        .btn-wa {
-            background: var(--whatsapp);
-            color: white;
-            width: 100%;
-            margin-top: 10px;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            text-decoration: none;
-        }
-
-        /* Buy-in Widget Styling */
-        .buyin-wrapper {
-            display: inline-flex;
-            align-items: center;
-            justify-content: flex-start;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 6px;
-            border: 1px solid transparent;
-            transition: all 0.2s;
-            margin-right: auto;
-        }
-
-        .buyin-wrapper:hover {
-            border-color: rgba(212, 175, 55, 0.3);
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .buyin-text {
-            color: #aaa;
-            font-size: 0.9rem;
-            white-space: nowrap;
-        }
-
-        .buyin-text span {
-            color: var(--gold);
-            font-weight: bold;
-            font-size: 1.1rem;
-            margin-left: 5px;
-        }
-
-        #buyInInput {
-            display: none;
-            width: 70px;
-            background: #000;
-            border: 1px solid var(--gold);
-            color: white;
-            padding: 6px;
-            border-radius: 4px;
-            font-size: 1rem;
-            text-align: center;
-        }
-
-        /* Game Layout */
-        .main-layout {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 30px;
-        }
-
-        @media(min-width: 800px) {
-            .main-layout {
-                grid-template-columns: 2fr 1fr;
-            }
-        }
-
-        .poker-table {
-            background: var(--felt-green);
-            border: 8px solid var(--table-border);
-            border-radius: 30px;
-            padding: 20px;
-            margin-bottom: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            position: relative;
-            scroll-margin-top: 20px;
-        }
-
-        .table-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        /* Updated Payout Badge */
-        .pot-badge {
-            background: rgba(0, 0, 0, 0.4);
-            color: #fff;
-            padding: 5px 12px;
-            border-radius: 12px;
-            font-size: 0.9rem;
-            font-weight: normal;
-            border: 1px solid rgba(212, 175, 55, 0.3);
-        }
-
-        .pot-gold {
-            color: var(--gold);
-            font-weight: bold;
-        }
-
-        .pot-silver {
-            color: #bdc3c7;
-            font-weight: bold;
-        }
-
-        .player-row {
-            display: flex;
-            align-items: center;
-            padding: 12px 15px;
-            margin: 8px 0;
-            background: rgba(0, 0, 0, 0.25);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.03);
-            transition: background 0.3s;
-        }
-
-        .player-name {
-            flex-grow: 1;
-            font-size: 1.1rem;
-            font-weight: 500;
-        }
-
-        .is-out .player-name {
-            text-decoration: line-through;
-            opacity: 0.5;
-        }
-
-        .is-out {
-            background: rgba(0, 0, 0, 0.1);
-        }
-
-        .btn-circle {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            border: none;
-            cursor: pointer;
-            margin-left: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            transition: transform 0.2s;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-        }
-
-        .btn-out {
-            background: var(--danger);
-            color: white;
-        }
-
-        .btn-undo {
-            background: var(--grey);
-            color: white;
-        }
-
-        .btn-win {
-            background: var(--gold);
-            color: black;
-        }
-
-        .btn-revive {
-            background: var(--success);
-            color: white;
-            width: auto;
-            padding: 0 15px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-        }
-
-        .btn-del {
-            background: #555;
-            color: white;
-            font-size: 0.9rem;
-        }
-
-        .btn-cancel-game {
-            background: none;
-            border: none;
-            color: #666;
-            text-decoration: underline;
-            cursor: pointer;
-            font-size: 0.85rem;
-            padding: 5px;
-            width: 100%;
-            margin-top: 15px;
-        }
-
-        .btn-cancel-game:hover {
-            color: var(--danger);
-        }
-
-        /* Leaderboard */
-        .leaderboard {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 20px;
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th {
-            text-align: left;
-            color: var(--gold);
-            border-bottom: 1px solid #444;
-            padding: 8px 0;
-            font-size: 0.9rem;
-        }
-
-        td {
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            font-size: 1rem;
-        }
-
-        .profit-pos {
-            color: var(--success);
-            font-weight: bold;
-        }
-
-        .profit-neg {
-            color: var(--danger);
-            opacity: 0.9;
-        }
-
-        /* Subtle Reset Button */
-        .btn-reset-text {
-            background: none;
-            border: none;
-            color: #555;
-            font-size: 0.75rem;
-            text-decoration: underline;
-            cursor: pointer;
-            margin-top: 15px;
-            width: 100%;
-            transition: color 0.2s;
-            display: none;
-            /* Hidden by default */
-        }
-
-        .btn-reset-text:hover {
-            color: var(--danger);
-            opacity: 0.8;
-        }
-
-        /* Victory Overlay */
-        #victoryOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.92);
-            backdrop-filter: blur(8px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            flex-direction: column;
-            text-align: center;
-        }
-
-        .victory-title {
-            color: var(--gold);
-            letter-spacing: 3px;
-            margin-bottom: 20px;
-            font-size: 1.2rem;
-            text-transform: uppercase;
-        }
-
-        .victory-name {
-            font-size: 4rem;
-            color: #fff;
-            margin: 0;
-            text-shadow: 0 0 30px var(--gold);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.05);
-            }
-
-            100% {
-                transform: scale(1);
-            }
-        }
-
-        /* Admin Modal */
-        #adminModal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.95);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-        }
-
-        .admin-content {
-            background: #1a1a1a;
-            padding: 30px;
-            border-radius: 10px;
-            border: 1px solid var(--gold);
-            max-width: 500px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .archive-item {
-            border-bottom: 1px solid #333;
-            padding: 15px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .archive-label {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .archive-date {
-            color: var(--gold);
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-
-        .archive-details {
-            font-size: 0.8rem;
-            color: #888;
-        }
-
-        .btn-restore {
-            background: #333;
-            color: var(--success);
-            border: 1px solid var(--success);
-            padding: 5px 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            font-weight: bold;
-        }
-
-        .admin-section {
-            margin-bottom: 30px;
-        }
-
-        .admin-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: #888;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #444;
-            padding-bottom: 5px;
-        }
-
-        .admin-clear-link {
-            font-size: 0.7rem;
-            color: var(--danger);
-            text-decoration: underline;
-            cursor: pointer;
-            margin-left: 10px;
-            vertical-align: middle;
-        }
-
-        .admin-roster-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        .admin-roster-item {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 8px 12px;
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9rem;
-        }
-
-        .btn-delete-player {
-            background: none;
-            border: none;
-            color: #666;
-            cursor: pointer;
-            font-size: 1.1rem;
-        }
-
-        .btn-delete-player:hover {
-            color: var(--danger);
-        }
-
-        /* Toast */
-        #toast {
-            visibility: hidden;
-            min-width: 250px;
-            margin-left: -125px;
-            background-color: var(--gold);
-            color: #000;
-            text-align: center;
-            border-radius: 50px;
-            padding: 16px;
-            position: fixed;
-            z-index: 10001;
-            left: 50%;
-            bottom: 30px;
-            font-weight: bold;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-        }
-
-        #toast.show {
-            visibility: visible;
-            animation: fadein 0.5s, fadeout 0.5s 4.5s;
-        }
-
-        @keyframes fadein {
-            from {
-                bottom: 0;
-                opacity: 0;
-            }
-
-            to {
-                bottom: 30px;
-                opacity: 1;
-            }
-        }
-
-        @keyframes fadeout {
-            from {
-                bottom: 30px;
-                opacity: 1;
-            }
-
-            to {
-                bottom: 0;
-                opacity: 0;
-            }
-        }
-
-        /* Utilities */
-        .collapsed-view {
-            text-align: center;
-            padding: 10px;
-            display: none;
-        }
-
-        .poker-table.complete .full-view {
-            display: none;
-        }
-
-        .poker-table.complete .collapsed-view {
-            display: block;
-        }
-
-        .poker-table.expanded .full-view {
-            display: block;
-        }
-
-        .poker-table.expanded .collapsed-view {
-            display: none;
-        }
-
-        .edit-bar {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            display: flex;
-            gap: 10px;
-        }
-
-        /* FOOTER & SMALL PRINT */
-        footer {
-            text-align: center;
-            margin-top: 50px;
-            color: #333;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .rules-footer {
-            margin-top: 40px;
-            padding: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
-            color: #666;
-            font-size: 0.8rem;
-            line-height: 1.5;
-            font-style: italic;
-        }
-
-        .rules-footer p {
-            margin: 5px 0;
-        }
-
-        .fun-quote {
-            color: var(--gold);
-            opacity: 0.7;
-            margin-top: 10px !important;
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;650;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="PokerScore.css?v=20260919">
 </head>
 
 <body>
 
-    <div id="victoryOverlay" onclick="closeVictory()">
+    <div id="victoryOverlay" role="dialog" aria-modal="true" aria-label="Winner declared" tabindex="0" onclick="closeVictory()" onkeydown="if(event.key==='Enter'||event.key==='Escape') closeVictory()">
         <div class="victory-title">Elite Winner Declared</div>
         <h1 class="victory-name" id="winnerNameDisplay">NAME</h1>
-        <p style="color:#888; margin-top: 40px;">Tap anywhere to continue</p>
+        <p class="victory-hint">Tap anywhere to continue</p>
     </div>
 
-    <div id="toast">Default Notification</div>
+    <div id="toast" role="status" aria-live="polite">Default Notification</div>
 
-    <div id="adminModal">
+    <div id="adminModal" role="dialog" aria-modal="true" aria-label="Admin vault">
         <div class="admin-content">
-            <h2
-                style="color:var(--gold); margin-top:0; display:flex; align-items:center; justify-content:space-between;">
+            <h2 class="admin-title">
                 Admin Vault
-                <span class="admin-clear-link" onclick="clearArchive()">[Clear History]</span>
+                <button class="admin-clear-link" onclick="clearArchive()">Clear history</button>
             </h2>
 
             <div class="admin-section">
@@ -784,37 +55,34 @@
     </div>
 
     <div class="container">
-        <header>
-            <div class="wooden-plaque">
-                <h1>Gentleman's Poker Elite</h1>
-            </div>
+        <header class="app-header">
+            <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3C9 7 4 9 4 13a4 4 0 0 0 7 2c0 3-1 5-3 6h8c-2-1-3-3-3-6a4 4 0 0 0 7-2c0-4-5-6-8-10Z"/></svg></div>
+            <div><h1>Gentleman's Poker Elite</h1><div class="app-subtitle">Weekly session</div></div>
         </header>
 
         <div class="lobby-card" id="lobbyCard">
-            <div class="lobby-header" onclick="toggleLobby()">
-                <h2 style="margin:0; font-size: 1.1rem; color: var(--gold);">Table Setup</h2>
-                <span class="toggle-icon" id="lobbyIcon">▼</span>
+            <div class="lobby-header">
+                <h2>Table setup</h2>
+                <button class="btn-link" id="lobbyIcon" onclick="toggleLobby()" aria-expanded="true" aria-controls="lobbyContent">Collapse</button>
             </div>
-            <div class="lobby-content">
+            <div class="lobby-content" id="lobbyContent">
                 <div class="chip-grid" id="masterChips"></div>
-
-                <button class="btn-link" onclick="toggleNewPlayerSection()">+ New Name</button>
 
                 <div id="newPlayerSection">
                     <div class="input-group">
-                        <input type="text" id="playerNameInput" placeholder="New Player Name">
+                        <input type="text" id="playerNameInput" aria-label="New player name" placeholder="New player name" onkeydown="if(event.key==='Enter') addNewPlayer()">
                         <button class="btn-main" onclick="addNewPlayer()">Add</button>
                     </div>
                 </div>
 
-                <div style="margin-top: 15px; display: flex; align-items: center; justify-content: space-between;">
-                    <div class="buyin-wrapper" onclick="editBuyIn()" id="buyInWidget" title="Click to edit">
-                        <div class="buyin-text" id="buyInText">Buy-in: <span>£5</span></div>
-                        <input type="number" id="buyInInput" onblur="saveBuyIn()"
+                <div class="setup-bottom">
+                    <div class="buyin-wrapper" id="buyInWidget">
+                        <button class="buyin-text" id="buyInText" onclick="editBuyIn()" aria-label="Edit buy-in">Buy-in: <span>£5</span></button>
+                        <input type="number" id="buyInInput" aria-label="Buy-in in pounds" onblur="saveBuyIn()"
                             onkeydown="if(event.key==='Enter') saveBuyIn()">
                     </div>
 
-                    <button class="btn-main" id="startBtn" onclick="startNewGame()">Set 1st Game</button>
+                    <button class="btn-main" id="startBtn" onclick="startNewGame()">Set first game</button>
                 </div>
             </div>
         </div>
@@ -823,7 +91,7 @@
             <div id="gamesContainer"></div>
 
             <aside class="leaderboard">
-                <h2 style="margin:0 0 15px 0; font-size: 1.2rem; color:var(--gold)">Weekly Leaderboard</h2>
+                <h2>Weekly leaderboard</h2>
                 <table id="leaderboardTable">
                     <thead>
                         <tr>
@@ -844,15 +112,19 @@
 
                 <button id="resetWeekBtn" class="btn-reset-text" onclick="resetAll()">Reset Weekly Session</button>
             </aside>
+            <section class="history-section" id="historySection" hidden aria-label="Previous games">
+                <h2>Previous games</h2>
+                <div id="historyContainer"></div>
+            </section>
         </div>
 
-        <div class="rules-footer">
+        <footer class="page-footer"><div class="rules-footer">
             <p>Games with 4+ players will have a 1st place and a 2nd place.<br>Games with 3 or fewer players will only
                 have a 1st place.</p>
             <p class="fun-quote">Good Luck > Got to be in it to win it<br>(That’s what she said)</p>
         </div>
 
-        <footer onclick="openAdmin()">π</footer>
+        <button class="admin-trigger" onclick="openAdmin()" aria-label="Open admin vault">π</button></footer>
     </div>
 
     <script>
@@ -864,7 +136,8 @@
 
         function toggleNewPlayerSection() {
             const sec = document.getElementById('newPlayerSection');
-            sec.style.display = sec.style.display === 'none' ? 'block' : 'none';
+            sec.style.display = getComputedStyle(sec).display === 'none' ? 'block' : 'none';
+            if (sec.style.display === 'block') document.getElementById('playerNameInput').focus();
         }
 
         function editBuyIn() {
@@ -882,7 +155,7 @@
 
             const duration = 2500;
             const end = Date.now() + duration;
-            const colors = ['#d4af37', '#e74c3c', '#ffffff'];
+            const colors = ['#528aff', '#bdd2ff', '#f3f4f7'];
 
             (function frame() {
                 confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: colors, zIndex: 10000 });
@@ -1277,7 +550,7 @@
                 const archives = snap.val();
                 gameList.innerHTML = '';
                 if (!archives) {
-                    gameList.innerHTML = '<div style="padding:5px; color:#666;">Empty.</div>';
+                    gameList.innerHTML = '<div style="padding:5px; color:var(--muted);">Empty.</div>';
                 } else {
                     Object.entries(archives).forEach(([key, game]) => {
                         const div = document.createElement('div');
@@ -1299,7 +572,7 @@
                 const sessions = snap.val();
                 sessionList.innerHTML = '';
                 if (!sessions) {
-                    sessionList.innerHTML = '<div style="padding:5px; color:#666;">Empty.</div>';
+                    sessionList.innerHTML = '<div style="padding:5px; color:var(--muted);">Empty.</div>';
                 } else {
                     Object.entries(sessions).reverse().forEach(([key, session]) => {
                         const date = new Date(session.date).toLocaleDateString('en-GB');
@@ -1369,6 +642,23 @@
             });
         }
 
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c]));
+        }
+
+        function scoreIcon(name) {
+            const paths = {
+                trophy: '<path d="M8 3h8v6a4 4 0 0 1-8 0V3Zm0 2H4v2a4 4 0 0 0 4 4m8-6h4v2a4 4 0 0 1-4 4M12 13v5m-4 3h8m-7-3h6v3"/>',
+                check: '<path d="m5 12 4 4L19 6"/>',
+                close: '<path d="m6 6 12 12M18 6 6 18"/>',
+                undo: '<path d="M3 10h11a6 6 0 0 1 0 12M3 10l5-5m-5 5 5 5"/>',
+                plus: '<path d="M5 12h14M12 5v14"/>',
+                minus: '<path d="M5 12h14"/>'
+            };
+            return `<svg class="icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${paths[name] || ''}</svg>`;
+        }
+
+
         // --- RENDER ---
         function render() {
             const buyInDisplay = document.getElementById('buyInText');
@@ -1385,10 +675,12 @@
             const lobbyIcon = document.getElementById('lobbyIcon');
             if (state.collapsedLobby) {
                 lobbyCard.classList.add('collapsed');
-                lobbyIcon.innerText = '◀';
+                lobbyIcon.innerText = 'Expand';
+                lobbyIcon.setAttribute('aria-expanded', 'false');
             } else {
                 lobbyCard.classList.remove('collapsed');
-                lobbyIcon.innerText = '▼';
+                lobbyIcon.innerText = 'Collapse';
+                lobbyIcon.setAttribute('aria-expanded', 'true');
             }
 
             // Roster
@@ -1396,112 +688,91 @@
             chipsDiv.innerHTML = '';
             Object.values(state.roster).forEach(name => {
                 const isSel = state.activeStatus[name];
-                const chip = document.createElement('div');
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.setAttribute('aria-pressed', String(!!isSel));
                 chip.className = `chip ${isSel ? 'selected' : 'deselected'}`;
                 chip.innerText = name;
                 chip.onclick = () => toggleChip(name);
                 chipsDiv.appendChild(chip);
             });
 
+            const addName = document.createElement('button');
+            addName.className = 'btn-link';
+            addName.textContent = '+ New name';
+            addName.onclick = toggleNewPlayerSection;
+            chipsDiv.appendChild(addName);
+
             // Start Button
             const startBtn = document.getElementById('startBtn');
             const lastGame = state.games[state.games.length - 1];
             if (state.games.length === 0) {
-                startBtn.innerText = "Set 1st Game";
+                startBtn.innerText = "Set first game";
                 startBtn.disabled = false;
             } else {
-                startBtn.innerText = "Start Next Game";
+                startBtn.innerText = "Start next game";
                 startBtn.disabled = !lastGame.complete;
             }
 
-            // Games List
+            // Latest game stays prominent; older games retain their existing expand/edit actions.
             const container = document.getElementById('gamesContainer');
+            const history = document.getElementById('historyContainer');
             container.innerHTML = '';
+            history.innerHTML = '';
+            document.getElementById('historySection').hidden = state.games.length < 2;
+            if (!state.games.length) {
+                container.innerHTML = '<div class="empty-state"><h2>Ready for the first game</h2>Select your players above, check the buy-in, and set the first game.</div>';
+            }
 
             [...state.games].reverse().forEach((game, revIdx) => {
                 const idx = state.games.length - 1 - revIdx;
-
+                const latest = revIdx === 0;
                 const remaining = (game.players || []).filter(p => !(game.out || []).includes(p));
                 const totalPot = (game.players || []).length * state.buyIn;
-                const isExpanded = game.expanded || !game.complete;
-
-                // NEW: Payout Badge Calculation
-                let potBadgeHtml = ``;
-                if ((game.players || []).length > 3) {
-                    // 1st gets (Pot - 2nd place's stake)
-                    const firstPrize = totalPot - state.buyIn;
-                    // Simplified display: Just show 1st place
-                    potBadgeHtml = `<span class="pot-badge">1st: <span class="pot-gold">£${firstPrize}</span></span>`;
-                } else {
-                    // Winner takes all
-                    potBadgeHtml = `<span class="pot-badge">1st: <span class="pot-gold">£${totalPot}</span></span>`;
-                }
-
-                const card = document.createElement('div');
-                card.className = `poker-table ${game.complete ? 'complete' : ''} ${isExpanded ? 'expanded' : ''}`;
-
+                const firstPrize = (game.players || []).length > 3 ? totalPot - state.buyIn : totalPot;
+                const isExpanded = game.expanded || !game.complete || game.editMode;
+                const card = document.createElement('article');
+                card.className = `poker-table ${latest ? 'latest-game' : 'history-game'} ${game.complete ? 'complete' : ''} ${isExpanded ? 'expanded' : ''}`;
+                card.setAttribute('aria-label', `Game ${game.id}`);
+                const amount = `£${firstPrize}`;
                 let playerRows = '';
                 (game.players || []).forEach(p => {
                     const isOut = (game.out || []).includes(p);
                     const isWin = game.winner === p;
                     const isSec = game.second === p;
-                    const btnClass = isOut ? 'btn-undo' : 'btn-out';
-                    const btnIcon = isOut ? '↩' : '✘';
-
+                    // Attribute-safe JSON preserves player names containing apostrophes.
+                    const arg = escapeHtml(JSON.stringify(p));
                     let controls = '';
                     if (!game.complete && !game.editMode) {
-                        controls = `
-                        <button class="btn-circle ${btnClass}" onclick="knockOut(${idx}, '${p}')">${btnIcon}</button>
-                        ${(remaining.length === 2 && !isOut) ? `<button class="btn-circle btn-win" onclick="declareWinner(${idx}, '${p}')">👑</button>` : ''}
-                    `;
+                        controls = `<button class="btn-circle ${isOut ? 'btn-undo' : 'btn-out'}" aria-label="${isOut ? 'Undo elimination of' : 'Knock out'} ${escapeHtml(p)}" onclick="knockOut(${idx}, ${arg})">${scoreIcon(isOut ? 'undo' : 'close')}</button>
+                            ${(remaining.length === 2 && !isOut) ? `<button class="btn-circle btn-win" aria-label="Declare ${escapeHtml(p)} winner" onclick="declareWinner(${idx}, ${arg})">${scoreIcon('trophy')}</button>` : ''}`;
                     } else if (game.editMode) {
-                        controls = `
-                        ${isOut ? `<button class="btn-circle btn-revive" onclick="knockOut(${idx}, '${p}')">Revive</button>` : ''}
-                        <button class="btn-circle btn-del" onclick="midGameRemove(${idx}, '${p}')">Del</button>
-                    `;
+                        controls = `${isOut ? `<button class="btn-circle btn-revive" onclick="knockOut(${idx}, ${arg})">Revive</button>` : ''}
+                            <button class="btn-circle btn-del" aria-label="Remove ${escapeHtml(p)}" onclick="midGameRemove(${idx}, ${arg})">Del</button>`;
                     }
-
-                    playerRows += `
-                    <div class="player-row ${isOut ? 'is-out' : ''}">
-                        <span class="player-name">${p} ${isWin ? '👑' : ''} ${isSec ? '🥈' : ''}</span>
-                        ${controls}
-                    </div>`;
+                    const status = isWin ? `${scoreIcon('trophy')} Winner` : isSec ? 'Runner-up' : isOut ? 'Out' : '';
+                    playerRows += `<div class="player-row ${isOut && !isWin && !isSec ? 'is-out' : ''}">
+                        <span class="player-name">${escapeHtml(p)}</span>
+                        ${game.complete && !game.editMode ? `<span class="player-status">${status}</span>` : ''}${controls}</div>`;
                 });
-
-                card.innerHTML = `
-                <div class="table-header">
-                    <span style="font-weight:bold; color:var(--gold)">GAME ${game.id}</span>
-                    ${potBadgeHtml}
-                </div>
-
-                <div class="full-view">
-                    <div style="text-align:right; margin-bottom:5px;">
-                        <span style="font-size:0.8rem; color:#666; cursor:pointer; text-decoration:underline" onclick="toggleEdit(${idx})">
-                            ${game.editMode ? 'Done Editing' : 'Edit Table'}
-                        </span>
+                const resultHeader = `<div class="result-header"><div><div class="result-label">${game.complete ? 'Winner' : 'Players remaining'}</div>
+                        <div class="result-name">${game.complete ? escapeHtml(game.winner || '—') : `${remaining.length} of ${(game.players || []).length}`}</div></div>
+                        <div class="result-prize"><div class="result-label">1st place payout</div><div class="result-amount">${amount}</div>
+                        ${(game.players || []).length > 3 ? `<div class="second-prize">2nd: £${state.buyIn}</div>` : ''}</div></div>`;
+                card.innerHTML = `${latest ? `<div class="table-header"><span class="game-label">GAME ${game.id}</span><span class="game-status ${game.complete ? '' : 'live'}">${game.complete ? scoreIcon('check') : ''}${game.complete ? 'Complete' : 'In progress'}</span></div>${resultHeader}` :
+                    `<button class="history-summary" onclick="toggleExpand(${idx})" aria-expanded="${!!isExpanded}" aria-controls="game-details-${idx}"><span class="game-label">Game ${game.id}</span><span class="history-winner">${game.complete ? escapeHtml(game.winner || '—') : 'In progress'}</span><span class="history-amount">${amount}</span>${scoreIcon(isExpanded ? 'minus' : 'plus')}</button>`}
+                    <div class="full-view" id="game-details-${idx}" ${isExpanded ? '' : 'hidden'}>
+                        ${game.editMode ? `<div class="edit-bar"><button class="btn-main" onclick="midGameAdd(${idx})">+ Player</button>
+                            ${game.complete ? `<button class="btn-main btn-danger" onclick="stripCrown(${idx})">Strip crown</button>` : ''}</div>` : ''}
+                        <div class="player-list">${playerRows}</div>
+                        ${!latest ? `<div class="game-actions"><button class="btn-link" onclick="toggleEdit(${idx})">${game.editMode ? 'Done editing' : 'Edit table'}</button>
+                            ${!game.complete ? `<button class="btn-cancel-game" onclick="cancelGame(${idx})">Cancel game</button>` : ''}</div>` : ''}
                     </div>
-
-                    ${game.editMode ? `
-                        <div class="edit-bar">
-                            <button class="btn-main" style="padding:5px 10px; font-size:0.7rem" onclick="midGameAdd(${idx})">+ Player</button>
-                            ${game.complete ? `<button class="btn-main" style="background:var(--danger); padding:5px 10px; font-size:0.7rem" onclick="stripCrown(${idx})">Strip Crown</button>` : ''}
-                        </div>
-                    ` : ''}
-
-                    ${playerRows}
-                    
-                    ${!game.complete ? `<div style="text-align:center; margin-top:15px;"><button class="btn-cancel-game" onclick="cancelGame(${idx})">Cancel Game</button></div>` : ''}
-                    ${game.complete ? `<div style="text-align:center; margin-top:10px;"><span style="color:var(--gold); cursor:pointer; text-decoration:underline" onclick="toggleExpand(${idx})">Collapse View</span></div>` : ''}
-                </div>
-
-                <div class="collapsed-view" onclick="toggleExpand(${idx})">
-                    <div style="font-size:1.2rem; margin-bottom:5px;">Winner: ${game.winner} 👑</div>
-                    <div style="color:#aaa;">Runner Up: ${game.second} 🥈</div>
-                    <div style="font-size:0.8rem; color:var(--gold); margin-top:5px;">(Tap to view details)</div>
-                </div>
-            `;
-                container.appendChild(card);
+                    ${latest ? `<div class="game-actions"><button class="btn-link" onclick="toggleEdit(${idx})">${game.editMode ? 'Done editing' : 'Edit table'}</button>
+                        ${game.complete ? `<button class="btn-link" onclick="toggleExpand(${idx})" aria-expanded="${!!isExpanded}" aria-controls="game-details-${idx}">${isExpanded ? 'Collapse details' : 'View details'}</button>` : `<button class="btn-cancel-game" onclick="cancelGame(${idx})">Cancel game</button>`}</div>` : ''}`;
+                (latest ? container : history).appendChild(card);
             });
+
 
             // 4. Leaderboard
             const lbBody = document.getElementById('leaderboardBody');
@@ -1519,7 +790,7 @@
             const sorted = Object.entries(totals).sort((a, b) => b[1] - a[1]);
 
             if (sorted.length === 0) {
-                lbBody.innerHTML = '<tr><td colspan="2" style="text-align:center; color:#666;">No completed games</td></tr>';
+                lbBody.innerHTML = '<tr><td colspan="2" style="text-align:center; color:var(--muted);">No completed games</td></tr>';
             } else {
                 sorted.forEach(([name, bal]) => {
                     const row = lbBody.insertRow();
@@ -1527,7 +798,7 @@
                     const c2 = row.insertCell(1);
                     c2.style.textAlign = 'right';
                     c2.innerText = (bal >= 0 ? '£' : '-£') + Math.abs(bal).toFixed(2);
-                    c2.className = bal >= 0 ? 'profit-pos' : 'profit-neg';
+                    c2.className = bal > 0 ? 'profit-pos' : bal < 0 ? 'profit-neg' : 'profit-zero';
                 });
             }
         }
