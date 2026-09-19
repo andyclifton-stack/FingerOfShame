@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -902,6 +902,7 @@
             z-index: 2000;
         }
     </style>
+    <link rel="stylesheet" href="diceduel-layout.css?v=20260919">
 </head>
 
 <body class="theme-classic">
@@ -913,19 +914,19 @@
     <header>
         <div class="header-top">
             <div id="main-title">DICE DUEL</div>
-            <div id="settings-btn" onclick="openSettings()">⚙️</div>
+            <button id="settings-btn" aria-label="Settings" onclick="openSettings()">⚙</button>
         </div>
 
         <div class="header-mid">
             <div id="icon-left" class="player-icon active icon-club">♣</div>
-            <div class="scene" id="dice-area">
+            <div class="scene" id="dice-area" role="button" tabindex="0" aria-label="Roll dice">
                 <div class="cube" id="dice1"></div>
             </div>
             <div id="icon-right" class="player-icon active icon-club">♣</div>
         </div>
 
         <div class="header-bottom">
-            <p id="instruction-text">Clubs, your turn to roll the dice.</p>
+            <p id="instruction-text" role="status" aria-live="polite">Clubs, your turn to roll the dice.</p>
             <button id="skip-btn">Pass Turn to Hearts</button>
         </div>
     </header>
@@ -944,7 +945,7 @@
         </div>
         <div class="column" id="col-center">
             <div class="header-slot">
-                <div class="col-header" style="opacity:0">.</div>
+                <div class="col-header">CENTER</div>
             </div>
             <div id="center-slot-6" class="card-slot"></div>
             <div id="center-slot-5" class="card-slot"></div>
@@ -966,14 +967,15 @@
         </div>
     </div>
 
-    <button id="action-btn">MOVE CARDS</button>
+    <div class="game-actions"><button id="action-btn">MOVE CARDS</button></div>
+    <p id="connection-status" role="status" aria-live="polite"></p>
 
     <div id="start-screen" class="modal-overlay show">
         <div id="start-logo">DICE DUEL</div>
         <button class="mode-btn" onclick="startGame('1p')">1 PLAYER (AI)</button>
         <button class="mode-btn" onclick="startGame('2p')">2 PLAYERS (LOCAL)</button>
         <button class="mode-btn online-btn" onclick="initOnlineGame()">PLAY ONLINE</button>
-        <div class="sub-link" onclick="openRules()">How to Play</div>
+        <button class="sub-link" onclick="openRules()">How to Play</button>
     </div>
 
     <div id="lobby-screen" class="modal-overlay">
@@ -1028,15 +1030,15 @@
 
     <div id="settings-modal" class="modal-overlay" onclick="closeSettings(event)">
         <div class="modal-content">
-            <span class="close-btn" onclick="closeSettings()">&times;</span>
+            <button class="close-btn" aria-label="Close" onclick="closeSettings()">&times;</button>
             <h2>Settings</h2>
             <div class="setting-row">
                 <div class="setting-label">Card Style</div>
-                <div id="theme-toggle" class="switch-toggle" data-state="left" onclick="toggleTheme()">
-                    <div class="switch-bg"></div>
-                    <div class="switch-option opt-left">Classic</div>
-                    <div class="switch-option opt-right">Bold</div>
-                </div>
+                <button id="theme-toggle" class="switch-toggle" data-state="left" aria-label="Bold card style" aria-pressed="false" onclick="toggleTheme()">
+                    <span class="switch-bg"></span>
+                    <span class="switch-option opt-left">Classic</span>
+                    <span class="switch-option opt-right">Bold</span>
+                </button>
             </div>
             <h3 style="margin:10px 0 5px; font-size:0.8rem; opacity:0.6;">LIVE STATS</h3>
             <table class="stats-table">
@@ -1082,7 +1084,7 @@
 
     <div id="rules-modal" class="modal-overlay" onclick="closeRules(event)">
         <div class="modal-content">
-            <span class="close-btn" onclick="closeRules()">&times;</span>
+            <button class="close-btn" aria-label="Close" onclick="closeRules()">&times;</button>
             <h2>How to Play</h2>
             <p><strong>Goal:</strong> Move all 6 cards to the center stage.</p>
             <ul>
@@ -1091,6 +1093,15 @@
                 <li>Move them to the center.</li>
             </ul>
             <p><strong>Bump:</strong> Landing on an opponent's card sends it home.</p>
+        </div>
+    </div>
+
+    <div id="restart-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Restart this game?</h2>
+            <p>This clears the current round and its scores.</p>
+            <button class="mode-btn" onclick="document.getElementById('restart-modal').classList.remove('show'); fullReset()">Restart game</button>
+            <button class="sub-link" onclick="document.getElementById('restart-modal').classList.remove('show')">Keep playing</button>
         </div>
     </div>
 
@@ -1166,6 +1177,53 @@
         let p1Home = { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true };
         let p2Home = { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true };
         let selectedValues = []; let isAnimating = false;
+        let gameEpoch = 0;
+        const gameTimers = new Set();
+        let rollInterval = null;
+        let roomListener = null;
+        let roomRef = null;
+        let onlineRound = null;
+        let onlineConnected = true;
+        let onlineReady = false;
+        let pendingRemote = null;
+        function gameDelay(callback, delay) {
+            const epoch = gameEpoch;
+            const timer = setTimeout(() => {
+                gameTimers.delete(timer);
+                if (epoch === gameEpoch) callback();
+            }, delay);
+            gameTimers.add(timer);
+            return timer;
+        }
+        function cancelGameActions() {
+            gameEpoch++;
+            gameTimers.forEach(clearTimeout);
+            gameTimers.clear();
+            clearInterval(rollInterval);
+            isAnimating = false;
+            selectedValues = [];
+            pendingRemote = null;
+            diceEl.classList.remove('rolling');
+            document.querySelectorAll('.card').forEach(card => {
+                card.classList.remove('selected', 'poked');
+                card.style.transform = '';
+                card.style.transition = '';
+            });
+        }
+        function connectionMessage(message) {
+            document.getElementById('connection-status').textContent = message;
+        }
+        function onlineError(error) {
+            console.error('Online game:', error);
+            onlineReady = false;
+            connectionMessage('Connection problem. Reload to rejoin your game.');
+            updateUI();
+        }
+        function canAct() {
+            return !gameState.winner && !isAnimating &&
+                !(gameMode === '1p' && gameState.turn === 'p2') &&
+                !(gameMode === 'online' && (!onlineConnected || !onlineReady || gameState.turn !== myRole));
+        }
 
         const instructionText = document.getElementById('instruction-text');
         const diceEl = document.getElementById('dice1');
@@ -1199,18 +1257,21 @@
         }
 
         function createCardElement(player, value) {
-            const card = document.createElement('div');
+            const card = document.createElement('button');
+            card.type = 'button';
+            card.setAttribute('aria-label', `${value === 1 ? 'Ace' : value} of ${player === 'p1' ? 'Clubs' : 'Hearts'}`);
+            card.setAttribute('aria-pressed', 'false');
             card.className = `card ${player === 'p1' ? 'clubs' : 'hearts'}`;
             card.id = `card-${player}-${value}`;
             const suitIcon = player === 'p1' ? '♣' : '♥';
             const displayVal = value === 1 ? 'A' : value;
-            card.innerHTML = `<div class="card-corner"><div>${displayVal}</div><div class="mini-suit">${suitIcon}</div></div><div class="card-center">${suitIcon}</div>`;
+            card.innerHTML = `<span class="card-corner"><span>${displayVal}</span><span class="mini-suit">${suitIcon}</span></span><span class="card-center">${suitIcon}</span>`;
             card.onclick = () => handleCardClick(player, value);
             document.getElementById(`${player}-slot-${value}`).appendChild(card);
         }
 
         function handleCardClick(player, value) {
-            if (isAnimating || gameState.winner || !gameState.hasRolled) return;
+            if (!canAct() || !gameState.hasRolled) return;
             if (gameMode === 'online' && player !== myRole) return;
             if (gameMode === '1p' && player === 'p2') return;
             if (player !== gameState.turn) return;
@@ -1227,6 +1288,7 @@
                 cardEl.classList.add('selected');
                 playSound('select'); triggerHaptic();
             }
+            cardEl.setAttribute('aria-pressed', String(selectedValues.includes(value)));
             checkSelection();
         }
 
@@ -1241,111 +1303,81 @@
 
         // --- ONLINE LOGIC ---
 
-        function initOnlineGame() {
-            if (!db) { alert("Database Error"); return; }
+        async function initOnlineGame() {
+            if (!db) { connectionMessage('Online play is unavailable. Please try again later.'); return; }
+            cancelGameActions();
             gameMode = 'online';
-            onlineGameId = Math.random().toString(36).substring(2, 8).toUpperCase();
+            onlineGameId = Math.random().toString(36).substring(2, 10).toUpperCase();
             myRole = 'p1';
-
-            db.ref('dice_game/rooms/' + onlineGameId).set({
-                gameState: gameState,
-                p1Home: p1Home,
-                p2Home: p2Home,
-                gameStats: gameStats,
-                status: 'waiting'
-            });
-
+            localStorage.setItem('role_' + onlineGameId, myRole);
+            history.replaceState(null, '', '?game=' + onlineGameId);
             startScreen.classList.remove('show');
             lobbyScreen.classList.add('show');
             document.getElementById('lobby-code').innerText = onlineGameId;
-
-            // Listen for status changes
-            db.ref('dice_game/rooms/' + onlineGameId + '/status').on('value', (snap) => {
-                if (snap.val() === 'active') {
-                    lobbyScreen.classList.remove('show');
-                    startGameListener();
-                } else if (snap.val() === 'waiting') {
-                    // Game reset! Show Lobby
-                    victoryOverlay.classList.remove('show');
-                    startScreen.classList.remove('show');
-                    lobbyScreen.classList.add('show');
-                    // Reset local visuals
-                    document.querySelectorAll('.card').forEach(c => {
-                        c.classList.remove('in-center', 'selected');
-                        c.style.transform = '';
-                    });
-                    gameState.centerSlots = { 1: null, 2: null, 3: null, 4: null, 5: null, 6: null };
-                    syncDOMtoState();
-                }
-            });
+            try {
+                await db.ref('dice_game/rooms/' + onlineGameId).set({
+                    gameState, p1Home, p2Home, gameStats, status: 'waiting', round: Date.now()
+                });
+                startGameListener();
+            } catch (error) { onlineError(error); }
         }
 
-        function joinOnlineGame(id) {
-            if (!db) return;
+        async function joinOnlineGame(id) {
+            if (!db || !/^[a-z0-9]{6,8}$/i.test(id)) return;
             gameMode = 'online';
             onlineGameId = id;
-
-            db.ref('dice_game/rooms/' + id).once('value', (snap) => {
-                if (snap.exists()) {
-                    const savedRole = localStorage.getItem('role_' + id);
-                    if (savedRole) {
-                        myRole = savedRole;
-                    } else {
-                        myRole = 'p2';
-                        localStorage.setItem('role_' + id, 'p2');
-                        db.ref('dice_game/rooms/' + id + '/status').set('active');
-                    }
-                    startScreen.classList.remove('show');
-                    startGameListener();
-
-                    // Add listener for resets on P2 side too
-                    db.ref('dice_game/rooms/' + id + '/status').on('value', (snap) => {
-                        if (snap.val() === 'waiting') {
-                            victoryOverlay.classList.remove('show');
-                            lobbyScreen.classList.add('show');
-                            document.getElementById('lobby-code').innerText = onlineGameId;
-                        }
-                    });
-
-                } else {
-                    alert("Game not found!");
+            try {
+                const snap = await db.ref('dice_game/rooms/' + id).once('value');
+                if (!snap.exists()) { connectionMessage('This game no longer exists. Start a new online game.'); gameMode = '2p'; return; }
+                myRole = localStorage.getItem('role_' + id) === 'p1' ? 'p1' : 'p2';
+                localStorage.setItem('role_' + id, myRole);
+                if (myRole === 'p2' && snap.val().status === 'waiting') {
+                    await db.ref('dice_game/rooms/' + id + '/status').set('active');
                 }
-            });
+                startScreen.classList.remove('show');
+                startGameListener();
+            } catch (error) { onlineError(error); }
+        }
+
+        function applyOnlineState(data) {
+            if (!data || !data.gameState) return;
+            if (onlineRound !== data.round) {
+                cancelGameActions();
+                onlineRound = data.round;
+                victoryOverlay.classList.remove('show');
+            } else if (isAnimating) { pendingRemote = data; return; }
+            const previousWinner = gameState.winner;
+            const previousTurn = gameState.turn;
+            gameState = data.gameState;
+            if (!gameState.centerSlots) gameState.centerSlots = {};
+            p1Home = data.p1Home || {};
+            p2Home = data.p2Home || {};
+            gameStats = data.gameStats || { p1: { moves: 0, bumps: 0, skips: 0 }, p2: { moves: 0, bumps: 0, skips: 0 } };
+            if (previousTurn !== gameState.turn || !gameState.hasRolled) selectedValues = [];
+            onlineReady = data.status === 'active';
+            lobbyScreen.classList.toggle('show', data.status === 'waiting');
+            document.getElementById('lobby-code').innerText = onlineGameId;
+            syncDOMtoState();
+            updateDiceVisual(diceEl, gameState.roll);
+            updateUI();
+            if (gameState.winner && (previousWinner !== gameState.winner || !victoryOverlay.classList.contains('show'))) handleWin(gameState.winner, false);
         }
 
         function startGameListener() {
-            db.ref('dice_game/rooms/' + onlineGameId).on('value', (snap) => {
-                const data = snap.val();
-                if (!data) return;
-
-                // Only update if we aren't currently animating a local roll
-                if (!isAnimating) {
-                    gameState = data.gameState || {};
-                    if (!gameState.centerSlots) gameState.centerSlots = { 1: null, 2: null, 3: null, 4: null, 5: null, 6: null };
-
-                    p1Home = data.p1Home || {};
-                    p2Home = data.p2Home || {};
-                    gameStats = data.gameStats || { p1: { moves: 0, bumps: 0, skips: 0 }, p2: { moves: 0, bumps: 0, skips: 0 } };
-                    if (!gameStats.p1) gameStats.p1 = { moves: 0, bumps: 0, skips: 0 };
-                    if (!gameStats.p2) gameStats.p2 = { moves: 0, bumps: 0, skips: 0 };
-
-                    syncDOMtoState();
-                    updateDiceVisual(diceEl, gameState.roll);
-                    updateUI();
-
-                    if (gameState.winner) handleWin(gameState.winner);
-                }
-            });
+            if (roomRef && roomListener) roomRef.off('value', roomListener);
+            roomRef = db.ref('dice_game/rooms/' + onlineGameId);
+            roomListener = snap => {
+                if (!snap.exists()) { onlineError(new Error('Room unavailable')); return; }
+                applyOnlineState(snap.val());
+            };
+            roomRef.on('value', roomListener, onlineError);
         }
 
         function syncOnline() {
             if (gameMode === 'online' && db) {
-                db.ref('dice_game/rooms/' + onlineGameId).update({
-                    gameState: gameState,
-                    p1Home: p1Home,
-                    p2Home: p2Home,
-                    gameStats: gameStats
-                });
+                return db.ref('dice_game/rooms/' + onlineGameId).update({
+                    gameState, p1Home, p2Home, gameStats
+                }).catch(onlineError);
             }
         }
 
@@ -1369,6 +1401,9 @@
                     if (p2Slot.includes('center')) card.classList.add('in-center');
                 }
             }
+            selectedValues.forEach(value => {
+                document.getElementById(`card-${gameState.turn}-${value}`).classList.add('selected');
+            });
         }
 
         function shareWhatsapp() {
@@ -1383,7 +1418,7 @@
         }
 
         diceArea.onclick = () => {
-            if (isAnimating && !diceEl.classList.contains('rolling')) { isAnimating = false; }
+            if (!canAct()) return;
             if (gameState.hasRolled || gameState.winner || isAnimating) return;
             if (gameMode === 'online' && gameState.turn !== myRole) return;
             if (gameMode === '1p' && gameState.turn === 'p2') return;
@@ -1394,12 +1429,13 @@
             isAnimating = true;
             diceEl.classList.add('rolling');
             document.querySelector('.scene').classList.remove('dice-pulse');
+            updateUI();
 
             // State driven text handles display
 
-            let rollInterval = setInterval(() => { playSound('roll'); if (Math.random() > 0.5) triggerHaptic(); }, 150);
+            rollInterval = setInterval(() => { playSound('roll'); if (Math.random() > 0.5) triggerHaptic(); }, 150);
 
-            setTimeout(() => {
+            gameDelay(() => {
                 try {
                     clearInterval(rollInterval);
                     const r = Math.floor(Math.random() * 6) + 1;
@@ -1414,7 +1450,7 @@
                     syncOnline();
 
                     if (gameMode === '1p' && gameState.turn === 'p2') {
-                        setTimeout(aiDecideMove, 1000);
+                        gameDelay(aiDecideMove, 1000);
                     } else {
                         skipBtn.classList.add('show');
                     }
@@ -1422,6 +1458,7 @@
                     console.error("Roll Error", e);
                 } finally {
                     isAnimating = false;
+                    if (pendingRemote) { const data = pendingRemote; pendingRemote = null; applyOnlineState(data); }
                     updateUI();
                 }
             }, 800);
@@ -1430,19 +1467,23 @@
         actionBtn.onclick = () => performMove();
 
         function performMove() {
-            if (isAnimating) return;
+            if (isAnimating || gameState.winner || !gameState.hasRolled ||
+                selectedValues.reduce((sum, value) => sum + value, 0) !== gameState.roll) return;
+            const epoch = gameEpoch;
             const player = gameState.turn; const opponent = player === 'p1' ? 'p2' : 'p1';
             isAnimating = true; actionBtn.classList.remove('show'); skipBtn.classList.remove('show');
 
             gameStats[player].moves += selectedValues.length;
+            updateUI();
 
             let pokePromises = selectedValues.map(val => {
                 const card = document.getElementById(`card-${player}-${val}`);
                 card.classList.add('poked'); triggerHaptic();
-                return new Promise(r => setTimeout(r, 200));
+                return new Promise(r => gameDelay(r, 200));
             });
 
             Promise.all(pokePromises).then(() => {
+                if (epoch !== gameEpoch) return;
                 playSound('move'); let animations = [];
                 selectedValues.forEach(val => {
                     const card = document.getElementById(`card-${player}-${val}`);
@@ -1459,7 +1500,7 @@
                         opCard.classList.remove('in-center');
 
                         gameState.centerSlots[val] = null;
-                        setTimeout(() => { playSound('bump'); triggerHaptic(); }, 200);
+                        gameDelay(() => { playSound('bump'); triggerHaptic(); }, 200);
                         animations.push(moveCardInDOM(opponent, val, 'center', 'home'));
                     }
                     if (!gameState.centerSlots) gameState.centerSlots = {};
@@ -1467,6 +1508,7 @@
                     animations.push(moveCardInDOM(player, val, 'home', 'center'));
                 });
                 Promise.all(animations).then(() => {
+                    if (epoch !== gameEpoch) return;
                     selectedValues = [];
                     // VITAL FIX: Clear animation flag BEFORE calling passTurn()
                     isAnimating = false;
@@ -1493,7 +1535,7 @@
                 updateUI();
 
                 if (gameMode === '1p' && gameState.turn === 'p2' && !gameState.winner) {
-                    setTimeout(triggerRoll, 1000);
+                    gameDelay(triggerRoll, 1000);
                 }
             } catch (e) { console.error("PassTurn Error", e); }
         }
@@ -1517,7 +1559,7 @@
 
             // Fix: Self-Healing Logic for stuck text
             if (isAnimating) {
-                instructionText.innerText = "Rolling...";
+                instructionText.innerText = diceEl.classList.contains('rolling') ? "Rolling..." : "Moving cards...";
             } else if (!gameState.hasRolled && !gameState.winner) {
                 // If text was stuck on "Rolling..." but isAnimating is false, fix it
                 if (diceEl.classList.contains('rolling')) diceEl.classList.remove('rolling');
@@ -1554,6 +1596,12 @@
 
             skipBtn.innerText = `Pass Turn to ${opponentName}`;
             updateStatsTables();
+            const allowed = canAct();
+            diceArea.setAttribute('aria-disabled', String(!allowed || gameState.hasRolled));
+            diceArea.setAttribute('aria-label', gameState.hasRolled ? 'Dice: ' + gameState.roll : 'Roll dice');
+            skipBtn.disabled = !allowed || !gameState.hasRolled;
+            if (!allowed || !gameState.hasRolled || !selectedValues.length) actionBtn.classList.remove('show');
+            actionBtn.disabled = !allowed || !gameState.hasRolled;
 
             for (let i = 1; i <= 6; i++) {
                 const p1Card = document.getElementById(`card-p1-${i}`);
@@ -1562,6 +1610,10 @@
                 const p2Card = document.getElementById(`card-p2-${i}`);
                 const isP2Active = !isP1 && p2Home[i];
                 p2Card.classList.toggle('disabled', !isP2Active);
+                p1Card.disabled = !allowed || !gameState.hasRolled || !isP1Active;
+                p2Card.disabled = !allowed || !gameState.hasRolled || !isP2Active;
+                p1Card.setAttribute('aria-pressed', String(isP1 && selectedValues.includes(i)));
+                p2Card.setAttribute('aria-pressed', String(!isP1 && selectedValues.includes(i)));
             }
         }
 
@@ -1569,9 +1621,7 @@
         skipBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             // Guard clause: Prevent cheating in 1P mode
-            if (gameMode === '1p' && gameState.turn === 'p2') return;
-
-            if (!gameState.hasRolled) return;
+            if (!canAct() || !gameState.hasRolled) return;
             // Safe stat increment
             if (!gameStats[gameState.turn]) gameStats[gameState.turn] = { moves: 0, bumps: 0, skips: 0 };
             gameStats[gameState.turn].skips++;
@@ -1591,26 +1641,29 @@
                 document.getElementById(`stat-total-${s}`).innerText = p1v + p2v;
             });
         }
-        function handleWin(player) {
+        function handleWin(player, publish = true) {
             gameState.winner = player; updateUI();
             var duration = 3000; var end = Date.now() + duration;
+            const epoch = gameEpoch;
             (function frame() {
+                if (epoch !== gameEpoch || typeof confetti !== 'function' || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
                 confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, zIndex: 2000 });
                 confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, zIndex: 2000 });
                 if (Date.now() < end) requestAnimationFrame(frame);
             }());
             victoryOverlay.classList.add('show');
             document.getElementById('winner-text').innerText = `${player === 'p1' ? 'Clubs' : 'Hearts'} WINS!`;
-            if (gameMode === 'online') syncOnline();
+            if (gameMode === 'online' && publish) syncOnline();
         }
         function toggleTheme() {
+            themeToggle.setAttribute('aria-pressed', String(document.body.classList.contains('theme-classic')));
             const body = document.body;
             if (body.classList.contains('theme-classic')) {
                 body.classList.remove('theme-classic'); body.classList.add('theme-bold');
                 themeToggle.setAttribute('data-state', 'right');
                 document.querySelectorAll('.card').forEach(c => {
                     const val = c.id.split('-')[2];
-                    c.innerHTML = `<div class="card-center">${val === '1' ? 'A' : val}</div>`;
+                    c.innerHTML = `<span class="card-center">${val === '1' ? 'A' : val}</span>`;
                 });
             } else {
                 body.classList.remove('theme-bold'); body.classList.add('theme-classic');
@@ -1618,49 +1671,39 @@
                 document.querySelectorAll('.card').forEach(c => {
                     const parts = c.id.split('-'); const icon = parts[1] === 'p1' ? '♣' : '♥'; const val = parts[2];
                     const disp = val === '1' ? 'A' : val;
-                    c.innerHTML = `<div class="card-corner"><div>${disp}</div><div class="mini-suit">${icon}</div></div><div class="card-center">${icon}</div>`;
+                    c.innerHTML = `<span class="card-corner"><span>${disp}</span><span class="mini-suit">${icon}</span></span><span class="card-center">${icon}</span>`;
                 });
             }
         }
         function openSettings() { settingsModal.classList.add('show'); updateUI(); }
-        function closeSettings(e) { if (!e || e.target === settingsModal || e.target.classList.contains('close-btn') || e.target.tagName === 'BUTTON') settingsModal.classList.remove('show'); }
+        function closeSettings(e) { if (!e || e.target === settingsModal || e.target.classList.contains('close-btn')) settingsModal.classList.remove('show'); }
         function openRules() { rulesModal.classList.add('show'); }
         function closeRules(e) { if (!e || e.target === rulesModal || e.target.classList.contains('close-btn')) rulesModal.classList.remove('show'); }
-        function confirmReset() { if (confirm("Restart Game?")) fullReset(); }
+        function confirmReset() { document.getElementById('restart-modal').classList.add('show'); }
         function fullReset() {
+            cancelGameActions();
+            victoryOverlay.classList.remove('show');
+            gameState = { turn: 'p1', roll: 1, hasRolled: false, centerSlots: {}, winner: null };
+            gameStats = { p1: { moves: 0, bumps: 0, skips: 0 }, p2: { moves: 0, bumps: 0, skips: 0 } };
+            p1Home = { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true };
+            p2Home = { ...p1Home };
+            syncDOMtoState();
+            updateDiceVisual(diceEl, 1);
+            updateUI();
             if (gameMode === 'online' && db) {
                 db.ref('dice_game/rooms/' + onlineGameId).update({
-                    status: 'waiting',
-                    gameState: { turn: 'p1', roll: 1, hasRolled: false, centerSlots: { 1: null, 2: null, 3: null, 4: null, 5: null, 6: null }, winner: null },
-                    p1Home: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true },
-                    p2Home: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true },
-                    gameStats: { p1: { moves: 0, bumps: 0, skips: 0 }, p2: { moves: 0, bumps: 0, skips: 0 } }
-                });
-            } else {
-                victoryOverlay.classList.remove('show'); playSound('shuffle'); triggerHaptic();
-                let animations = [];
-                for (let i = 1; i <= 6; i++) {
-                    if (gameState.centerSlots && gameState.centerSlots[i] === 'p1') animations.push(moveCardInDOM('p1', i, 'center', 'home'));
-                    else if (gameState.centerSlots && gameState.centerSlots[i] === 'p2') animations.push(moveCardInDOM('p2', i, 'center', 'home'));
-                }
-                Promise.all(animations).then(() => {
-                    gameState = { turn: 'p1', roll: 1, hasRolled: false, centerSlots: { 1: null, 2: null, 3: null, 4: null, 5: null, 6: null }, winner: null };
-                    gameStats = { p1: { moves: 0, bumps: 0, skips: 0 }, p2: { moves: 0, bumps: 0, skips: 0 } };
-                    p1Home = { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true }; p2Home = { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true };
-                    document.querySelectorAll('.card').forEach(c => c.classList.remove('in-center'));
-                    updateDiceVisual(diceEl, 1); updateUI();
-                    skipBtn.classList.remove('show'); actionBtn.classList.remove('show');
-                });
+                    status: 'active', round: Date.now(), gameState, gameStats, p1Home, p2Home
+                }).catch(onlineError);
             }
         }
         function aiDecideMove() {
             const roll = gameState.roll; const available = [];
             for (let i = 1; i <= 6; i++) { if (p2Home[i]) available.push(i); }
             const subsets = getAllSubsets(available, roll);
-            if (subsets.length === 0) { setTimeout(() => { gameStats.p2.skips++; passTurn(); }, 1000); return; }
+            if (subsets.length === 0) { gameDelay(() => { gameStats.p2.skips++; passTurn(); }, 1000); return; }
             const exactMatch = subsets.find(s => s.length === 1);
             let chosenSubset = exactMatch ? exactMatch : (Math.random() < 0.1 ? null : subsets[0]);
-            if (!chosenSubset) { instructionText.innerText = "Computer missed a move..."; setTimeout(() => { gameStats.p2.skips++; passTurn(); }, 1500); }
+            if (!chosenSubset) { instructionText.innerText = "Computer missed a move..."; gameDelay(() => { gameStats.p2.skips++; passTurn(); }, 1500); }
             else { simulateAISelection(chosenSubset); }
         }
         function simulateAISelection(subset) {
@@ -1669,8 +1712,8 @@
                 if (index < subset.length) {
                     const val = subset[index];
                     const card = document.getElementById(`card-p2-${val}`);
-                    selectedValues.push(val); card.classList.add('selected'); playSound('select'); index++; setTimeout(selectNext, 500);
-                } else { setTimeout(performMove, 500); }
+                    selectedValues.push(val); card.classList.add('selected'); playSound('select'); index++; gameDelay(selectNext, 500);
+                } else { gameDelay(performMove, 500); }
             } selectNext();
         }
         function getAllSubsets(n, t) {
@@ -1683,10 +1726,12 @@
                 const first = card.getBoundingClientRect(); targetSlot.appendChild(card); const last = card.getBoundingClientRect();
                 const deltaX = first.left - last.left; const deltaY = first.top - last.top;
                 card.style.transition = 'none'; card.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+                const epoch = gameEpoch;
                 requestAnimationFrame(() => {
+                    if (epoch !== gameEpoch) { resolve(); return; }
                     card.classList.remove('selected');
                     card.style.transition = 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-                    card.style.transform = ''; setTimeout(resolve, 500);
+                    card.style.transform = ''; gameDelay(resolve, 500);
                 });
             });
         }
@@ -1711,6 +1756,56 @@
                 } face.appendChild(cont); el.appendChild(face);
             }
         }
+        document.querySelectorAll('.card-slot').forEach(slot => {
+            const value = slot.id.split('-').pop();
+            slot.dataset.value = value === '1' ? 'A' : value;
+        });
+        diceArea.addEventListener('keydown', event => {
+            if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); diceArea.click(); }
+        });
+        const overlays = [...document.querySelectorAll('.modal-overlay')];
+        let activeOverlay = null;
+        let lastFocus = null;
+        function syncDialogs() {
+            const next = overlays.filter(el => el.classList.contains('show'))
+                .sort((a, b) => Number(getComputedStyle(a).zIndex) - Number(getComputedStyle(b).zIndex)).pop() || null;
+            overlays.forEach(el => {
+                el.inert = el !== next;
+                el.setAttribute('aria-hidden', String(el !== next));
+                el.setAttribute('role', 'dialog');
+                el.setAttribute('aria-modal', 'true');
+                el.setAttribute('aria-label', el.querySelector('h2, #start-logo, #winner-text')?.textContent || 'Dice Duel');
+            });
+            document.querySelectorAll('body > header, #game-board, .game-actions').forEach(el => el.inert = !!next);
+            if (next !== activeOverlay) {
+                if (!activeOverlay && next) lastFocus = document.activeElement;
+                activeOverlay = next;
+                if (next) next.querySelector('button, [tabindex="0"]')?.focus();
+                else if (lastFocus?.isConnected && !lastFocus.closest('.modal-overlay')) lastFocus.focus();
+                else diceArea.focus();
+            }
+        }
+        const dialogObserver = new MutationObserver(syncDialogs);
+        overlays.forEach(el => dialogObserver.observe(el, { attributes: true, attributeFilter: ['class'] }));
+        document.addEventListener('keydown', event => {
+            if (!activeOverlay) return;
+            if (event.key === 'Escape') { closeRules(); closeSettings(); document.getElementById('restart-modal').classList.remove('show'); }
+            if (event.key === 'Tab') {
+                const items = [...activeOverlay.querySelectorAll('button:not(:disabled), [tabindex="0"]')];
+                const first = items[0], last = items[items.length - 1];
+                if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+                else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+            }
+        });
+        if (db) db.ref('.info/connected').on('value', snap => {
+            onlineConnected = snap.val() === true;
+            if (gameMode === 'online') {
+                connectionMessage(onlineConnected ? '' : 'Connection lost. Reconnecting…');
+                updateUI();
+            }
+        });
+        syncDialogs();
+        updateUI();
     </script>
 </body>
 
