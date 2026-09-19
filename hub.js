@@ -440,6 +440,7 @@ function buildCard(item, index) {
 }
 
 function renderFeatured(items) {
+    el.featuredPanel.hidden = items.length === 0 || state.query !== "" || state.filter === "archived";
     if (items.length === 0) {
         el.featuredPanel.innerHTML = `
             <p class="featured-label">Featured</p>
@@ -453,20 +454,35 @@ function renderFeatured(items) {
         items.find((item) => item.featured && !item.locked) ||
         items.find((item) => !item.locked) ||
         items[0];
-    const lastPlayed = getRelativePlayedTime(featuredItem.id);
+    const lastPlayed = getLastPlayed(featuredItem.id) ? `Opened ${getRelativePlayedTime(featuredItem.id)}` : "Pick up and play";
     const itemTypeLabel = featuredItem.type === "app" ? "App" : "Game";
     const launchLabel = featuredItem.locked ? "Unlock" : resolveActionLabel(featuredItem);
 
     el.featuredPanel.innerHTML = `
+        <div class="featured-copy">
         <div class="featured-head">
-            <p class="featured-label">Featured</p>
-            <span class="featured-chip">${itemTypeLabel} - ${lastPlayed}</span>
+            <p class="featured-label">${itemTypeLabel === "Game" ? "In the spotlight" : "Worth a look"}</p>
+            <span class="featured-chip">${lastPlayed}</span>
         </div>
         <h2 class="featured-title">${escapeHtml(featuredItem.title)}</h2>
         <p class="featured-description">${escapeHtml(featuredItem.description)}</p>
         <div class="featured-cta">
-            <button class="btn btn-install" type="button" data-featured-id="${escapeHtml(featuredItem.id)}">${escapeHtml(launchLabel)}</button>
+            <button class="btn btn-install" type="button" data-featured-id="${escapeHtml(featuredItem.id)}">${escapeHtml(launchLabel)} <span aria-hidden="true">&rarr;</span></button>
         </div>
+        </div>
+        ${featuredItem.id === "diceduel" ? `<svg class="featured-art" viewBox="0 0 260 190" fill="none" aria-hidden="true">
+            <ellipse cx="139" cy="170" rx="99" ry="10" fill="#1e2420"/>
+            <g transform="translate(20 32) rotate(-14 55 55)">
+                <rect x="7" y="9" width="106" height="106" rx="22" fill="#1e2420"/>
+                <rect width="106" height="106" rx="22" fill="#e3e8d7"/>
+                <g fill="#343e32"><circle cx="29" cy="29" r="8"/><circle cx="77" cy="29" r="8"/><circle cx="53" cy="53" r="8"/><circle cx="29" cy="77" r="8"/><circle cx="77" cy="77" r="8"/></g>
+            </g>
+            <g transform="translate(134 58) rotate(13 50 50)">
+                <rect x="6" y="8" width="100" height="100" rx="21" fill="#1e2420"/>
+                <rect width="100" height="100" rx="21" fill="#edac76"/>
+                <g fill="#533c29"><circle cx="28" cy="28" r="8"/><circle cx="50" cy="50" r="8"/><circle cx="72" cy="72" r="8"/></g>
+            </g>
+        </svg>` : `<div class="featured-art featured-monogram" aria-hidden="true">${escapeHtml(featuredItem.short || "FG")}</div>`}
     `;
 
     const launchButton = el.featuredPanel.querySelector("[data-featured-id]");
@@ -610,9 +626,6 @@ function getBadgeData(item) {
     if (archivedIds.has(item.id)) {
         badges.push({ label: "Archived", className: "status-archived" });
     }
-    if (item.featured) {
-        badges.push({ label: "Featured", className: "" });
-    }
     if (item.status === "new") {
         badges.push({ label: "New", className: "status-new" });
     }
@@ -696,6 +709,7 @@ function savePreferences() {
 function setActiveFilterButton() {
     el.filterButtons.forEach((button) => {
         button.classList.toggle("is-active", button.dataset.filter === state.filter);
+        button.setAttribute("aria-pressed", String(button.dataset.filter === state.filter));
     });
 }
 

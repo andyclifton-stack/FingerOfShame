@@ -5,16 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Finger Game Hub</title>
 
-    <meta name="theme-color" content="#07121f">
+    <meta name="theme-color" content="#171819">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Finger Hub">
     <link rel="manifest" href="hub-manifest.json">
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="hub.css">
+    <link rel="stylesheet" href="hub.css?v=20260919">
 
     <script>
         const iconLink = document.createElement("link");
@@ -26,12 +23,14 @@
 <body>
     <div class="hub-shell">
         <header class="hub-header">
-            <p class="kicker">Finger Universe</p>
-            <h1>Finger Game Hub</h1>
-            <p class="subtitle">One launchpad for every game and app. Fast on mobile, clean on desktop, built to keep growing.</p>
+            <a class="brand" href="./" aria-label="Finger Game home"><span class="brand-mark" aria-hidden="true">fg<span>.</span></span><span>Finger Game</span></a>
             <div class="header-actions">
                 <button id="install-btn" class="btn btn-install" type="button" hidden>Install App</button>
                 <button id="share-btn" class="btn btn-secondary" type="button">Share Hub</button>
+            </div>
+            <details class="quick-links">
+                <summary>Quick links</summary>
+                <nav aria-label="Quick links">
                 <a class="btn btn-secondary" href="imposter/">Play Imposter</a>
                 <a class="btn btn-secondary" href="/FingerOfShame/DartScore/">Play DartScore</a>
                 <a class="btn btn-secondary" href="/service-tenure/dashboard.html">Open Service Tenure</a>
@@ -39,20 +38,26 @@
                 <a class="btn btn-secondary" href="/Tamagotchi/">Play Tamagotchi</a>
                 <a class="btn btn-secondary" href="/reaction/">Play Reaction Rumble</a>
                 <a class="btn btn-secondary" href="/Roast/">Open Roast Timer</a>
-            </div>
+                </nav>
+            </details>
         </header>
 
         <main class="hub-main">
+            <div class="library-intro">
+                <div><p class="kicker">A little competition. A lot of fun.</p><h1>What are we playing?</h1></div>
+                <p class="subtitle">Games for the table. <br>Handy apps for everything else.</p>
+            </div>
             <section id="featured-panel" class="featured-panel" aria-live="polite"></section>
 
             <section class="controls" aria-label="Hub controls">
+                <h2 class="library-heading">Your library</h2>
                 <label class="search-wrap">
                     <span class="label">Search</span>
                     <input id="search-input" type="search" placeholder="Search games, apps, and tags" autocomplete="off">
                 </label>
 
                 <div class="control-row">
-                    <div class="filter-group" role="tablist" aria-label="Filter entries">
+                    <div class="filter-group" role="group" aria-label="Filter entries">
                         <button class="filter-btn is-active" data-filter="all" type="button">All</button>
                         <button class="filter-btn" data-filter="game" type="button">Games</button>
                         <button class="filter-btn" data-filter="app" type="button">Apps</button>
@@ -71,7 +76,7 @@
                 </div>
 
                 <div class="stats-row" id="stats-row">
-                    <span class="chip"><strong id="visible-count">0</strong> visible</span>
+                    <span class="chip"><strong id="visible-count">0</strong> in your library</span>
                     <span class="chip"><strong id="game-count">0</strong> games</span>
                     <span class="chip"><strong id="app-count">0</strong> apps</span>
                     <span class="chip"><strong id="archived-count">0</strong> archived</span>
@@ -91,6 +96,6 @@
         </footer>
     </div>
 
-    <script src="hub.js" defer></script>
+    <script src="hub.js?v=20260919" defer></script>
 </body>
 </html>
