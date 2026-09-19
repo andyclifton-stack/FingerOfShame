@@ -125,7 +125,8 @@ th:last-child, td:last-child { text-align: right; font-variant-numeric: tabular-
 .btn-restore { background: #25334d; color: #d1e1ff; border: 1px solid #587bb4; padding: 8px 12px; border-radius: 6px; min-height: 44px; }
 #toast { visibility: hidden; position: fixed; z-index: 10001; bottom: 24px; left: 50%; transform: translateX(-50%); background: #e0e9fb; color: #132139; border-radius: 8px; padding: 14px 20px; width: max-content; max-width: calc(100% - 32px); text-align: center; box-shadow: 0 8px 24px #0005; }
 #toast.show { visibility: visible; }
-@media (max-width: 700px) {
+/* Keep phones and foldable/tablet-sized viewports in the compact single-column view. */
+@media (max-width: 1000px) {
     body { padding: 20px 14px; }
     h1 { font-size: 17px; }
     .app-header { margin-bottom: 20px; }
