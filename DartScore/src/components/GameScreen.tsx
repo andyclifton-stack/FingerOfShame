@@ -173,6 +173,8 @@ export function GameScreen({
               onVisit={onVisit}
             />
           )}
+        </div>
+        <aside className="side-rail">
           <section
             className={`panel current-visit ${s.turn.isComplete && s.turn.turnTotal === 180 && !s.turn.isBust ? "celebrate" : ""}`}
             aria-label="Current visit"
@@ -297,8 +299,6 @@ export function GameScreen({
               </>
             )}
           </div>
-        </div>
-        <aside className="side-rail">
           {s.mode.type === "x01" ? (
             <section className="panel checkout-panel">
               <span className="eyebrow">Your next move</span>
