@@ -1,0 +1,14 @@
+Dice Duel audio
+
+Card selection, placement, bump and result effects are original procedural PCM
+effects created for this project. Generator: scripts/make-audio.py.
+Selection is quiet; passes are silent. Three card variants reduce repetition.
+
+Dice throws are from Kenney Casino Audio 1.1, licensed CC0.
+Source: https://kenney.nl/assets/casino-audio
+See KENNEY-CASINO-AUDIO.txt for the original notice. No attribution is required;
+Kenney is credited in-app. scripts/vendor-dice-audio.py copies the three throws.
+Normal rolls keep the original natural sound; quick play keeps the final
+bounces at their original pitch with a short fade to avoid clicks.
+
+All assets are bundled. The installed app downloads no runtime assets.

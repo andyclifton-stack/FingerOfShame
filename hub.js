@@ -74,13 +74,13 @@ const HUB_ITEMS = [
     {
         id: "diceduel",
         title: "Dice Duel",
-        description: "A 1v1 strategy battle. Roll, reposition, and outplay your opponent.",
+        description: "Roll, combine cards and claim all six spaces. Play the computer or share one device.",
         type: "game",
-        href: "diceduel-index.html",
+        href: "DiceDuel/",
         short: "DD",
         accent: "azure",
         featured: true,
-        tags: ["1v1", "strategy", "cards"],
+        tags: ["offline", "solo", "two players", "cards"],
         cta: "Play Now"
     },
     {
