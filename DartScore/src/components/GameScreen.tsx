@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   formatModeLabel,
   formatPlayerStatus,
@@ -36,6 +36,8 @@ export function GameScreen({
   const [editing, setEditing] = useState<string | null>(null);
   const [confirmNew, setConfirmNew] = useState(false);
   const [feedback, setFeedback] = useState("");
+  const detailsRef = useRef<HTMLElement>(null);
+  const swipeY = useRef<number | null>(null);
   const input =
     preferences.input === "total" && s.mode.type !== "x01"
       ? "buttons"
@@ -107,7 +109,22 @@ export function GameScreen({
         </div>
       </header>
       <div className="game-layout">
-        <div className="match-board-column">
+        <div className="match-board-column"
+          onTouchStart={(event) => {
+            const target = event.target as Element;
+            swipeY.current = input === "board" && event.touches.length === 1 && target.closest(".dartboard-panel") && !target.closest("button, summary") ? event.touches[0].clientY : null;
+          }}
+          onTouchMove={(event) => {
+            const details = detailsRef.current;
+            if (event.touches.length !== 1) { swipeY.current = null; return; }
+            const y = event.touches[0].clientY;
+            // Swipe the board to scroll details without moving the scoring surface.
+            if (swipeY.current !== null && details && details.scrollHeight > details.clientHeight) details.scrollTop += swipeY.current - y;
+            if (swipeY.current !== null) swipeY.current = y;
+          }}
+          onTouchEnd={() => { swipeY.current = null; }}
+          onTouchCancel={() => { swipeY.current = null; }}
+        >
           <div className="input-tabs" aria-label="Scoring method">
             {(
               [
@@ -174,7 +191,7 @@ export function GameScreen({
             />
           )}
         </div>
-        <aside className="side-rail">
+        <aside className="side-rail" ref={detailsRef}>
           <section
             className={`panel current-visit ${s.turn.isComplete && s.turn.turnTotal === 180 && !s.turn.isBust ? "celebrate" : ""}`}
             aria-label="Current visit"
