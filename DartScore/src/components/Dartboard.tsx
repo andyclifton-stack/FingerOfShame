@@ -2,40 +2,41 @@ import {
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
-} from 'react'
+} from "react";
 import {
   BOARD_RADII,
   BOARD_SEGMENTS,
   getDartboardHitFromPoint,
-} from '../logic/dartboardScoring'
-import type { DartThrow, DartThrowInput } from '../types/game'
+} from "../logic/dartboardScoring";
+import type { DartThrow, DartThrowInput, DartboardHit } from "../types/game";
 
 interface DartboardProps {
-  canPlaceNewDart: boolean
-  editingDartId: string | null
-  markers: DartThrow[]
-  onCancelEdit: () => void
-  onConfirmThrow: (throwInput: DartThrowInput, dartId: string | null) => void
-  onSelectDart: (dartId: string) => void
+  suggestedHit?: DartboardHit;
+  canPlaceNewDart: boolean;
+  editingDartId: string | null;
+  markers: DartThrow[];
+  onCancelEdit: () => void;
+  onConfirmThrow: (throwInput: DartThrowInput, dartId: string | null) => void;
+  onSelectDart: (dartId: string) => void;
 }
 
 interface PendingPlacement {
-  dartId: string | null
-  throwInput: DartThrowInput
+  dartId: string | null;
+  throwInput: DartThrowInput;
 }
 
-const BOARD_RADIUS = 100
-const VIEWBOX_MIN = -125
-const VIEWBOX_SIZE = 250
-const NUDGE_STEP = 1.4
+const BOARD_RADIUS = 100;
+const VIEWBOX_MIN = -125;
+const VIEWBOX_SIZE = 250;
+const NUDGE_STEP = 1.4;
 
 function polarToCartesian(radius: number, angleDegrees: number) {
-  const radians = ((angleDegrees - 90) * Math.PI) / 180
+  const radians = ((angleDegrees - 90) * Math.PI) / 180;
 
   return {
     x: radius * Math.cos(radians),
     y: radius * Math.sin(radians),
-  }
+  };
 }
 
 function describeRingSlice(
@@ -44,28 +45,28 @@ function describeRingSlice(
   startAngle: number,
   endAngle: number,
 ): string {
-  const outerStart = polarToCartesian(outerRadius, startAngle)
-  const outerEnd = polarToCartesian(outerRadius, endAngle)
-  const innerEnd = polarToCartesian(innerRadius, endAngle)
-  const innerStart = polarToCartesian(innerRadius, startAngle)
+  const outerStart = polarToCartesian(outerRadius, startAngle);
+  const outerEnd = polarToCartesian(outerRadius, endAngle);
+  const innerEnd = polarToCartesian(innerRadius, endAngle);
+  const innerStart = polarToCartesian(innerRadius, startAngle);
 
   return [
     `M ${outerStart.x} ${outerStart.y}`,
     `A ${outerRadius} ${outerRadius} 0 0 1 ${outerEnd.x} ${outerEnd.y}`,
     `L ${innerEnd.x} ${innerEnd.y}`,
     `A ${innerRadius} ${innerRadius} 0 0 0 ${innerStart.x} ${innerStart.y}`,
-    'Z',
-  ].join(' ')
+    "Z",
+  ].join(" ");
 }
 
 function scaleRadius(radius: number): number {
-  return radius * BOARD_RADIUS
+  return radius * BOARD_RADIUS;
 }
 
 function buildThrowInput(svgX: number, svgY: number): DartThrowInput {
-  const normalizedX = svgX / BOARD_RADIUS
-  const normalizedY = svgY / BOARD_RADIUS
-  const hit = getDartboardHitFromPoint(normalizedX, normalizedY)
+  const normalizedX = svgX / BOARD_RADIUS;
+  const normalizedY = svgY / BOARD_RADIUS;
+  const hit = getDartboardHitFromPoint(normalizedX, normalizedY);
 
   return {
     x: svgX,
@@ -73,14 +74,15 @@ function buildThrowInput(svgX: number, svgY: number): DartThrowInput {
     normalizedX,
     normalizedY,
     hit,
-  }
+  };
 }
 
 function triggerHapticFeedback(pattern: number | number[] = 10) {
-  globalThis.navigator?.vibrate?.(pattern)
+  globalThis.navigator?.vibrate?.(pattern);
 }
 
 export function Dartboard({
+  suggestedHit,
   canPlaceNewDart,
   editingDartId,
   markers,
@@ -88,113 +90,119 @@ export function Dartboard({
   onConfirmThrow,
   onSelectDart,
 }: DartboardProps) {
-  const svgRef = useRef<SVGSVGElement | null>(null)
+  const svgRef = useRef<SVGSVGElement | null>(null);
   const [pendingPlacement, setPendingPlacement] =
-    useState<PendingPlacement | null>(null)
-  const [activePointerId, setActivePointerId] = useState<number | null>(null)
-  const editingMarker = markers.find((marker) => marker.id === editingDartId)
-  const isEditing = Boolean(editingMarker)
-  const pendingDartIndex = editingMarker?.dartIndex ?? Math.min(markers.length + 1, 3)
+    useState<PendingPlacement | null>(null);
+  const [activePointerId, setActivePointerId] = useState<number | null>(null);
+  const editingMarker = markers.find((marker) => marker.id === editingDartId);
+  const isEditing = Boolean(editingMarker);
+  const pendingDartIndex =
+    editingMarker?.dartIndex ?? Math.min(markers.length + 1, 3);
   const pendingThrow =
-    pendingPlacement?.dartId === editingDartId ? pendingPlacement.throwInput : null
-  const activeThrow = pendingThrow
-    ?? (editingMarker ? buildThrowInput(editingMarker.x, editingMarker.y) : null)
+    pendingPlacement?.dartId === editingDartId
+      ? pendingPlacement.throwInput
+      : null;
+  const activeThrow =
+    pendingThrow ??
+    (editingMarker ? buildThrowInput(editingMarker.x, editingMarker.y) : null);
 
   const getThrowInputFromPointer = (
     event: ReactPointerEvent<SVGSVGElement>,
   ): DartThrowInput | null => {
-    const svg = svgRef.current
+    const svg = svgRef.current;
 
     if (!svg) {
-      return null
+      return null;
     }
 
-    const bounds = svg.getBoundingClientRect()
+    const bounds = svg.getBoundingClientRect();
     const svgX =
-      ((event.clientX - bounds.left) / bounds.width) * VIEWBOX_SIZE + VIEWBOX_MIN
+      ((event.clientX - bounds.left) / bounds.width) * VIEWBOX_SIZE +
+      VIEWBOX_MIN;
     const svgY =
-      ((event.clientY - bounds.top) / bounds.height) * VIEWBOX_SIZE + VIEWBOX_MIN
+      ((event.clientY - bounds.top) / bounds.height) * VIEWBOX_SIZE +
+      VIEWBOX_MIN;
 
-    return buildThrowInput(svgX, svgY)
-  }
+    return buildThrowInput(svgX, svgY);
+  };
 
   const handlePointerDown = (event: ReactPointerEvent<SVGSVGElement>) => {
-    if (event.pointerType === 'mouse' && event.button !== 0) {
-      return
+    if (event.pointerType === "mouse" && event.button !== 0) {
+      return;
     }
 
     if (!canPlaceNewDart && !isEditing) {
-      return
+      return;
     }
 
-    const nextThrow = getThrowInputFromPointer(event)
+    const nextThrow = getThrowInputFromPointer(event);
 
     if (!nextThrow) {
-      return
+      return;
     }
 
-    event.currentTarget.setPointerCapture(event.pointerId)
-    setActivePointerId(event.pointerId)
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setActivePointerId(event.pointerId);
     setPendingPlacement({
       dartId: editingDartId,
       throwInput: nextThrow,
-    })
-    triggerHapticFeedback()
-  }
+    });
+    triggerHapticFeedback();
+  };
 
   const handlePointerMove = (event: ReactPointerEvent<SVGSVGElement>) => {
     if (activePointerId !== event.pointerId) {
-      return
+      return;
     }
 
-    const nextThrow = getThrowInputFromPointer(event)
+    const nextThrow = getThrowInputFromPointer(event);
 
     if (nextThrow) {
       setPendingPlacement({
         dartId: editingDartId,
         throwInput: nextThrow,
-      })
+      });
     }
-  }
+  };
 
   const handlePointerEnd = (event: ReactPointerEvent<SVGSVGElement>) => {
     if (activePointerId !== event.pointerId) {
-      return
+      return;
     }
 
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId)
+      event.currentTarget.releasePointerCapture(event.pointerId);
     }
 
-    setActivePointerId(null)
-  }
+    setActivePointerId(null);
+  };
 
   const handleConfirmThrow = () => {
     if (!activeThrow) {
-      return
+      return;
     }
 
-    onConfirmThrow(activeThrow, editingDartId)
-    setPendingPlacement(null)
-    triggerHapticFeedback(18)
-  }
+    onConfirmThrow(activeThrow, editingDartId);
+    setPendingPlacement(null);
+    triggerHapticFeedback(18);
+  };
 
   const handleCancel = () => {
-    setPendingPlacement(null)
-    setActivePointerId(null)
-    onCancelEdit()
-  }
+    setPendingPlacement(null);
+    setActivePointerId(null);
+    onCancelEdit();
+  };
 
   const nudgePending = (deltaX: number, deltaY: number) => {
-    triggerHapticFeedback(6)
+    triggerHapticFeedback(6);
     setPendingPlacement((currentPlacement) => {
       const currentThrow =
         currentPlacement?.dartId === editingDartId
           ? currentPlacement.throwInput
-          : activeThrow
+          : activeThrow;
 
       if (!currentThrow) {
-        return currentPlacement
+        return currentPlacement;
       }
 
       return {
@@ -203,22 +211,22 @@ export function Dartboard({
           currentThrow.x + deltaX,
           currentThrow.y + deltaY,
         ),
-      }
-    })
-  }
+      };
+    });
+  };
 
   const previewLabel = activeThrow
     ? `${activeThrow.hit.label} = ${activeThrow.hit.score}`
     : canPlaceNewDart
-      ? 'Place dart'
-      : 'Turn ready'
-  const controlsVisible = Boolean(activeThrow)
+      ? "Place dart"
+      : "Turn ready";
+  const controlsVisible = Boolean(activeThrow);
 
   return (
     <section className="panel dartboard-panel">
       <div className="section-heading board-heading">
         <span className="eyebrow">Board</span>
-        <h2>{isEditing ? `Edit dart ${pendingDartIndex}` : 'Place dart'}</h2>
+        <h2>{isEditing ? `Edit dart ${pendingDartIndex}` : "Place dart"}</h2>
       </div>
 
       <div className="dartboard-wrap">
@@ -234,7 +242,13 @@ export function Dartboard({
           onPointerCancel={handlePointerEnd}
         >
           <defs>
-            <filter id="boardShadow" x="-18%" y="-18%" width="136%" height="136%">
+            <filter
+              id="boardShadow"
+              x="-18%"
+              y="-18%"
+              width="136%"
+              height="136%"
+            >
               <feDropShadow
                 dx="0"
                 dy="8"
@@ -256,15 +270,26 @@ export function Dartboard({
           />
 
           {BOARD_SEGMENTS.map((segment, index) => {
-            const isEven = index % 2 === 0
-            const centerAngle = index * 18
-            const startAngle = centerAngle - 9
-            const endAngle = centerAngle + 9
+            const isEven = index % 2 === 0;
+            const centerAngle = index * 18;
+            const startAngle = centerAngle - 9;
+            const endAngle = centerAngle + 9;
 
             return (
-              <g key={`segment-${segment}`}>
+              <g
+                key={`segment-${segment}`}
+                className={
+                  suggestedHit?.segment === segment
+                    ? "suggested-segment"
+                    : undefined
+                }
+              >
                 <path
-                  className={isEven ? 'single-slice single-slice--light' : 'single-slice single-slice--dark'}
+                  className={
+                    isEven
+                      ? "single-slice single-slice--light"
+                      : "single-slice single-slice--dark"
+                  }
                   d={describeRingSlice(
                     scaleRadius(BOARD_RADII.outerBull),
                     scaleRadius(BOARD_RADII.trebleInner),
@@ -273,7 +298,15 @@ export function Dartboard({
                   )}
                 />
                 <path
-                  className={isEven ? 'treble-slice treble-slice--green' : 'treble-slice treble-slice--red'}
+                  className={
+                    isEven
+                      ? "treble-slice treble-slice--green"
+                      : "treble-slice treble-slice--red"
+                  }
+                  data-suggested={
+                    suggestedHit?.segment === segment &&
+                    suggestedHit.multiplier === 3
+                  }
                   d={describeRingSlice(
                     scaleRadius(BOARD_RADII.trebleInner),
                     scaleRadius(BOARD_RADII.trebleOuter),
@@ -282,7 +315,11 @@ export function Dartboard({
                   )}
                 />
                 <path
-                  className={isEven ? 'single-slice single-slice--light' : 'single-slice single-slice--dark'}
+                  className={
+                    isEven
+                      ? "single-slice single-slice--light"
+                      : "single-slice single-slice--dark"
+                  }
                   d={describeRingSlice(
                     scaleRadius(BOARD_RADII.trebleOuter),
                     scaleRadius(BOARD_RADII.doubleInner),
@@ -291,7 +328,15 @@ export function Dartboard({
                   )}
                 />
                 <path
-                  className={isEven ? 'double-slice double-slice--green' : 'double-slice double-slice--red'}
+                  className={
+                    isEven
+                      ? "double-slice double-slice--green"
+                      : "double-slice double-slice--red"
+                  }
+                  data-suggested={
+                    suggestedHit?.segment === segment &&
+                    suggestedHit.multiplier === 2
+                  }
                   d={describeRingSlice(
                     scaleRadius(BOARD_RADII.doubleInner),
                     scaleRadius(BOARD_RADII.doubleOuter),
@@ -300,7 +345,7 @@ export function Dartboard({
                   )}
                 />
               </g>
-            )
+            );
           })}
 
           <circle
@@ -314,6 +359,7 @@ export function Dartboard({
             cy="0"
             r={scaleRadius(BOARD_RADII.innerBull)}
             className="bull bull--inner"
+            data-suggested={suggestedHit?.ring === "innerBull"}
           />
           <circle
             cx="0"
@@ -353,7 +399,7 @@ export function Dartboard({
           />
 
           {BOARD_SEGMENTS.map((segment, index) => {
-            const position = polarToCartesian(113, index * 18)
+            const position = polarToCartesian(113, index * 18);
 
             return (
               <text
@@ -366,30 +412,32 @@ export function Dartboard({
               >
                 {segment}
               </text>
-            )
+            );
           })}
 
           {markers.map((marker) => {
-            const markerIsEditing = marker.id === editingDartId
-            const markerCanBeEdited = !canPlaceNewDart || isEditing
+            const markerIsEditing = marker.id === editingDartId;
+            const markerCanBeEdited = !canPlaceNewDart || isEditing;
 
             return (
               <g
                 key={marker.id}
                 className={[
-                  'throw-marker-group',
-                  markerIsEditing ? 'is-editing' : '',
-                  markerCanBeEdited ? 'can-edit' : '',
-                ].filter(Boolean).join(' ')}
+                  "throw-marker-group",
+                  markerIsEditing ? "is-editing" : "",
+                  markerCanBeEdited ? "can-edit" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
                 transform={`translate(${marker.x} ${marker.y})`}
                 onPointerDown={(event) => {
                   if (!markerCanBeEdited) {
-                    return
+                    return;
                   }
 
-                  event.stopPropagation()
-                  onSelectDart(marker.id)
-                  triggerHapticFeedback()
+                  event.stopPropagation();
+                  onSelectDart(marker.id);
+                  triggerHapticFeedback();
                 }}
               >
                 <circle className="throw-marker" r="5.5" />
@@ -404,7 +452,7 @@ export function Dartboard({
                   {marker.dartIndex}
                 </text>
               </g>
-            )
+            );
           })}
 
           {activeThrow && (
@@ -412,8 +460,20 @@ export function Dartboard({
               className="pending-marker"
               transform={`translate(${activeThrow.x} ${activeThrow.y})`}
             >
-              <line className="pending-marker__crosshair" x1="-14" x2="14" y1="0" y2="0" />
-              <line className="pending-marker__crosshair" x1="0" x2="0" y1="-14" y2="14" />
+              <line
+                className="pending-marker__crosshair"
+                x1="-14"
+                x2="14"
+                y1="0"
+                y2="0"
+              />
+              <line
+                className="pending-marker__crosshair"
+                x1="0"
+                x2="0"
+                y1="-14"
+                y2="14"
+              />
               <circle className="pending-marker__halo" r="13" />
               <circle className="pending-marker__dot" r="6.5" />
               <text
@@ -443,21 +503,31 @@ export function Dartboard({
               type="button"
               onClick={handleCancel}
             >
-              {isEditing ? 'Cancel' : 'Clear'}
+              {isEditing ? "Cancel" : "Clear"}
             </button>
             <button
               className="button button--accent button--compact"
               type="button"
               onClick={handleConfirmThrow}
             >
-              {isEditing ? 'Save Dart' : 'Confirm Dart'}
+              {isEditing ? "Save Dart" : "Confirm Dart"}
             </button>
           </div>
         )}
       </div>
 
+      {!controlsVisible && canPlaceNewDart && (
+        <small className="hint board-instruction">
+          Tap a hit, drag to adjust, then confirm. For repeated hits, use
+          Buttons or tap beside the existing marker.
+        </small>
+      )}
+
       {controlsVisible && (
-        <div className="precision-controls" aria-label="Fine adjustment controls">
+        <div
+          className="precision-controls"
+          aria-label="Fine adjustment controls"
+        >
           <button
             className="precision-button"
             type="button"
@@ -489,5 +559,5 @@ export function Dartboard({
         </div>
       )}
     </section>
-  )
+  );
 }

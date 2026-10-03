@@ -37,6 +37,11 @@ jobs:
       - name: Build DartScore
         working-directory: DartScore
         run: npm run build
+      - name: Check DartScore
+        working-directory: DartScore
+        run: |
+          npm run lint
+          npm test
       - name: Install Fitness dependencies
         working-directory: Fitness
         run: npm ci

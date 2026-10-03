@@ -1,109 +1,139 @@
-export type FinishRule = 'straight' | 'double-out'
+export type FinishRule = "straight" | "double-out";
 
-export type GameStatus = 'setup' | 'in_progress' | 'game_over'
+export type GameStatus = "setup" | "in_progress" | "game_over";
 
 export type DartboardRing =
-  | 'innerBull'
-  | 'outerBull'
-  | 'singleInner'
-  | 'treble'
-  | 'singleOuter'
-  | 'double'
-  | 'miss'
+  | "innerBull"
+  | "outerBull"
+  | "singleInner"
+  | "treble"
+  | "singleOuter"
+  | "double"
+  | "miss";
 
 export interface Player {
-  id: string
-  name: string
-  score: number
-  roundClockTarget?: number
-  killerTarget?: number
-  killerLives?: number
-  killerIsActive?: boolean
-  isEliminated?: boolean
+  id: string;
+  name: string;
+  score: number;
+  roundClockTarget?: number;
+  killerTarget?: number;
+  killerLives?: number;
+  killerIsActive?: boolean;
+  isEliminated?: boolean;
 }
 
 export type GameMode =
   | {
-      type: 'x01'
-      startingScore: number
-      finishRule: FinishRule
+      type: "x01";
+      startingScore: number;
+      finishRule: FinishRule;
     }
   | {
-      type: 'free'
-      targetScore: number
+      type: "free";
+      targetScore: number;
     }
   | {
-      type: 'round-clock'
-      finalTarget: number
+      type: "round-clock";
+      finalTarget: number;
     }
   | {
-      type: 'killer'
-      lives: number
-    }
+      type: "killer";
+      lives: number;
+    };
 
 export interface DartboardHit {
-  ring: DartboardRing
-  segment: number | null
-  multiplier: number
-  score: number
-  label: string
-  isFinishDouble: boolean
+  ring: DartboardRing;
+  segment: number | null;
+  multiplier: number;
+  score: number;
+  label: string;
+  isFinishDouble: boolean;
 }
 
 export interface DartThrow {
-  id: string
-  x: number
-  y: number
-  normalizedX: number
-  normalizedY: number
-  hit: DartboardHit
-  score: number
-  turnIndex: number
-  dartIndex: number
+  id: string;
+  x: number;
+  y: number;
+  normalizedX: number;
+  normalizedY: number;
+  hit: DartboardHit;
+  score: number;
+  turnIndex: number;
+  dartIndex: number;
 }
 
 export interface TurnState {
-  playerId: string
-  startingScore: number
-  startingPlayers?: Player[]
-  darts: DartThrow[]
-  turnTotal: number
-  isBust: boolean
-  isComplete: boolean
-  turnIndex: number
+  playerId: string;
+  startingScore: number;
+  startingPlayers?: Player[];
+  darts: DartThrow[];
+  turnTotal: number;
+  isBust: boolean;
+  isComplete: boolean;
+  turnIndex: number;
+  visitScore?: number;
+  dartsUsed?: number;
+  finishHit?: DartboardHit;
+}
+
+export interface Visit {
+  playerId: string;
+  turnIndex: number;
+  leg: number;
+  startingScore: number;
+  endingScore: number;
+  total: number;
+  dartsUsed: number;
+  labels: string[];
+  isBust: boolean;
+  checkout: boolean;
+  entry: "darts" | "total";
+}
+
+export interface Match {
+  id: string;
+  bestOf: number;
+  leg: number;
+  starterIndex: number;
+  legsWon: Record<string, number>;
 }
 
 export interface UndoSnapshot {
-  players: Player[]
-  currentPlayerIndex: number
-  turn: TurnState
-  status: GameStatus
-  winnerId: string | null
-  statusMessage: string | null
-  lastUpdatedAt: string
+  players: Player[];
+  currentPlayerIndex: number;
+  turn: TurnState;
+  status: GameStatus;
+  winnerId: string | null;
+  statusMessage: string | null;
+  lastUpdatedAt: string;
+  visits?: Visit[];
+  match?: Match;
 }
 
 export interface GameState {
-  status: GameStatus
-  mode: GameMode
-  players: Player[]
-  currentPlayerIndex: number
-  turn: TurnState
-  winnerId: string | null
-  statusMessage: string | null
-  lastUpdatedAt: string
-  undoStack: UndoSnapshot[]
+  status: GameStatus;
+  mode: GameMode;
+  players: Player[];
+  currentPlayerIndex: number;
+  turn: TurnState;
+  winnerId: string | null;
+  statusMessage: string | null;
+  lastUpdatedAt: string;
+  undoStack: UndoSnapshot[];
+  visits?: Visit[];
+  match?: Match;
 }
 
 export interface CreateGameInput {
-  playerNames: string[]
-  mode: GameMode
+  playerNames: string[];
+  mode: GameMode;
+  bestOf?: number;
 }
 
 export interface DartThrowInput {
-  x: number
-  y: number
-  normalizedX: number
-  normalizedY: number
-  hit: DartboardHit
+  x: number;
+  y: number;
+  normalizedX: number;
+  normalizedY: number;
+  hit: DartboardHit;
 }

@@ -7,20 +7,20 @@ import type {
   Player,
   TurnState,
   UndoSnapshot,
-} from '../types/game'
-import { applyX01Throw } from './x01Rules'
+} from "../types/game";
+import { applyX01Throw } from "./x01Rules";
+import { currentVisit, isMatchComplete } from "./matchTools";
 
 const KILLER_TARGETS = [
-  20, 19, 18, 17, 16, 15, 14, 13, 12, 11,
-  10, 9, 8, 7, 6, 5, 4, 3, 2, 1,
-]
+  20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1,
+];
 
 function getNowTimestamp(): string {
-  return new Date().toISOString()
+  return new Date().toISOString();
 }
 
 function clonePlayers(players: Player[]): Player[] {
-  return players.map((player) => ({ ...player }))
+  return players.map((player) => ({ ...player }));
 }
 
 function cloneTurn(turn: TurnState): TurnState {
@@ -33,7 +33,7 @@ function cloneTurn(turn: TurnState): TurnState {
       ...dart,
       hit: { ...dart.hit },
     })),
-  }
+  };
 }
 
 function createUndoSnapshot(state: GameState): UndoSnapshot {
@@ -45,7 +45,11 @@ function createUndoSnapshot(state: GameState): UndoSnapshot {
     winnerId: state.winnerId,
     statusMessage: state.statusMessage,
     lastUpdatedAt: state.lastUpdatedAt,
-  }
+    visits: state.visits?.map((v) => ({ ...v, labels: [...v.labels] })),
+    match: state.match
+      ? { ...state.match, legsWon: { ...state.match.legsWon } }
+      : undefined,
+  };
 }
 
 function createTurnState(
@@ -62,26 +66,26 @@ function createTurnState(
     isBust: false,
     isComplete: false,
     turnIndex,
-  }
+  };
 }
 
 function getStartingScore(mode: GameMode): number {
   switch (mode.type) {
-    case 'x01':
-      return mode.startingScore
-    case 'killer':
-      return mode.lives
-    case 'round-clock':
-      return 1
-    case 'free':
-      return 0
+    case "x01":
+      return mode.startingScore;
+    case "killer":
+      return mode.lives;
+    case "round-clock":
+      return 1;
+    case "free":
+      return 0;
   }
 }
 
 function createDartId(turnIndex: number, dartIndex: number): string {
   return `${turnIndex + 1}-${dartIndex + 1}-${Math.random()
     .toString(16)
-    .slice(2, 8)}`
+    .slice(2, 8)}`;
 }
 
 function buildDartThrow(
@@ -100,81 +104,81 @@ function buildDartThrow(
     score: throwInput.hit.score,
     turnIndex: turn.turnIndex,
     dartIndex,
-  }
+  };
 }
 
 function getTurnStartingPlayers(state: GameState): Player[] {
   return state.turn.startingPlayers
     ? clonePlayers(state.turn.startingPlayers)
-    : clonePlayers(state.players)
+    : clonePlayers(state.players);
 }
 
 function formatLifeCount(lives: number): string {
-  return `${lives} ${lives === 1 ? 'life' : 'lives'}`
+  return `${lives} ${lives === 1 ? "life" : "lives"}`;
 }
 
 function getTurnReviewMessage(state: GameState, turn: TurnState): string {
-  const currentPlayer = state.players[state.currentPlayerIndex]
+  const currentPlayer = state.players[state.currentPlayerIndex];
 
-  if (state.mode.type === 'round-clock') {
+  if (state.mode.type === "round-clock") {
     if (currentPlayer.score > state.mode.finalTarget) {
-      return `${currentPlayer.name} completes Round the Clock.`
+      return `${currentPlayer.name} completes Round the Clock.`;
     }
 
     if (turn.turnTotal > 0) {
-      return `${currentPlayer.name} advances to ${currentPlayer.score}. Review the turn, then pass to the next player.`
+      return `${currentPlayer.name} advances to ${currentPlayer.score}. Review the turn, then pass to the next player.`;
     }
 
-    return `${currentPlayer.name} stays on ${currentPlayer.score}. Review the turn, then pass to the next player.`
+    return `${currentPlayer.name} stays on ${currentPlayer.score}. Review the turn, then pass to the next player.`;
   }
 
-  if (state.mode.type === 'killer') {
-    const startingPlayer = turn.startingPlayers?.[state.currentPlayerIndex]
+  if (state.mode.type === "killer") {
+    const startingPlayer = turn.startingPlayers?.[state.currentPlayerIndex];
     const becameKiller =
-      currentPlayer.killerIsActive && !startingPlayer?.killerIsActive
+      currentPlayer.killerIsActive && !startingPlayer?.killerIsActive;
 
     if (currentPlayer.isEliminated) {
-      return `${currentPlayer.name} is eliminated. Review the turn, then pass to the next player.`
+      return `${currentPlayer.name} is eliminated. Review the turn, then pass to the next player.`;
     }
 
     if (turn.turnTotal > 0) {
-      return `${currentPlayer.name} takes ${formatLifeCount(turn.turnTotal)}. Review the turn, then pass to the next player.`
+      return `${currentPlayer.name} takes ${formatLifeCount(turn.turnTotal)}. Review the turn, then pass to the next player.`;
     }
 
     if (becameKiller) {
-      return `${currentPlayer.name} is now a killer. Review the turn, then pass to the next player.`
+      return `${currentPlayer.name} is now a killer. Review the turn, then pass to the next player.`;
     }
 
-    return `${currentPlayer.name} did not take a life. Review the turn, then pass to the next player.`
+    return `${currentPlayer.name} did not take a life. Review the turn, then pass to the next player.`;
   }
 
   if (turn.isBust) {
-    return `${currentPlayer.name} busts. Review the turn, then pass to the next player.`
+    return `${currentPlayer.name} busts. Review the turn, then pass to the next player.`;
   }
 
-  return `${currentPlayer.name} scored ${turn.turnTotal}. Review the turn, then pass to the next player.`
+  return `${currentPlayer.name} scored ${turn.turnTotal}. Review the turn, then pass to the next player.`;
 }
 
 function evaluateTurnFromDarts(
   state: GameState,
   darts: DartThrow[],
-): Pick<GameState, 'players' | 'status' | 'winnerId' | 'statusMessage'> & {
-  turn: TurnState
+): Pick<GameState, "players" | "status" | "winnerId" | "statusMessage"> & {
+  turn: TurnState;
 } {
-  const currentPlayer = state.players[state.currentPlayerIndex]
+  const currentPlayer = state.players[state.currentPlayerIndex];
   const updatedPlayers =
-    state.mode.type === 'killer'
+    state.mode.type === "killer"
       ? getTurnStartingPlayers(state)
-      : clonePlayers(state.players)
-  const normalizedDarts: DartThrow[] = []
-  let turnTotal = 0
-  let isBust = false
-  let isWinningThrow = false
-  let statusMessage: string | null = null
-  let winnerId: string | null = null
+      : clonePlayers(state.players);
+  const normalizedDarts: DartThrow[] = [];
+  let turnTotal = 0;
+  let isBust = false;
+  let isWinningThrow = false;
+  let statusMessage: string | null = null;
+  let winnerId: string | null = null;
 
-  if (state.mode.type === 'x01') {
-    let runningScore = state.turn.startingScore
+  if (state.mode.type === "x01") {
+    let runningScore = state.turn.startingScore;
 
     for (const [index, dart] of darts.entries()) {
       const nextDart = {
@@ -182,29 +186,29 @@ function evaluateTurnFromDarts(
         hit: { ...dart.hit },
         turnIndex: state.turn.turnIndex,
         dartIndex: index + 1,
-      }
+      };
       const outcome = applyX01Throw({
         currentScore: runningScore,
         hit: nextDart.hit,
         finishRule: state.mode.finishRule,
-      })
+      });
 
-      normalizedDarts.push(nextDart)
-      turnTotal += nextDart.score
+      normalizedDarts.push(nextDart);
+      turnTotal += nextDart.score;
 
       if (outcome.isBust) {
-        isBust = true
-        runningScore = state.turn.startingScore
-        break
+        isBust = true;
+        runningScore = state.turn.startingScore;
+        break;
       }
 
-      runningScore = outcome.nextScore
+      runningScore = outcome.nextScore;
 
       if (outcome.isWinningThrow) {
-        isWinningThrow = true
-        winnerId = currentPlayer.id
-        statusMessage = `${currentPlayer.name} checks out with ${nextDart.hit.label}.`
-        break
+        isWinningThrow = true;
+        winnerId = currentPlayer.id;
+        statusMessage = `${currentPlayer.name} checks out with ${nextDart.hit.label}.`;
+        break;
       }
     }
 
@@ -214,12 +218,12 @@ function evaluateTurnFromDarts(
       turnTotal,
       isBust,
       isComplete: isBust || normalizedDarts.length === 3 || isWinningThrow,
-    }
+    };
 
     updatedPlayers[state.currentPlayerIndex] = {
       ...currentPlayer,
       score: isBust ? state.turn.startingScore : runningScore,
-    }
+    };
 
     if (!statusMessage && nextTurn.isComplete) {
       statusMessage = getTurnReviewMessage(
@@ -228,20 +232,20 @@ function evaluateTurnFromDarts(
           players: updatedPlayers,
         },
         nextTurn,
-      )
+      );
     }
 
     return {
       players: updatedPlayers,
       turn: nextTurn,
-      status: isWinningThrow ? 'game_over' : 'in_progress',
+      status: isWinningThrow ? "game_over" : "in_progress",
       winnerId,
       statusMessage,
-    }
+    };
   }
 
-  if (state.mode.type === 'free') {
-    let nextScore = state.turn.startingScore
+  if (state.mode.type === "free") {
+    let nextScore = state.turn.startingScore;
 
     for (const [index, dart] of darts.entries()) {
       const nextDart = {
@@ -249,17 +253,17 @@ function evaluateTurnFromDarts(
         hit: { ...dart.hit },
         turnIndex: state.turn.turnIndex,
         dartIndex: index + 1,
-      }
+      };
 
-      normalizedDarts.push(nextDart)
-      turnTotal += nextDart.score
-      nextScore += nextDart.score
+      normalizedDarts.push(nextDart);
+      turnTotal += nextDart.score;
+      nextScore += nextDart.score;
 
       if (nextScore >= state.mode.targetScore) {
-        isWinningThrow = true
-        winnerId = currentPlayer.id
-        statusMessage = `${currentPlayer.name} hits the target with ${nextScore}.`
-        break
+        isWinningThrow = true;
+        winnerId = currentPlayer.id;
+        statusMessage = `${currentPlayer.name} hits the target with ${nextScore}.`;
+        break;
       }
     }
 
@@ -269,12 +273,12 @@ function evaluateTurnFromDarts(
       turnTotal,
       isBust: false,
       isComplete: normalizedDarts.length === 3 || isWinningThrow,
-    }
+    };
 
     updatedPlayers[state.currentPlayerIndex] = {
       ...currentPlayer,
       score: nextScore,
-    }
+    };
 
     if (!statusMessage && nextTurn.isComplete) {
       statusMessage = getTurnReviewMessage(
@@ -283,20 +287,20 @@ function evaluateTurnFromDarts(
           players: updatedPlayers,
         },
         nextTurn,
-      )
+      );
     }
 
     return {
       players: updatedPlayers,
       turn: nextTurn,
-      status: isWinningThrow ? 'game_over' : 'in_progress',
+      status: isWinningThrow ? "game_over" : "in_progress",
       winnerId,
       statusMessage,
-    }
+    };
   }
 
-  if (state.mode.type === 'round-clock') {
-    let nextTarget = state.turn.startingScore
+  if (state.mode.type === "round-clock") {
+    let nextTarget = state.turn.startingScore;
 
     for (const [index, dart] of darts.entries()) {
       const nextDart = {
@@ -304,19 +308,19 @@ function evaluateTurnFromDarts(
         hit: { ...dart.hit },
         turnIndex: state.turn.turnIndex,
         dartIndex: index + 1,
-      }
+      };
 
-      normalizedDarts.push(nextDart)
+      normalizedDarts.push(nextDart);
 
       if (nextDart.hit.segment === nextTarget) {
-        turnTotal += 1
-        nextTarget += 1
+        turnTotal += 1;
+        nextTarget += 1;
 
         if (nextTarget > state.mode.finalTarget) {
-          isWinningThrow = true
-          winnerId = currentPlayer.id
-          statusMessage = `${currentPlayer.name} completes Round the Clock.`
-          break
+          isWinningThrow = true;
+          winnerId = currentPlayer.id;
+          statusMessage = `${currentPlayer.name} completes Round the Clock.`;
+          break;
         }
       }
     }
@@ -327,13 +331,13 @@ function evaluateTurnFromDarts(
       turnTotal,
       isBust: false,
       isComplete: normalizedDarts.length === 3 || isWinningThrow,
-    }
+    };
 
     updatedPlayers[state.currentPlayerIndex] = {
       ...currentPlayer,
       roundClockTarget: nextTarget,
       score: nextTarget,
-    }
+    };
 
     if (!statusMessage && nextTurn.isComplete) {
       statusMessage = getTurnReviewMessage(
@@ -342,19 +346,19 @@ function evaluateTurnFromDarts(
           players: updatedPlayers,
         },
         nextTurn,
-      )
+      );
     }
 
     return {
       players: updatedPlayers,
       turn: nextTurn,
-      status: isWinningThrow ? 'game_over' : 'in_progress',
+      status: isWinningThrow ? "game_over" : "in_progress",
       winnerId,
       statusMessage,
-    }
+    };
   }
 
-  let activeCurrentPlayer = updatedPlayers[state.currentPlayerIndex]
+  let activeCurrentPlayer = updatedPlayers[state.currentPlayerIndex];
 
   for (const [index, dart] of darts.entries()) {
     const nextDart = {
@@ -362,31 +366,31 @@ function evaluateTurnFromDarts(
       hit: { ...dart.hit },
       turnIndex: state.turn.turnIndex,
       dartIndex: index + 1,
-    }
+    };
 
-    normalizedDarts.push(nextDart)
+    normalizedDarts.push(nextDart);
 
     if (activeCurrentPlayer.isEliminated) {
-      break
+      break;
     }
 
-    if (nextDart.hit.ring === 'double' && nextDart.hit.segment !== null) {
+    if (nextDart.hit.ring === "double" && nextDart.hit.segment !== null) {
       if (nextDart.hit.segment === activeCurrentPlayer.killerTarget) {
         if (activeCurrentPlayer.killerIsActive) {
-          const nextLives = Math.max(0, activeCurrentPlayer.score - 1)
+          const nextLives = Math.max(0, activeCurrentPlayer.score - 1);
           activeCurrentPlayer = {
             ...activeCurrentPlayer,
             killerLives: nextLives,
             score: nextLives,
             isEliminated: nextLives === 0,
-          }
-          updatedPlayers[state.currentPlayerIndex] = activeCurrentPlayer
+          };
+          updatedPlayers[state.currentPlayerIndex] = activeCurrentPlayer;
         } else {
           activeCurrentPlayer = {
             ...activeCurrentPlayer,
             killerIsActive: true,
-          }
-          updatedPlayers[state.currentPlayerIndex] = activeCurrentPlayer
+          };
+          updatedPlayers[state.currentPlayerIndex] = activeCurrentPlayer;
         }
       } else if (activeCurrentPlayer.killerIsActive) {
         const opponentIndex = updatedPlayers.findIndex(
@@ -394,29 +398,29 @@ function evaluateTurnFromDarts(
             playerIndex !== state.currentPlayerIndex &&
             !player.isEliminated &&
             player.killerTarget === nextDart.hit.segment,
-        )
+        );
 
         if (opponentIndex !== -1) {
-          const opponent = updatedPlayers[opponentIndex]
-          const nextLives = Math.max(0, opponent.score - 1)
+          const opponent = updatedPlayers[opponentIndex];
+          const nextLives = Math.max(0, opponent.score - 1);
           updatedPlayers[opponentIndex] = {
             ...opponent,
             killerLives: nextLives,
             score: nextLives,
             isEliminated: nextLives === 0,
-          }
-          turnTotal += 1
+          };
+          turnTotal += 1;
         }
       }
     }
 
-    const survivors = updatedPlayers.filter((player) => !player.isEliminated)
+    const survivors = updatedPlayers.filter((player) => !player.isEliminated);
 
     if (survivors.length === 1) {
-      isWinningThrow = true
-      winnerId = survivors[0].id
-      statusMessage = `${survivors[0].name} wins Killer.`
-      break
+      isWinningThrow = true;
+      winnerId = survivors[0].id;
+      statusMessage = `${survivors[0].name} wins Killer.`;
+      break;
     }
   }
 
@@ -429,7 +433,7 @@ function evaluateTurnFromDarts(
       normalizedDarts.length === 3 ||
       isWinningThrow ||
       Boolean(updatedPlayers[state.currentPlayerIndex].isEliminated),
-  }
+  };
 
   if (!statusMessage && nextTurn.isComplete) {
     statusMessage = getTurnReviewMessage(
@@ -438,82 +442,90 @@ function evaluateTurnFromDarts(
         players: updatedPlayers,
       },
       nextTurn,
-    )
+    );
   }
 
   return {
     players: updatedPlayers,
     turn: nextTurn,
-    status: isWinningThrow ? 'game_over' : 'in_progress',
+    status: isWinningThrow ? "game_over" : "in_progress",
     winnerId,
     statusMessage,
-  }
+  };
 }
 
 function advancePlayerInternal(
   state: GameState,
   statusMessage: string | null,
 ): GameState {
-  if (state.status !== 'in_progress') {
-    return state
+  if (state.status !== "in_progress") {
+    return state;
   }
 
-  let nextPlayerIndex = (state.currentPlayerIndex + 1) % state.players.length
+  let nextPlayerIndex = (state.currentPlayerIndex + 1) % state.players.length;
 
-  if (state.mode.type === 'killer') {
+  if (state.mode.type === "killer") {
     for (let offset = 1; offset <= state.players.length; offset += 1) {
       const candidateIndex =
-        (state.currentPlayerIndex + offset) % state.players.length
+        (state.currentPlayerIndex + offset) % state.players.length;
 
       if (!state.players[candidateIndex].isEliminated) {
-        nextPlayerIndex = candidateIndex
-        break
+        nextPlayerIndex = candidateIndex;
+        break;
       }
     }
   }
 
-  const nextPlayer = state.players[nextPlayerIndex]
+  const nextPlayer = state.players[nextPlayerIndex];
 
   return {
     ...state,
+    visits: [
+      ...(state.visits ?? []),
+      ...[currentVisit(state)].filter((v) => v !== null),
+    ],
     currentPlayerIndex: nextPlayerIndex,
     turn: createTurnState(nextPlayer, state.turn.turnIndex + 1, state.players),
     statusMessage,
     lastUpdatedAt: getNowTimestamp(),
-  }
+  };
 }
 
-export function createGame({ playerNames, mode }: CreateGameInput): GameState {
+export function createGame({
+  playerNames,
+  mode,
+  bestOf = 1,
+}: CreateGameInput): GameState {
   const players = playerNames.map((name, index) => {
-    const playerName = name.trim() || `Player ${index + 1}`
+    const playerName = name.trim() || `Player ${index + 1}`;
     const basePlayer = {
       id: `player-${index + 1}`,
       name: playerName,
       score: getStartingScore(mode),
-    }
+    };
 
-    if (mode.type === 'round-clock') {
+    if (mode.type === "round-clock") {
       return {
         ...basePlayer,
         roundClockTarget: 1,
-      }
+      };
     }
 
-    if (mode.type === 'killer') {
+    if (mode.type === "killer") {
       return {
         ...basePlayer,
         killerTarget: KILLER_TARGETS[index],
         killerLives: mode.lives,
         killerIsActive: false,
         isEliminated: false,
-      }
+      };
     }
 
-    return basePlayer
-  })
+    return basePlayer;
+  });
 
   return {
-    status: 'in_progress',
+    status: "in_progress",
     mode,
     players,
     currentPlayerIndex: 0,
@@ -522,27 +534,45 @@ export function createGame({ playerNames, mode }: CreateGameInput): GameState {
     statusMessage: null,
     lastUpdatedAt: getNowTimestamp(),
     undoStack: [],
-  }
+    visits: [],
+    match: {
+      id: globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`,
+      bestOf:
+        mode.type === "x01"
+          ? Math.max(1, Math.min(9, Math.floor(bestOf / 2) * 2 + 1))
+          : 1,
+      leg: 1,
+      starterIndex: 0,
+      legsWon: Object.fromEntries(players.map((p) => [p.id, 0])),
+    },
+  };
 }
 
 export function applyDartThrow(
   state: GameState,
   throwInput: DartThrowInput,
 ): GameState {
-  if (state.status !== 'in_progress' || state.turn.isComplete) {
-    return state
+  if (
+    state.status !== "in_progress" ||
+    state.turn.isComplete ||
+    state.turn.visitScore !== undefined
+  ) {
+    return state;
   }
 
-  const dart = buildDartThrow(state.turn, throwInput)
-  const undoStack = [...state.undoStack, createUndoSnapshot(state)]
-  const evaluatedTurn = evaluateTurnFromDarts(state, [...state.turn.darts, dart])
+  const dart = buildDartThrow(state.turn, throwInput);
+  const undoStack = [...state.undoStack, createUndoSnapshot(state)];
+  const evaluatedTurn = evaluateTurnFromDarts(state, [
+    ...state.turn.darts,
+    dart,
+  ]);
 
-  return {
+  return settleLeg(state, {
     ...state,
     ...evaluatedTurn,
     lastUpdatedAt: getNowTimestamp(),
     undoStack,
-  }
+  });
 }
 
 export function replaceTurnDart(
@@ -550,14 +580,14 @@ export function replaceTurnDart(
   dartId: string,
   throwInput: DartThrowInput,
 ): GameState {
-  if (state.status !== 'in_progress' && state.status !== 'game_over') {
-    return state
+  if (state.status !== "in_progress" && state.status !== "game_over") {
+    return state;
   }
 
-  const dartIndex = state.turn.darts.findIndex((dart) => dart.id === dartId)
+  const dartIndex = state.turn.darts.findIndex((dart) => dart.id === dartId);
 
   if (dartIndex === -1) {
-    return state
+    return state;
   }
 
   const replacementDart = buildDartThrow(
@@ -565,72 +595,72 @@ export function replaceTurnDart(
     throwInput,
     dartIndex + 1,
     dartId,
-  )
+  );
   const nextDarts = state.turn.darts.map((dart, index) =>
     index === dartIndex ? replacementDart : dart,
-  )
-  const evaluatedTurn = evaluateTurnFromDarts(state, nextDarts)
+  );
+  const evaluatedTurn = evaluateTurnFromDarts(state, nextDarts);
 
-  return {
+  return settleLeg(state, {
     ...state,
     ...evaluatedTurn,
     lastUpdatedAt: getNowTimestamp(),
     undoStack: [...state.undoStack, createUndoSnapshot(state)],
-  }
+  });
 }
 
 export function advancePlayer(state: GameState): GameState {
-  if (state.status !== 'in_progress') {
-    return state
+  if (state.status !== "in_progress") {
+    return state;
   }
 
-  const currentPlayer = state.players[state.currentPlayerIndex]
-  const startingPlayer = state.turn.startingPlayers?.[state.currentPlayerIndex]
-  let turnMessage: string
+  const currentPlayer = state.players[state.currentPlayerIndex];
+  const startingPlayer = state.turn.startingPlayers?.[state.currentPlayerIndex];
+  let turnMessage: string;
 
-  if (state.mode.type === 'round-clock') {
+  if (state.mode.type === "round-clock") {
     turnMessage =
       state.turn.turnTotal > 0
         ? `${currentPlayer.name} advances to ${currentPlayer.score}.`
-        : `${currentPlayer.name} stays on ${currentPlayer.score}.`
-  } else if (state.mode.type === 'killer') {
+        : `${currentPlayer.name} stays on ${currentPlayer.score}.`;
+  } else if (state.mode.type === "killer") {
     const becameKiller =
-      currentPlayer.killerIsActive && !startingPlayer?.killerIsActive
+      currentPlayer.killerIsActive && !startingPlayer?.killerIsActive;
 
     if (currentPlayer.isEliminated) {
-      turnMessage = `${currentPlayer.name} is eliminated.`
+      turnMessage = `${currentPlayer.name} is eliminated.`;
     } else if (state.turn.turnTotal > 0) {
-      turnMessage = `${currentPlayer.name} took ${formatLifeCount(state.turn.turnTotal)}.`
+      turnMessage = `${currentPlayer.name} took ${formatLifeCount(state.turn.turnTotal)}.`;
     } else if (becameKiller) {
-      turnMessage = `${currentPlayer.name} is now a killer.`
+      turnMessage = `${currentPlayer.name} is now a killer.`;
     } else {
-      turnMessage = `${currentPlayer.name} did not take a life.`
+      turnMessage = `${currentPlayer.name} did not take a life.`;
     }
   } else {
     turnMessage = state.turn.isBust
       ? `${currentPlayer.name} busts. Score returns to ${state.turn.startingScore}.`
-      : `${currentPlayer.name} scored ${state.turn.turnTotal}.`
+      : `${currentPlayer.name} scored ${state.turn.turnTotal}.`;
   }
 
-  return advancePlayerInternal(
-    state,
-    turnMessage,
-  )
+  return advancePlayerInternal(state, turnMessage);
 }
 
 export function endTurn(state: GameState): GameState {
-  if (state.status !== 'in_progress' || state.turn.darts.length === 0) {
-    return state
+  if (
+    state.status !== "in_progress" ||
+    (state.turn.darts.length === 0 && state.turn.visitScore === undefined)
+  ) {
+    return state;
   }
 
-  return advancePlayer(state)
+  return advancePlayer(state);
 }
 
 export function undoLastDart(state: GameState): GameState {
-  const previousSnapshot = state.undoStack[state.undoStack.length - 1]
+  const previousSnapshot = state.undoStack[state.undoStack.length - 1];
 
   if (!previousSnapshot) {
-    return state
+    return state;
   }
 
   return {
@@ -643,5 +673,154 @@ export function undoLastDart(state: GameState): GameState {
     statusMessage: previousSnapshot.statusMessage,
     lastUpdatedAt: getNowTimestamp(),
     undoStack: state.undoStack.slice(0, -1),
+    visits: previousSnapshot.visits,
+    match: previousSnapshot.match,
+  };
+}
+
+function settleLeg(before: GameState, next: GameState): GameState {
+  if (!next.match) return next;
+  const legsWon = { ...next.match.legsWon };
+  if (before.status === "game_over" && before.winnerId)
+    legsWon[before.winnerId] = Math.max(0, (legsWon[before.winnerId] ?? 0) - 1);
+  if (next.status === "game_over" && next.winnerId)
+    legsWon[next.winnerId] = (legsWon[next.winnerId] ?? 0) + 1;
+  return { ...next, match: { ...next.match, legsWon } };
+}
+
+export function nextLeg(state: GameState): GameState {
+  if (state.status !== "game_over" || isMatchComplete(state) || !state.match)
+    return state;
+  const fresh = createGame({
+    playerNames: state.players.map((p) => p.name),
+    mode: state.mode,
+    bestOf: state.match.bestOf,
+  });
+  const starterIndex = (state.match.starterIndex + 1) % fresh.players.length;
+  return {
+    ...fresh,
+    currentPlayerIndex: starterIndex,
+    match: { ...state.match, leg: state.match.leg + 1, starterIndex },
+    visits: [
+      ...(state.visits ?? []),
+      ...[currentVisit(state)].filter((v) => v !== null),
+    ],
+    turn: createTurnState(
+      fresh.players[starterIndex],
+      state.turn.turnIndex + 1,
+      fresh.players,
+    ),
+    undoStack: [...state.undoStack, createUndoSnapshot(state)],
+    statusMessage: `Leg ${state.match.leg + 1}. ${fresh.players[starterIndex].name} starts.`,
+  };
+}
+
+export function applyVisitTotal(
+  state: GameState,
+  total: number,
+  dartsUsed: number,
+  finishSegment?: number,
+): GameState {
+  if (
+    state.status !== "in_progress" ||
+    state.mode.type !== "x01" ||
+    state.turn.darts.length ||
+    state.turn.visitScore !== undefined
+  )
+    return state;
+  if (
+    !Number.isInteger(total) ||
+    total < 0 ||
+    total > dartsUsed * 60 ||
+    ![1, 2, 3].includes(dartsUsed)
+  )
+    throw new Error("Enter a valid score and darts used.");
+  const possible = (target: number, count: number): boolean => {
+    if (!count) return target === 0;
+    const scores = new Set([
+      0,
+      25,
+      50,
+      ...Array.from({ length: 20 }, (_, i) => i + 1),
+      ...Array.from({ length: 20 }, (_, i) => (i + 1) * 2),
+      ...Array.from({ length: 20 }, (_, i) => (i + 1) * 3),
+    ]);
+    return [...scores].some(
+      (n) => n <= target && possible(target - n, count - 1),
+    );
+  };
+  if (!possible(total, dartsUsed))
+    throw new Error(
+      "That total is not possible with the selected number of darts.",
+    );
+  const remaining = state.turn.startingScore - total;
+  let finishHit;
+  let isBust =
+    remaining < 0 ||
+    (state.mode.finishRule === "double-out" && remaining === 1);
+  if (remaining === 0 && state.mode.finishRule === "double-out") {
+    if (finishSegment === 0) {
+      const nonDoubles = [
+        25,
+        ...Array.from({ length: 20 }, (_, i) => i + 1),
+        ...Array.from({ length: 20 }, (_, i) => (i + 1) * 3),
+      ];
+      if (
+        !nonDoubles.some(
+          (n) => n <= total && possible(total - n, dartsUsed - 1),
+        )
+      )
+        throw new Error(
+          "That total cannot end on a non-double with this dart count.",
+        );
+      isBust = true;
+    } else {
+      if (
+        !finishSegment ||
+        ![...Array.from({ length: 20 }, (_, i) => i + 1), 25].includes(
+          finishSegment,
+        )
+      )
+        throw new Error("Select the finishing double or bull.");
+      const score = finishSegment * 2;
+      if (score > total || !possible(total - score, dartsUsed - 1))
+        throw new Error("That finishing double does not fit this visit.");
+      finishHit = {
+        ring:
+          finishSegment === 25 ? ("innerBull" as const) : ("double" as const),
+        segment: finishSegment === 25 ? null : finishSegment,
+        multiplier: 2,
+        score,
+        label: finishSegment === 25 ? "Bull" : `D${finishSegment}`,
+        isFinishDouble: true,
+      };
+    }
   }
+  const won = remaining === 0 && !isBust;
+  const players = clonePlayers(state.players);
+  players[state.currentPlayerIndex].score = isBust
+    ? state.turn.startingScore
+    : remaining;
+  return settleLeg(state, {
+    ...state,
+    players,
+    turn: {
+      ...cloneTurn(state.turn),
+      visitScore: total,
+      dartsUsed,
+      finishHit,
+      turnTotal: total,
+      isComplete: true,
+      isBust,
+    },
+    status: won ? "game_over" : "in_progress",
+    winnerId: won ? state.turn.playerId : null,
+    statusMessage: isBust
+      ? `Bust. Score returns to ${state.turn.startingScore}.`
+      : won
+        ? `${players[state.currentPlayerIndex].name} checks out${finishHit ? ` on ${finishHit.label}` : ""}.`
+        : `${players[state.currentPlayerIndex].name} scored ${total}.`,
+    lastUpdatedAt: getNowTimestamp(),
+    undoStack: [...state.undoStack, createUndoSnapshot(state)],
+  });
 }

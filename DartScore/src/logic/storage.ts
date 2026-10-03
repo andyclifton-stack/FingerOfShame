@@ -1,84 +1,118 @@
-import type { GameState, GameStatus } from '../types/game'
-
-const STORAGE_KEY = 'dartscore.current.v1'
-const STORAGE_VERSION = 1
-
-interface StoredGameState {
-  version: number
-  gameState: GameState
+import type { CreateGameInput, GameState } from "../types/game";
+import { isMatchComplete } from "./matchTools";
+const STORAGE_KEY = "dartscore.current.v1";
+export interface Preferences {
+  input: "board" | "buttons" | "total";
+  awake: boolean;
 }
-
-function isGameStatus(value: unknown): value is GameStatus {
-  return value === 'setup' || value === 'in_progress' || value === 'game_over'
-}
-
-function looksLikeGameState(value: unknown): value is GameState {
-  if (!value || typeof value !== 'object') {
-    return false
-  }
-
-  const candidate = value as Partial<GameState>
-
-  return (
-    isGameStatus(candidate.status) &&
-    Array.isArray(candidate.players) &&
-    typeof candidate.currentPlayerIndex === 'number' &&
-    typeof candidate.lastUpdatedAt === 'string' &&
-    typeof candidate.winnerId !== 'undefined' &&
-    typeof candidate.statusMessage !== 'undefined' &&
-    typeof candidate.turn === 'object' &&
-    Array.isArray(candidate.undoStack) &&
-    typeof candidate.mode === 'object'
-  )
-}
-
-export function loadSavedGame(): GameState | null {
-  if (typeof localStorage === 'undefined') {
-    return null
-  }
-
+export const defaultPreferences: Preferences = { input: "board", awake: false };
+export let storageAvailable = true;
+export function readLocal<T>(key: string, fallback: T): T {
   try {
-    const storedValue = localStorage.getItem(STORAGE_KEY)
-
-    if (!storedValue) {
-      return null
-    }
-
-    const parsed = JSON.parse(storedValue) as StoredGameState
-
-    if (
-      parsed.version !== STORAGE_VERSION ||
-      !looksLikeGameState(parsed.gameState) ||
-      parsed.gameState.status !== 'in_progress'
-    ) {
-      localStorage.removeItem(STORAGE_KEY)
-      return null
-    }
-
-    return parsed.gameState
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
   } catch {
-    localStorage.removeItem(STORAGE_KEY)
-    return null
+    storageAvailable = false;
+    return fallback;
   }
 }
-
-export function saveGame(gameState: GameState): void {
-  if (typeof localStorage === 'undefined' || gameState.status !== 'in_progress') {
-    return
+export function writeLocal(key: string, value: unknown) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+    storageAvailable = true;
+  } catch {
+    storageAvailable = false;
   }
-
-  const payload: StoredGameState = {
-    version: STORAGE_VERSION,
-    gameState,
-  }
-
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
 }
-
-export function clearSavedGame(): void {
-  if (typeof localStorage === 'undefined') {
-    return
+function validGame(value: unknown): value is GameState {
+  if (!value || typeof value !== "object") return false;
+  const s = value as GameState;
+  return (
+    ["in_progress", "game_over"].includes(s.status) &&
+    Array.isArray(s.players) &&
+    s.players.length > 0 &&
+    s.players.length <= 4 &&
+    s.players.every(
+      (p) =>
+        typeof p.id === "string" &&
+        typeof p.name === "string" &&
+        Number.isFinite(p.score),
+    ) &&
+    Number.isInteger(s.currentPlayerIndex) &&
+    s.currentPlayerIndex >= 0 &&
+    s.currentPlayerIndex < s.players.length &&
+    !!s.turn &&
+    Array.isArray(s.turn.darts) &&
+    s.turn.darts.length <= 3 &&
+    s.turn.darts.every((d) => !!d.hit && Number.isFinite(d.score)) &&
+    Number.isFinite(s.turn.startingScore) &&
+    !!s.mode &&
+    ["x01", "free", "round-clock", "killer"].includes(s.mode.type) &&
+    Array.isArray(s.undoStack) &&
+    (!s.visits || Array.isArray(s.visits)) &&
+    (!s.match ||
+      (!!s.match.id &&
+        !!s.match.legsWon &&
+        Number.isInteger(s.match.bestOf) &&
+        Number.isInteger(s.match.leg)))
+  );
+}
+export function loadSavedGame(): GameState | null {
+  const saved = readLocal<{ version: number; gameState: unknown } | null>(
+    STORAGE_KEY,
+    null,
+  );
+  return saved?.version === 1 && validGame(saved.gameState)
+    ? saved.gameState
+    : null;
+}
+export function saveGame(s: GameState) {
+  writeLocal(STORAGE_KEY, { version: 1, gameState: s });
+}
+export function clearSavedGame() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    storageAvailable = false;
   }
-
-  localStorage.removeItem(STORAGE_KEY)
+}
+export function loadHistory(): GameState[] {
+  const history = readLocal<unknown>("dartscore.history.v1", []);
+  return Array.isArray(history) ? history.filter(validGame).slice(0, 50) : [];
+}
+export function reconcileHistory(s: GameState): GameState[] {
+  const history = loadHistory().filter(
+    (item) => item.match?.id !== s.match?.id,
+  );
+  if (isMatchComplete(s)) history.unshift({ ...s, undoStack: [] });
+  writeLocal("dartscore.history.v1", history.slice(0, 50));
+  return history.slice(0, 50);
+}
+export function loadSetup(): CreateGameInput {
+  const fallback: CreateGameInput = {
+    playerNames: ["Player 1", "Player 2"],
+    mode: { type: "x01", startingScore: 501, finishRule: "double-out" },
+    bestOf: 1,
+  };
+  const s = readLocal<CreateGameInput>("dartscore.setup.v1", fallback);
+  return s &&
+    Array.isArray(s.playerNames) &&
+    s.playerNames.length >= 1 &&
+    s.playerNames.length <= 4 &&
+    s.playerNames.every((n) => typeof n === "string") &&
+    s.mode &&
+    ["x01", "free", "round-clock", "killer"].includes(s.mode.type)
+    ? s
+    : fallback;
+}
+export function loadPreferences(): Preferences {
+  const p = readLocal<Preferences>(
+    "dartscore.preferences.v1",
+    defaultPreferences,
+  );
+  return {
+    input:
+      p && ["board", "buttons", "total"].includes(p.input) ? p.input : "board",
+    awake: p?.awake === true,
+  };
 }
