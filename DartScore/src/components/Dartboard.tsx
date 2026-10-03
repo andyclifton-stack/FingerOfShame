@@ -270,7 +270,7 @@ export function Dartboard({
           />
 
           {BOARD_SEGMENTS.map((segment, index) => {
-            const isEven = index % 2 === 0;
+            const isLight = index % 2 === 1;
             const centerAngle = index * 18;
             const startAngle = centerAngle - 9;
             const endAngle = centerAngle + 9;
@@ -286,7 +286,7 @@ export function Dartboard({
               >
                 <path
                   className={
-                    isEven
+                    isLight
                       ? "single-slice single-slice--light"
                       : "single-slice single-slice--dark"
                   }
@@ -299,7 +299,7 @@ export function Dartboard({
                 />
                 <path
                   className={
-                    isEven
+                    isLight
                       ? "treble-slice treble-slice--green"
                       : "treble-slice treble-slice--red"
                   }
@@ -316,7 +316,7 @@ export function Dartboard({
                 />
                 <path
                   className={
-                    isEven
+                    isLight
                       ? "single-slice single-slice--light"
                       : "single-slice single-slice--dark"
                   }
@@ -329,7 +329,7 @@ export function Dartboard({
                 />
                 <path
                   className={
-                    isEven
+                    isLight
                       ? "double-slice double-slice--green"
                       : "double-slice double-slice--red"
                   }
