@@ -6,6 +6,19 @@ const ARCHIVE_KEY = "finger_hub_archived_v1";
 // Add future games/apps here; the grid renders from this list.
 const HUB_ITEMS = [
     {
+        id: "surprisereveal",
+        title: "Surprise Reveal",
+        description: "Make a personal card, choose how it opens, and send a little surprise.",
+        type: "app",
+        href: "SurpriseReveal/",
+        short: "SR",
+        accent: "rose",
+        status: "beta",
+        featured: true,
+        tags: ["cards", "gifts", "surprises", "creative"],
+        cta: "Make a card"
+    },
+    {
         id: "dartscore",
         title: "DartScore",
         description: "Tap the dartboard to score real-life 501 and practice games with proper turn flow.",
