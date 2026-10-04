@@ -9,7 +9,6 @@ import {
   getDartboardHitFromPoint,
 } from "../logic/dartboardScoring";
 import type { DartThrow, DartThrowInput, DartboardHit } from "../types/game";
-import { isBoardTap } from "../logic/boardGesture";
 
 interface DartboardProps {
   suggestedHit?: DartboardHit;
@@ -18,7 +17,6 @@ interface DartboardProps {
   markers: DartThrow[];
   onCancelEdit: () => void;
   onConfirmThrow: (throwInput: DartThrowInput, dartId: string | null) => void;
-  onSelectDart: (dartId: string) => void;
 }
 
 interface PendingPlacement {
@@ -29,7 +27,6 @@ interface PendingPlacement {
 const BOARD_RADIUS = 100;
 const VIEWBOX_MIN = -125;
 const VIEWBOX_SIZE = 250;
-const NUDGE_STEP = 1.4;
 
 function polarToCartesian(radius: number, angleDegrees: number) {
   const radians = ((angleDegrees - 90) * Math.PI) / 180;
@@ -89,22 +86,19 @@ export function Dartboard({
   markers,
   onCancelEdit,
   onConfirmThrow,
-  onSelectDart,
 }: DartboardProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [pendingPlacement, setPendingPlacement] =
     useState<PendingPlacement | null>(null);
-  const activePointer = useRef<{ id: number; x: number; y: number; started: number; moved: boolean; touch: boolean; markerId: string | null } | null>(null);
+  const activePointer = useRef<{
+    id: number; x: number; y: number; moved: boolean;
+    markerId: string | null; start: DartThrowInput;
+  } | null>(null);
   const editingMarker = markers.find((marker) => marker.id === editingDartId);
+  const previewMarker = markers.find(marker => marker.id === (pendingPlacement?.dartId ?? editingDartId));
   const isEditing = Boolean(editingMarker);
-  const pendingDartIndex =
-    editingMarker?.dartIndex ?? Math.min(markers.length + 1, 3);
-  const pendingThrow =
-    pendingPlacement?.dartId === editingDartId
-      ? pendingPlacement.throwInput
-      : null;
-  const activeThrow =
-    pendingThrow ??
+  const pendingDartIndex = previewMarker?.dartIndex ?? Math.min(markers.length + 1, 3);
+  const activeThrow = pendingPlacement?.throwInput ??
     (editingMarker ? buildThrowInput(editingMarker.x, editingMarker.y) : null);
 
   const getThrowInputFromPointer = (
@@ -123,118 +117,65 @@ export function Dartboard({
     return buildThrowInput(point.x, point.y);
   };
 
+  const cancelGesture = (event: ReactPointerEvent<SVGSVGElement>) => {
+    if (activePointer.current?.id !== event.pointerId) return;
+    activePointer.current = null;
+    setPendingPlacement(null);
+  };
+
   const handlePointerDown = (event: ReactPointerEvent<SVGSVGElement>) => {
-    if (!event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) {
+    if (!event.isPrimary) {
+      // A second finger cancels placement rather than adding an accidental dart.
+      activePointer.current = null;
+      setPendingPlacement(null);
       return;
     }
-
+    if (event.button !== 0) return;
     const markerId = (event.target as Element).closest("[data-dart-id]")?.getAttribute("data-dart-id") ?? null;
-    if (!canPlaceNewDart && !isEditing && !markerId) {
-      return;
-    }
-
-    const nextThrow = getThrowInputFromPointer(event);
-
-    if (!nextThrow) {
-      return;
-    }
-
-    const touch = event.pointerType !== "mouse";
-    activePointer.current = { id: event.pointerId, x: event.clientX, y: event.clientY, started: event.timeStamp, moved: false, touch, markerId };
-    // Touch belongs to native scrolling until a completed tap is recognised.
-    if (touch) return;
+    if (!canPlaceNewDart && !isEditing && !markerId) return;
+    const start = getThrowInputFromPointer(event);
+    if (!start) return;
+    activePointer.current = { id: event.pointerId, x: event.clientX, y: event.clientY, moved: false, markerId, start };
     event.currentTarget.setPointerCapture(event.pointerId);
-    setPendingPlacement({
-      dartId: editingDartId,
-      throwInput: nextThrow,
-    });
-    triggerHapticFeedback();
+    if (canPlaceNewDart || isEditing) setPendingPlacement({ dartId: editingDartId, throwInput: start });
+  };
+
+  const placementFromGesture = (event: ReactPointerEvent<SVGSVGElement>) => {
+    const gesture = activePointer.current;
+    if (!gesture || gesture.id !== event.pointerId) return null;
+    gesture.moved ||= Math.hypot(event.clientX - gesture.x, event.clientY - gesture.y) > 6;
+    const point = getThrowInputFromPointer(event);
+    if (!point) return null;
+    // A tap on an existing hit adds another dart. A drag moves that marker.
+    const dartId = editingDartId ?? (gesture.moved ? gesture.markerId : null);
+    if (!dartId && !canPlaceNewDart) return null;
+    const marker = markers.find(item => item.id === dartId);
+    const throwInput = marker && gesture.markerId === dartId && gesture.moved
+      ? buildThrowInput(marker.x + point.x - gesture.start.x, marker.y + point.y - gesture.start.y)
+      : point;
+    return { dartId, throwInput };
   };
 
   const handlePointerMove = (event: ReactPointerEvent<SVGSVGElement>) => {
-    const gesture = activePointer.current;
-    if (!gesture || gesture.id !== event.pointerId) {
-      return;
-    }
-
-    if (!isBoardTap(gesture.x, gesture.y, event.clientX, event.clientY, 0)) gesture.moved = true;
-    if (gesture.touch) return;
-    const nextThrow = getThrowInputFromPointer(event);
-
-    if (nextThrow) {
-      setPendingPlacement({
-        dartId: editingDartId,
-        throwInput: nextThrow,
-      });
-    }
+    const placement = placementFromGesture(event);
+    if (placement) setPendingPlacement(placement);
   };
 
   const handlePointerEnd = (event: ReactPointerEvent<SVGSVGElement>) => {
-    const gesture = activePointer.current;
-    if (!gesture || gesture.id !== event.pointerId) {
-      return;
-    }
-
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-
+    if (activePointer.current?.id !== event.pointerId) return;
+    const placement = placementFromGesture(event);
     activePointer.current = null;
-    if (event.type === "pointercancel") return;
-    if (gesture.touch && !gesture.moved && isBoardTap(gesture.x, gesture.y, event.clientX, event.clientY, event.timeStamp - gesture.started)) {
-      if (gesture.markerId) onSelectDart(gesture.markerId);
-      else {
-        const nextThrow = getThrowInputFromPointer(event);
-        if (nextThrow) setPendingPlacement({ dartId: editingDartId, throwInput: nextThrow });
-      }
-      triggerHapticFeedback();
-    }
-  };
-
-  const handleConfirmThrow = () => {
-    if (!activeThrow) {
-      return;
-    }
-
-    onConfirmThrow(activeThrow, editingDartId);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
     setPendingPlacement(null);
-    triggerHapticFeedback(18);
-  };
-
-  const handleCancel = () => {
-    setPendingPlacement(null);
-    activePointer.current = null;
-    onCancelEdit();
-  };
-
-  const nudgePending = (deltaX: number, deltaY: number) => {
-    triggerHapticFeedback(6);
-    setPendingPlacement((currentPlacement) => {
-      const currentThrow =
-        currentPlacement?.dartId === editingDartId
-          ? currentPlacement.throwInput
-          : activeThrow;
-
-      if (!currentThrow) {
-        return currentPlacement;
-      }
-
-      return {
-        dartId: editingDartId,
-        throwInput: buildThrowInput(
-          currentThrow.x + deltaX,
-          currentThrow.y + deltaY,
-        ),
-      };
-    });
+    if (placement) {
+      onConfirmThrow(placement.throwInput, placement.dartId);
+      triggerHapticFeedback(12);
+    }
   };
 
   const previewLabel = activeThrow
-    ? `${activeThrow.hit.label} = ${activeThrow.hit.score}`
-    : canPlaceNewDart
-      ? "Tap where it landed"
-      : "Turn ready";
-  const controlsVisible = Boolean(activeThrow);
+    ? `${activeThrow.hit.label} · ${activeThrow.hit.score}`
+    : canPlaceNewDart ? "Tap to add · drag to adjust" : "Drag a marker to correct it";
 
   return (
     <section className="panel dartboard-panel">
@@ -253,7 +194,9 @@ export function Dartboard({
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerEnd}
-          onPointerCancel={handlePointerEnd}
+          onPointerCancel={cancelGesture}
+          onLostPointerCapture={cancelGesture}
+          onContextMenu={(event) => event.preventDefault()}
         >
           <defs>
             <filter
@@ -430,8 +373,8 @@ export function Dartboard({
           })}
 
           {markers.map((marker) => {
-            const markerIsEditing = marker.id === editingDartId;
-            const markerCanBeEdited = !canPlaceNewDart || isEditing;
+            if (pendingPlacement?.dartId === marker.id) return null;
+            const markerIsEditing = marker.id === (pendingPlacement?.dartId ?? editingDartId);
 
             return (
               <g
@@ -439,21 +382,13 @@ export function Dartboard({
                 className={[
                   "throw-marker-group",
                   markerIsEditing ? "is-editing" : "",
-                  markerCanBeEdited ? "can-edit" : "",
+                  "can-edit",
                 ]
                   .filter(Boolean)
                   .join(" ")}
-                data-dart-id={markerCanBeEdited ? marker.id : undefined}
+                data-dart-id={marker.id}
                 transform={`translate(${marker.x} ${marker.y})`}
-                onPointerDown={(event) => {
-                  if (event.pointerType !== "mouse" || !markerCanBeEdited) {
-                    return;
-                  }
 
-                  event.stopPropagation();
-                  onSelectDart(marker.id);
-                  triggerHapticFeedback();
-                }}
               >
                 <circle className="throw-marker" r="5.5" />
                 <circle className="throw-marker__halo" r="9" />
@@ -506,70 +441,9 @@ export function Dartboard({
       </div>
 
       <div className="dartboard-actions">
-        <div className="dartboard-preview" aria-live="polite">
-          <span>Dart {pendingDartIndex}</span>
-          <strong>{previewLabel}</strong>
-        </div>
-
-      {controlsVisible && (
-        <details className="precision-disclosure">
-          <summary>Adjust</summary>
-        <div
-          className="precision-controls"
-          aria-label="Fine adjustment controls"
-        >
-          <button
-            className="precision-button"
-            type="button"
-            onClick={() => nudgePending(0, -NUDGE_STEP)}
-          >
-            Up
-          </button>
-          <button
-            className="precision-button"
-            type="button"
-            onClick={() => nudgePending(-NUDGE_STEP, 0)}
-          >
-            Left
-          </button>
-          <button
-            className="precision-button"
-            type="button"
-            onClick={() => nudgePending(NUDGE_STEP, 0)}
-          >
-            Right
-          </button>
-          <button
-            className="precision-button"
-            type="button"
-            onClick={() => nudgePending(0, NUDGE_STEP)}
-          >
-            Down
-          </button>
-        </div>
-        </details>
-      )}
-        {controlsVisible && (
-          <div className="dartboard-action-buttons">
-            <button
-              className="button button--compact"
-              type="button"
-              onClick={handleCancel}
-            >
-              {isEditing ? "Cancel" : "Clear"}
-            </button>
-            <button
-              className="button button--accent button--compact"
-              type="button"
-              onClick={handleConfirmThrow}
-            >
-              {isEditing ? "Save Dart" : "Confirm Dart"}
-            </button>
-          </div>
-        )}
+        <div className="dartboard-preview" aria-live="polite"><strong>{previewLabel}</strong></div>
+        {isEditing && <button className="button button--compact" onClick={onCancelEdit}>Cancel edit</button>}
       </div>
-
-
     </section>
   );
 }

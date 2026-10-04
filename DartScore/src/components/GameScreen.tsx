@@ -57,7 +57,7 @@ export function GameScreen({ appNavigation, gameState: s, preferences, onInput, 
       <div className="play-board">
         {input === "board" ? (
           <Dartboard key={`${s.turn.turnIndex}-${s.turn.darts.length}-${editing}`} canPlaceNewDart={canPlace} editingDartId={editing}
-            markers={s.turn.darts} suggestedHit={route?.[0]} onCancelEdit={() => setEditing(null)} onConfirmThrow={confirmDart} onSelectDart={setEditing} />
+            markers={s.turn.darts} suggestedHit={route?.[0]} onCancelEdit={() => setEditing(null)} onConfirmThrow={confirmDart} />
         ) : input === "buttons" ? (
           <ButtonInput key={`${s.turn.turnIndex}-${editing}`} state={s} editing={!!editing} onThrow={(dart) => confirmDart(dart)} onVisit={onVisit} />
         ) : (
@@ -100,7 +100,7 @@ export function GameScreen({ appNavigation, gameState: s, preferences, onInput, 
             </button>
           ))}
         </div>
-        <p className="hint">Tap the board where your dart landed, then confirm. Tap a recorded dart or its numbered marker to correct it. Swiping never places a dart.</p>
+        <p className="hint">Tap to record a dart immediately. You can press, move your finger to aim, and release to place it. Drag a numbered marker to correct an existing dart; tap the same spot to add another there. For overlapping markers, choose the dart below the board, then tap its new position.</p>
         <MatchStats state={s} />
         <RecentVisits state={s} />
         {confirmNew ? <div className="confirm-action" role="group" aria-label="Confirm new game">

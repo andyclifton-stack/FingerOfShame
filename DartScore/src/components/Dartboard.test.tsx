@@ -1,6 +1,7 @@
 import { Children, isValidElement, type ReactElement, type ReactNode, type SVGProps, type PointerEvent } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Dartboard } from './Dartboard';
+import { buttonThrow } from '../logic/matchTools';
 
 // Exercise the component's actual pointer handlers without a browser or DOM dependency.
 const hooks = vi.hoisted(() => ({ placement: vi.fn() }));
@@ -19,9 +20,10 @@ function findSvg(node: ReactNode): ReactElement<SVGProps<SVGSVGElement>> | undef
   }
 }
 
-function board() {
-  const select = vi.fn();
-  const tree = Dartboard({ canPlaceNewDart: true, editingDartId: null, markers: [], onCancelEdit: vi.fn(), onConfirmThrow: vi.fn(), onSelectDart: select });
+function board(canPlaceNewDart = true, editingDartId: string | null = null) {
+  const commit = vi.fn();
+  const markers = [{ ...buttonThrow(50), id: 'dart-1', dartIndex: 1, turnIndex: 0, score: 50 }];
+  const tree = Dartboard({ canPlaceNewDart, editingDartId, markers, onCancelEdit: vi.fn(), onConfirmThrow: commit });
   const props = findSvg(tree)!.props;
   const svg = {
     getScreenCTM: () => ({ inverse: () => null }),
@@ -33,7 +35,7 @@ function board() {
       target: { closest: () => markerId ? { getAttribute: () => markerId } : null }, currentTarget: svg,
     } as unknown as PointerEvent<SVGSVGElement>;
   }
-  return { props, event, select, svg };
+  return { props, event, commit, svg };
 }
 
 beforeEach(() => {
@@ -47,50 +49,83 @@ beforeEach(() => {
 });
 afterEach(() => { vi.unstubAllGlobals(); });
 
-describe('dartboard pointer interaction', () => {
-  it('does not place a touch dart until a tap is released', () => {
-    const { props, event, svg } = board();
+describe('direct dart placement', () => {
+  it('records a tap on release with no confirmation step', () => {
+    const { props, event, commit } = board();
     props.onPointerDown!(event('pointerdown'));
-    expect(hooks.placement).not.toHaveBeenCalled();
-    expect(svg.setPointerCapture).not.toHaveBeenCalled();
-    props.onPointerUp!(event('pointerup', 0, 0, 250));
-    expect(hooks.placement).toHaveBeenCalledOnce();
-    expect(hooks.placement.mock.calls[0][0].throwInput.hit.score).toBe(50);
+    expect(commit).not.toHaveBeenCalled();
+    props.onPointerUp!(event('pointerup'));
+    expect(commit).toHaveBeenCalledOnce();
+    expect(commit.mock.calls[0][0].hit.score).toBe(50);
+    expect(commit.mock.calls[0][1]).toBeNull();
   });
-  it('ignores a swipe even when the finger returns to its starting position', () => {
-    const { props, event } = board();
-    props.onPointerDown!(event('pointerdown'));
-    props.onPointerMove!(event('pointermove', 0, 40, 150));
-    props.onPointerUp!(event('pointerup', 0, 0, 250));
-    expect(hooks.placement).not.toHaveBeenCalled();
-  });
-  it('ignores a native scroll cancellation and its subsequent release', () => {
-    const { props, event } = board();
-    props.onPointerDown!(event('pointerdown'));
-    props.onPointerCancel!(event('pointercancel', 0, 30, 150));
-    props.onPointerUp!(event('pointerup', 0, 0, 250));
-    expect(hooks.placement).not.toHaveBeenCalled();
-  });
-  it('does not select an existing marker during a scrolling gesture', () => {
-    const { props, event, select } = board();
-    props.onPointerDown!(event('pointerdown', 0, 0, 100, 'dart-1'));
-    props.onPointerMove!(event('pointermove', 0, -30, 150, 'dart-1'));
-    props.onPointerUp!(event('pointerup', 0, -30, 250, 'dart-1'));
-    expect(select).not.toHaveBeenCalled();
-    expect(hooks.placement).not.toHaveBeenCalled();
-  });
-  it('selects an existing marker only after a deliberate tap', () => {
-    const { props, event, select } = board();
-    props.onPointerDown!(event('pointerdown', 0, 0, 100, 'dart-1'));
-    expect(select).not.toHaveBeenCalled();
-    props.onPointerUp!(event('pointerup', 0, 0, 250, 'dart-1'));
-    expect(select).toHaveBeenCalledWith('dart-1');
-  });
-  it('preserves mouse dragging for placement adjustment', () => {
-    const { props, event, svg } = board();
-    props.onPointerDown!(event('pointerdown', 0, 0, 100, null, 'mouse'));
-    props.onPointerMove!(event('pointermove', 0, -50, 150, null, 'mouse'));
+  it('aims a new dart by dragging and records only the release position', () => {
+    const { props, event, commit, svg } = board();
+    props.onPointerDown!(event('pointerdown', 0, -80));
+    props.onPointerMove!(event('pointermove', 0, -60));
+    expect(commit).not.toHaveBeenCalled();
+    props.onPointerUp!(event('pointerup', 0, -60));
     expect(svg.setPointerCapture).toHaveBeenCalledWith(1);
-    expect(hooks.placement).toHaveBeenCalledTimes(2);
+    expect(commit.mock.calls[0][0].hit.label).toBe('T20');
+    expect(commit.mock.calls[0][1]).toBeNull();
+  });
+  it('drags an existing marker without adding another dart', () => {
+    const { props, event, commit } = board();
+    props.onPointerDown!(event('pointerdown', 0, 0, 100, 'dart-1'));
+    props.onPointerMove!(event('pointermove', 0, -60, 150, 'dart-1'));
+    props.onPointerUp!(event('pointerup', 0, -60, 250, 'dart-1'));
+    expect(commit).toHaveBeenCalledOnce();
+    expect(commit.mock.calls[0][1]).toBe('dart-1');
+    expect(commit.mock.calls[0][0].hit.label).toBe('T20');
+  });
+  it('allows repeated taps on the same marker to add overlapping darts', () => {
+    const { props, event, commit } = board();
+    props.onPointerDown!(event('pointerdown', 0, 0, 100, 'dart-1'));
+    props.onPointerUp!(event('pointerup', 0, 0, 250, 'dart-1'));
+    expect(commit.mock.calls[0][1]).toBeNull();
+  });
+  it('allows marker correction after the third dart but ignores extra taps', () => {
+    const { props, event, commit } = board(false);
+    props.onPointerDown!(event('pointerdown', 0, 0, 100, 'dart-1'));
+    props.onPointerUp!(event('pointerup', 0, 0, 250, 'dart-1'));
+    expect(commit).not.toHaveBeenCalled();
+    props.onPointerDown!(event('pointerdown', 0, 0, 300, 'dart-1'));
+    props.onPointerUp!(event('pointerup', 0, -60, 450, 'dart-1'));
+    expect(commit.mock.calls[0][1]).toBe('dart-1');
+  });
+  it('repositions the dart selected in the footer with a single tap', () => {
+    const { props, event, commit } = board(false, 'dart-1');
+    props.onPointerDown!(event('pointerdown', 0, -60));
+    props.onPointerUp!(event('pointerup', 0, -60));
+    expect(commit.mock.calls[0][1]).toBe('dart-1');
+  });
+  it('discards cancelled gestures', () => {
+    const { props, event, commit } = board();
+    props.onPointerDown!(event('pointerdown'));
+    props.onPointerMove!(event('pointermove', 0, -60));
+    props.onPointerCancel!(event('pointercancel'));
+    props.onPointerUp!(event('pointerup'));
+    expect(commit).not.toHaveBeenCalled();
+  });
+  it('cancels a release outside the board area', () => {
+    const { props, event, commit } = board();
+    props.onPointerDown!(event('pointerdown'));
+    props.onPointerUp!(event('pointerup', 200, 200));
+    expect(commit).not.toHaveBeenCalled();
+  });
+  it('cancels when a second finger touches the board', () => {
+    const { props, event, commit } = board();
+    props.onPointerDown!(event('pointerdown'));
+    props.onPointerDown!({ ...event('pointerdown'), isPrimary: false, pointerId: 2 });
+    props.onPointerUp!(event('pointerup'));
+    expect(commit).not.toHaveBeenCalled();
+  });
+  it('supports mouse drag and commits only once', () => {
+    const { props, event, commit } = board();
+    props.onPointerDown!(event('pointerdown', 0, 0, 100, null, 'mouse'));
+    props.onPointerMove!(event('pointermove', 0, -60, 150, null, 'mouse'));
+    props.onPointerUp!(event('pointerup', 0, -60, 250, null, 'mouse'));
+    props.onPointerUp!(event('pointerup', 0, -60, 260, null, 'mouse'));
+    expect(commit).toHaveBeenCalledOnce();
   });
 });
