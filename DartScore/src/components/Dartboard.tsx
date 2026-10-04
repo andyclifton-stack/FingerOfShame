@@ -232,7 +232,7 @@ export function Dartboard({
   const previewLabel = activeThrow
     ? `${activeThrow.hit.label} = ${activeThrow.hit.score}`
     : canPlaceNewDart
-      ? "Place dart"
+      ? "Tap where it landed"
       : "Turn ready";
   const controlsVisible = Boolean(activeThrow);
 
@@ -511,35 +511,9 @@ export function Dartboard({
           <strong>{previewLabel}</strong>
         </div>
 
-        {controlsVisible && (
-          <div className="dartboard-action-buttons">
-            <button
-              className="button button--compact"
-              type="button"
-              onClick={handleCancel}
-            >
-              {isEditing ? "Cancel" : "Clear"}
-            </button>
-            <button
-              className="button button--accent button--compact"
-              type="button"
-              onClick={handleConfirmThrow}
-            >
-              {isEditing ? "Save Dart" : "Confirm Dart"}
-            </button>
-          </div>
-        )}
-      </div>
-
-      {!controlsVisible && canPlaceNewDart && (
-        <small className="hint board-instruction">
-          Tap a hit, then confirm. Swipe to scroll match details.
-        </small>
-      )}
-
       {controlsVisible && (
         <details className="precision-disclosure">
-          <summary>Fine-tune dart</summary>
+          <summary>Adjust</summary>
         <div
           className="precision-controls"
           aria-label="Fine adjustment controls"
@@ -575,6 +549,27 @@ export function Dartboard({
         </div>
         </details>
       )}
+        {controlsVisible && (
+          <div className="dartboard-action-buttons">
+            <button
+              className="button button--compact"
+              type="button"
+              onClick={handleCancel}
+            >
+              {isEditing ? "Cancel" : "Clear"}
+            </button>
+            <button
+              className="button button--accent button--compact"
+              type="button"
+              onClick={handleConfirmThrow}
+            >
+              {isEditing ? "Save Dart" : "Confirm Dart"}
+            </button>
+          </div>
+        )}
+      </div>
+
+
     </section>
   );
 }

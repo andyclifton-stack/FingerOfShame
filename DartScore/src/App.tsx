@@ -153,9 +153,7 @@ function App() {
     });
   }
   const result = archived ?? (state?.status === "game_over" ? state : null);
-  return (
-    <div className="app-shell">
-      <main className="app-frame">
+  const appNavigation = (
         <header className="app-header">
           <a className="brand" href="../" aria-label="Finger Game hub">
             <span className="brand-icon" aria-hidden="true">
@@ -243,6 +241,11 @@ function App() {
             </details>
           </nav>
         </header>
+  );
+  return (
+    <div className="app-shell">
+      <main className="app-frame">
+        {state?.status !== "in_progress" || result ? appNavigation : null}
         {saveWarning && (
           <p className="error-message" role="status">
             This browser cannot save right now. Keep this page open to retain
@@ -269,6 +272,7 @@ function App() {
           />
         ) : state?.status === "in_progress" ? (
           <GameScreen
+            appNavigation={appNavigation}
             gameState={state}
             preferences={preferences}
             onInput={(input) => changePreferences({ ...preferences, input })}

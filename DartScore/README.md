@@ -19,8 +19,8 @@ The match-night release includes:
 - Three-dart averages, highest visits, darts used, best checkouts and personal bests
 - Install manifest, versioned offline shell and an optional screen wake lock
 - Remembered player names and match settings, reduced-motion support and keyboard scoring
-- Viewport-sized scoring workspace with compact scores, a fully visible board and separately scrolling match details
-- Touch taps register only on release; swipes, cancelled gestures and long presses do not select darts. Swiping across the board scrolls match details. Mouse dragging still adjusts placement; touch users can open Fine-tune dart for adjustment arrows.
+- Phone-first playing screen with a full-width, viewport-fitted board, compact scores, three dart indicators and Undo/Next player. Match statistics, history, alternate scoring and settings are available from the match menu.
+- Touch taps register only on release; swipes, cancelled gestures and long presses do not select darts. Mouse dragging still adjusts placement; touch users can open Adjust for arrows. Selection and adjustment do not resize or move the board.
 
 Scores and history stay in this browser on this device. Visit-total entry uses the explicitly entered darts-used count and never invents individual hits. Bust visits score zero for averages. Checkout percentages are not inferred. Screen wake lock and installation depend on browser/device support.
 
