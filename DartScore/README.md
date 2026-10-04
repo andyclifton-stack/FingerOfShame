@@ -21,6 +21,7 @@ The match-night release includes:
 - Remembered player names and match settings, reduced-motion support and keyboard scoring
 - Phone-first playing screen with a full-width, viewport-fitted board, compact scores, three dart indicators and Undo/Next player. Match statistics, history, alternate scoring and settings are available from the match menu.
 - Direct dart placement: tap to record, or press and drag before releasing to aim. Drag a numbered marker to correct it; a tap on the same position adds another dart. After three darts, review the group and select Next player. Cancelled gestures, extra fingers and releases outside the board do not score. Select a dart in the footer to reposition overlapping markers.
+- Automatic precision lens: hold for 220 ms or drag to see a 2.5x close-up with a crosshair and live score. The lens stays inside the board and disappears on release or cancellation; quick taps require no extra steps.
 
 Scores and history stay in this browser on this device. Visit-total entry uses the explicitly entered darts-used count and never invents individual hits. Bust visits score zero for averages. Checkout percentages are not inferred. Screen wake lock and installation depend on browser/device support.
 

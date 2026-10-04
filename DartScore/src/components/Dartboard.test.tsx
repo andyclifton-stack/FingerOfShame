@@ -9,6 +9,8 @@ vi.mock('react', async (original) => ({
   ...await original<typeof import('react')>(),
   useState: () => [null, hooks.placement],
   useRef: () => ({ current: null }),
+  useId: () => 'test-board',
+  useEffect: () => {},
 }));
 
 function findSvg(node: ReactNode): ReactElement<SVGProps<SVGSVGElement>> | undefined {
@@ -39,6 +41,7 @@ function board(canPlaceNewDart = true, editingDartId: string | null = null) {
 }
 
 beforeEach(() => {
+  vi.useFakeTimers();
   hooks.placement.mockClear();
   vi.stubGlobal('DOMPoint', class {
     x: number;
@@ -47,9 +50,59 @@ beforeEach(() => {
     matrixTransform() { return this; }
   });
 });
-afterEach(() => { vi.unstubAllGlobals(); });
+afterEach(() => { vi.clearAllTimers(); vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 describe('direct dart placement', () => {
+  it('shows precision after a hold without recording a dart early', () => {
+    const { props, event, commit } = board();
+    props.onPointerDown!(event('pointerdown', 0, -60));
+    vi.advanceTimersByTime(219);
+    expect(hooks.placement).not.toHaveBeenCalledWith(true);
+    vi.advanceTimersByTime(1);
+    expect(hooks.placement).toHaveBeenCalledWith(true);
+    expect(commit).not.toHaveBeenCalled();
+    props.onPointerUp!(event('pointerup', 0, -60));
+    expect(hooks.placement).toHaveBeenLastCalledWith(null);
+    expect(commit.mock.calls[0][0].hit.label).toBe('T20');
+  });
+  it('does not flash the lens after a quick tap', () => {
+    const { props, event } = board();
+    props.onPointerDown!(event('pointerdown'));
+    props.onPointerUp!(event('pointerup'));
+    vi.advanceTimersByTime(300);
+    expect(hooks.placement).not.toHaveBeenCalledWith(true);
+  });
+  it('shows the lens immediately while dragging', () => {
+    const { props, event } = board();
+    props.onPointerDown!(event('pointerdown'));
+    props.onPointerMove!(event('pointermove', 0, -60));
+    expect(hooks.placement).toHaveBeenCalledWith(true);
+  });
+  it('clears a pending lens when capture is lost', () => {
+    const { props, event, commit } = board();
+    props.onPointerDown!(event('pointerdown'));
+    props.onLostPointerCapture!(event('lostpointercapture'));
+    vi.advanceTimersByTime(300);
+    props.onPointerUp!(event('pointerup'));
+    expect(hooks.placement).not.toHaveBeenCalledWith(true);
+    expect(commit).not.toHaveBeenCalled();
+  });
+  it('does not resurrect a lens after a second finger cancels the gesture', () => {
+    const { props, event } = board();
+    props.onPointerDown!(event('pointerdown'));
+    props.onPointerDown!({ ...event('pointerdown'), isPrimary: false, pointerId: 2 });
+    vi.advanceTimersByTime(300);
+    expect(hooks.placement).not.toHaveBeenCalledWith(true);
+  });
+  it('previews an existing marker after all three darts without adding a fourth', () => {
+    const { props, event, commit } = board(false);
+    props.onPointerDown!(event('pointerdown', 0, 0, 100, 'dart-1'));
+    vi.advanceTimersByTime(220);
+    expect(hooks.placement).toHaveBeenCalledWith(expect.objectContaining({ dartId: 'dart-1' }));
+    expect(hooks.placement).toHaveBeenCalledWith(true);
+    props.onPointerUp!(event('pointerup', 0, 0, 400, 'dart-1'));
+    expect(commit).not.toHaveBeenCalled();
+  });
   it('records a tap on release with no confirmation step', () => {
     const { props, event, commit } = board();
     props.onPointerDown!(event('pointerdown'));

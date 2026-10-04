@@ -623,6 +623,22 @@ select {
 .pending-marker {
   pointer-events: none;
 }
+.precision-lens { pointer-events: none; }
+.precision-lens__base {
+  fill: #14171b;
+  filter: drop-shadow(0 2px 3px #0009);
+}
+.precision-lens__rim { fill: none; stroke: #e5c581; stroke-width: 1.2; }
+.precision-lens__crosshair {
+  fill: none;
+  stroke: white;
+  stroke-width: 1;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 1px #000);
+}
+.precision-lens__point { fill: #e5c581; stroke: #101318; stroke-width: 0.6; }
+.precision-lens__label-bg { fill: #101318ed; }
+.precision-lens__label { fill: #f4e5c5; font-size: 7px; font-weight: 700; }
 .pending-marker__crosshair {
   stroke: #fff;
   stroke-width: 1;

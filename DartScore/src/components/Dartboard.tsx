@@ -1,4 +1,6 @@
 import {
+  useEffect,
+  useId,
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
@@ -87,7 +89,17 @@ export function Dartboard({
   onCancelEdit,
   onConfirmThrow,
 }: DartboardProps) {
+  const boardId = useId();
+  const lensClipId = useId();
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [precision, setPrecision] = useState(false);
+  useEffect(() => () => { if (holdTimer.current !== null) clearTimeout(holdTimer.current); }, []);
+  const hideLens = () => {
+    if (holdTimer.current !== null) clearTimeout(holdTimer.current);
+    holdTimer.current = null;
+    setPrecision(false);
+  };
   const [pendingPlacement, setPendingPlacement] =
     useState<PendingPlacement | null>(null);
   const activePointer = useRef<{
@@ -119,6 +131,7 @@ export function Dartboard({
 
   const cancelGesture = (event: ReactPointerEvent<SVGSVGElement>) => {
     if (activePointer.current?.id !== event.pointerId) return;
+    hideLens();
     activePointer.current = null;
     setPendingPlacement(null);
   };
@@ -127,6 +140,7 @@ export function Dartboard({
     if (!event.isPrimary) {
       // A second finger cancels placement rather than adding an accidental dart.
       activePointer.current = null;
+      hideLens();
       setPendingPlacement(null);
       return;
     }
@@ -135,9 +149,17 @@ export function Dartboard({
     if (!canPlaceNewDart && !isEditing && !markerId) return;
     const start = getThrowInputFromPointer(event);
     if (!start) return;
+    hideLens();
     activePointer.current = { id: event.pointerId, x: event.clientX, y: event.clientY, moved: false, markerId, start };
     event.currentTarget.setPointerCapture(event.pointerId);
     if (canPlaceNewDart || isEditing) setPendingPlacement({ dartId: editingDartId, throwInput: start });
+    else if (markerId) {
+      const marker = markers.find(item => item.id === markerId);
+      if (marker) setPendingPlacement({ dartId: markerId, throwInput: buildThrowInput(marker.x, marker.y) });
+    }
+    holdTimer.current = setTimeout(() => {
+      if (activePointer.current) setPrecision(true);
+    }, 220);
   };
 
   const placementFromGesture = (event: ReactPointerEvent<SVGSVGElement>) => {
@@ -158,12 +180,18 @@ export function Dartboard({
 
   const handlePointerMove = (event: ReactPointerEvent<SVGSVGElement>) => {
     const placement = placementFromGesture(event);
-    if (placement) setPendingPlacement(placement);
+    if (placement) {
+      setPendingPlacement(placement);
+      if (activePointer.current?.moved) setPrecision(true);
+    } else if (activePointer.current?.id === event.pointerId) {
+      setPendingPlacement(null);
+    }
   };
 
   const handlePointerEnd = (event: ReactPointerEvent<SVGSVGElement>) => {
     if (activePointer.current?.id !== event.pointerId) return;
     const placement = placementFromGesture(event);
+    hideLens();
     activePointer.current = null;
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
     setPendingPlacement(null);
@@ -175,7 +203,12 @@ export function Dartboard({
 
   const previewLabel = activeThrow
     ? `${activeThrow.hit.label} · ${activeThrow.hit.score}`
-    : canPlaceNewDart ? "Tap to add · drag to adjust" : "Drag a marker to correct it";
+    : canPlaceNewDart ? "Tap to add · hold for precision" : "Drag a marker to correct it";
+
+  // Keep the lens inside the board's viewBox; flip below near the top edge.
+  const lensX = Math.max(-87, Math.min(87, activeThrow?.x ?? 0));
+  const aimY = activeThrow?.y ?? 0;
+  const lensY = aimY - 62 < -87 ? Math.min(87, aimY + 62) : aimY - 62;
 
   return (
     <section className="panel dartboard-panel">
@@ -216,6 +249,7 @@ export function Dartboard({
             </filter>
           </defs>
 
+          <g id={boardId}>
           <circle cx="0" cy="0" r="118" className="board-trim" />
           <circle cx="0" cy="0" r="106" className="board-backplate" />
           <circle
@@ -372,6 +406,8 @@ export function Dartboard({
             );
           })}
 
+          </g>
+
           {markers.map((marker) => {
             if (pendingPlacement?.dartId === marker.id) return null;
             const markerIsEditing = marker.id === (pendingPlacement?.dartId ?? editingDartId);
@@ -435,6 +471,22 @@ export function Dartboard({
               >
                 {pendingDartIndex}
               </text>
+            </g>
+          )}
+          {precision && pendingPlacement && activeThrow && (
+            <g className="precision-lens" aria-hidden="true" transform={`translate(${lensX} ${lensY})`}>
+              <defs><clipPath id={lensClipId}><circle r="35" /></clipPath></defs>
+              <circle className="precision-lens__base" r="36" />
+              <g clipPath={`url(#${lensClipId})`}>
+                <g transform={`scale(2.5) translate(${-activeThrow.x} ${-activeThrow.y})`}>
+                  <use href={`#${boardId}`} />
+                </g>
+                <path className="precision-lens__crosshair" d="M -12 0 H -3 M 3 0 H 12 M 0 -12 V -3 M 0 3 V 12" />
+                <circle className="precision-lens__point" r="1.5" />
+                <rect className="precision-lens__label-bg" x="-35" y="18" width="70" height="18" />
+                <text className="precision-lens__label" textAnchor="middle" y="29">{activeThrow.hit.label} · {activeThrow.hit.score}</text>
+              </g>
+              <circle className="precision-lens__rim" r="35" />
             </g>
           )}
         </svg>
