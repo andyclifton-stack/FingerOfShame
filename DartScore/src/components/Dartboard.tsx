@@ -90,10 +90,12 @@ export function Dartboard({
   onConfirmThrow,
 }: DartboardProps) {
   const boardId = useId();
+  const markersId = useId();
   const lensClipId = useId();
   const svgRef = useRef<SVGSVGElement | null>(null);
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [precision, setPrecision] = useState(false);
+  const [lensOffset, setLensOffset] = useState(-62);
   useEffect(() => () => { if (holdTimer.current !== null) clearTimeout(holdTimer.current); }, []);
   const hideLens = () => {
     if (holdTimer.current !== null) clearTimeout(holdTimer.current);
@@ -150,6 +152,8 @@ export function Dartboard({
     const start = getThrowInputFromPointer(event);
     if (!start) return;
     hideLens();
+    // Choose a side once per gesture so small adjustments cannot flip the lens.
+    setLensOffset(start.y < -25 ? 62 : -62);
     activePointer.current = { id: event.pointerId, x: event.clientX, y: event.clientY, moved: false, markerId, start };
     event.currentTarget.setPointerCapture(event.pointerId);
     if (canPlaceNewDart || isEditing) setPendingPlacement({ dartId: editingDartId, throwInput: start });
@@ -205,10 +209,10 @@ export function Dartboard({
     ? `${activeThrow.hit.label} · ${activeThrow.hit.score}`
     : canPlaceNewDart ? "Tap to add · hold for precision" : "Drag a marker to correct it";
 
-  // Keep the lens inside the board's viewBox; flip below near the top edge.
+  // Follow the dart on the chosen side, stopping gently at the viewBox edges.
   const lensX = Math.max(-87, Math.min(87, activeThrow?.x ?? 0));
   const aimY = activeThrow?.y ?? 0;
-  const lensY = aimY - 62 < -87 ? Math.min(87, aimY + 62) : aimY - 62;
+  const lensY = Math.max(-87, Math.min(87, aimY + lensOffset));
 
   return (
     <section className="panel dartboard-panel">
@@ -408,6 +412,7 @@ export function Dartboard({
 
           </g>
 
+          <g id={markersId}>
           {markers.map((marker) => {
             if (pendingPlacement?.dartId === marker.id) return null;
             const markerIsEditing = marker.id === (pendingPlacement?.dartId ?? editingDartId);
@@ -440,6 +445,8 @@ export function Dartboard({
               </g>
             );
           })}
+
+          </g>
 
           {activeThrow && (
             <g
@@ -480,6 +487,7 @@ export function Dartboard({
               <g clipPath={`url(#${lensClipId})`}>
                 <g transform={`scale(2.5) translate(${-activeThrow.x} ${-activeThrow.y})`}>
                   <use href={`#${boardId}`} />
+                  <use href={`#${markersId}`} />
                 </g>
                 <path className="precision-lens__crosshair" d="M -12 0 H -3 M 3 0 H 12 M 0 -12 V -3 M 0 3 V 12" />
                 <circle className="precision-lens__point" r="1.5" />

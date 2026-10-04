@@ -4,12 +4,12 @@ import { Dartboard } from './Dartboard';
 import { buttonThrow } from '../logic/matchTools';
 
 // Exercise the component's actual pointer handlers without a browser or DOM dependency.
-const hooks = vi.hoisted(() => ({ placement: vi.fn() }));
+const hooks = vi.hoisted(() => ({ placement: vi.fn(), states: [] as unknown[], id: 0 }));
 vi.mock('react', async (original) => ({
   ...await original<typeof import('react')>(),
-  useState: () => [null, hooks.placement],
+  useState: () => [hooks.states.length ? hooks.states.shift() : null, hooks.placement],
   useRef: () => ({ current: null }),
-  useId: () => 'test-board',
+  useId: () => `test-${hooks.id++}`,
   useEffect: () => {},
 }));
 
@@ -41,6 +41,8 @@ function board(canPlaceNewDart = true, editingDartId: string | null = null) {
 }
 
 beforeEach(() => {
+  hooks.states = [];
+  hooks.id = 0;
   vi.useFakeTimers();
   hooks.placement.mockClear();
   vi.stubGlobal('DOMPoint', class {
@@ -53,6 +55,36 @@ beforeEach(() => {
 afterEach(() => { vi.clearAllTimers(); vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 describe('direct dart placement', () => {
+  it('keeps the chosen lens side while crossing the old flip boundary', () => {
+    const { props, event } = board();
+    props.onPointerDown!(event('pointerdown', 0, -30));
+    expect(hooks.placement).toHaveBeenCalledWith(62);
+    hooks.placement.mockClear();
+    props.onPointerMove!(event('pointermove', 0, -20));
+    props.onPointerMove!(event('pointermove', 0, 20));
+    expect(hooks.placement).not.toHaveBeenCalledWith(-62);
+    expect(hooks.placement).not.toHaveBeenCalledWith(62);
+    props.onPointerUp!(event('pointerup', 0, 20));
+    props.onPointerDown!(event('pointerdown', 0, 20));
+    expect(hooks.placement).toHaveBeenCalledWith(-62);
+  });
+  it('magnifies the same existing markers as the board, excluding the dart being moved', () => {
+    hooks.states = [true, 62, { dartId: 'dart-1', throwInput: buttonThrow(50) }];
+    const markers = [1, 2, 3].map(n => ({ ...buttonThrow(60), id: `dart-${n}`, dartIndex: n, turnIndex: 0, score: 60 }));
+    const tree = Dartboard({ canPlaceNewDart: false, editingDartId: null, markers, onCancelEdit: vi.fn(), onConfirmThrow: vi.fn() });
+    const elements: ReactElement<Record<string, unknown>>[] = [];
+    function collect(node: ReactNode) {
+      if (!isValidElement<{ children?: ReactNode }>(node)) return;
+      elements.push(node as ReactElement<Record<string, unknown>>);
+      Children.forEach(node.props.children, collect);
+    }
+    collect(tree);
+    expect(elements.filter(el => el.type === 'use').map(el => el.props.href)).toEqual(['#test-0', '#test-1']);
+    expect(elements.filter(el => el.props['data-dart-id']).map(el => el.props['data-dart-id'])).toEqual(['dart-2', 'dart-3']);
+    const markerGroup = elements.find(el => el.props.id === 'test-1');
+    expect(markerGroup).toBeDefined();
+    expect(elements.find(el => el.props.className === 'precision-lens')?.props.transform).toBe('translate(0 62)');
+  });
   it('shows precision after a hold without recording a dart early', () => {
     const { props, event, commit } = board();
     props.onPointerDown!(event('pointerdown', 0, -60));
