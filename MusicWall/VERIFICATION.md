@@ -1,0 +1,97 @@
+# Verification record — 9 October 2026
+
+## Version 4 — continuous response, tour timing and two new scenes
+
+- **75 automated tests passed**. New checks cover frequency-specific spectrum bins, signed waveform samples and a flat silent trace, all four tour intervals with a two-second maximum beat wait, and continued adaptation while an open panel pauses only the tour clock.
+- Built-in browser matrix: **180 configurations / 180 distinct images** across ten scenes, three palettes, three styles and reduced motion on/off. All ten respond independently to beat and melody changes and freeze exactly under visual pause. Fifty effect-slider comparisons passed.
+- **100 identical layout observations caused zero drawing-surface reallocations.** Fifty scene changes retained one geometry, two textures and eleven shader programs. The previous unconditional canvas resize on each four-second quality check was removed; improving resolution now requires sustained headroom.
+- WAV, MP3, M4A, Ogg, FLAC and AAC fixtures decoded; pre-volume analysis and twenty demo/file switches passed with one AudioContext and zero capture tracks.
+- Stable microphone/Automatic labels replace sound-dependent text in the viewing row. Tour duration is shown in its direct entry button and editable in Automatic and Scenes. Keyboard focus now includes disclosure controls and excludes hidden/disabled controls.
+- Production TypeScript/Vite/PWA build passed (11 precached entries, about 812 KiB). With the nested-path preview server stopped, the app reloaded, both new scenes opened, and a newly selected WAV played. The live waveform remained responsive with speaker volume set to zero; no browser errors/warnings were reported. Screenshot: `test-results/version-4-live-wire.jpg`.
+- Original scenes retain their order. Spectrum Hall and Live Wire append as scenes 9 and 10, with three palettes each. Their bars and trace use analyser data; they do not substitute synthetic beats for real audio.
+- Updated the original localhost preview through the explicit update control: the Quiet evening look, 59% particle preference and selected 30-second interval survived. Left Automatic touring enabled, showing the new Spectrum Hall scene.
+- Checkpoints remain intact: Version 1 **60/60**, Version 2 **67/67**, Version 3 **71/71** hashes. No live deployment or GitHub push.
+- Foreground Chrome comparison (after the user brought the tab forward): **120 seconds, 7,178 frames, mean 59.8 fps, p95 16.9 ms, maximum 66.7 ms, zero frames over 100 ms**. Tested at a 1280×720 logical render size with Auto quality, switching scenes every two seconds and demo/file sources every five. Resources remained at two textures / one AudioContext. This is a two-minute synthetic check, not a guarantee for every device or real microphone session. Evidence: `test-results/version-4-performance.txt`.
+- Phone viewport checks at 390×844 and 320×740 had no horizontal overflow. The tour duration is visible in the first screenful at 390px. At 844×390, the settings panel stayed within y=12–378 and x=476–836. A 30-second tour visibly advanced Live Wire to Velvet Ribbon. Keyboard Shift+Tab/Tab wrapped from Close to Import and back. These are viewport simulations, not physical-phone checks.
+- Tour timing now uses real elapsed seconds, independently of clamped animation steps; a regression check covers one-frame-per-second scheduling. Visibility changes reset the timestamp so hidden time does not consume a scene. Both new scene IDs round-trip through saved looks, favourites, palettes and exports.
+- The built-in browser timing run was stopped because its frame scheduling was about 1 fps despite a visible page. This is not used as a performance pass. A standalone Chrome comparison was explained before opening the external browser.
+
+## Version 3 — Automatic, usability and material depth
+
+- **63 automated tests passed**, including the original audio lifecycle/privacy and storage suites, plus slow atmosphere changes, rhythmic versus sustained input, particle ceilings, silence, all-scene/all-palette touring, minimum dwell, held-tour resumption, visual-pause timing and legacy look migration.
+- The final browser matrix passed **144 scene/palette/style/reduced-motion configurations**, 40 independent effect comparisons, separate beat/melody responses and exact visual pause in all eight scenes. Fifty scene changes held one geometry, two render targets and nine shader programs.
+- All six synthetic codec fixtures (WAV, MP3, M4A, Ogg, FLAC, AAC) decoded in the browser. Twenty demo/file changes retained one audio context and no abandoned capture tracks.
+- A **120-second foreground run with Automatic adaptation** completed 7,198 frames: mean 60.0 fps, p95 interval 16.9 ms, two GPU textures and one audio context throughout. The run switched scenes every two seconds and demo/file input every five seconds. This is local synthetic evidence, not the outstanding 60-minute physical hardware test.
+- Built-in browser checks covered desktop (1440×900), portrait (390×844 and 320×740) and landscape (844×390). Measured phone/landscape document widths had no horizontal overflow; primary phone dock targets were 70×60px at 390px width. Shortened sheets preserve an artwork preview; desktop panels do not blur artwork.
+- UI checks: a manual style turns Automatic off; Automatic can be enabled without resetting preferences; choosing a scene holds it; tour resumption is explicit; opening a saved Automatic look restores that mode and holds its scene. Corrected stale Calm/Flow/Party labels in saved-look summaries and placeholders.
+- Usability fixes found during testing: pause touring while editing, reset its dwell on resumption, remove translucent panel text bleed, show Automatic's On/Off state on phones, keep 48px touch targets, and bound reduced-motion response even with high slider settings.
+- Prepared hub integration was tested locally: Music Wall appears under Apps and search, and its card opens `/FingerOfShame/MusicWall/`. Production assets and PWA load at that nested path. Existing hub entries remain in the staged catalogue. No GitHub push or live deployment has occurred.
+- With the staged preview server stopped, the nested-path production app reloaded, changed to Liquid Light and played a newly selected local WAV through to the end. The saved Automatic look also survived the explicit production update.
+- Updated the user's existing preview through its update prompt: the Quiet evening look and 59% particle setting survived. Automatic starts in labelled Demo. Screenshot: `test-results/version-3-desktop.jpg`; staged hub card: `test-results/version-3-hub-preview.jpg`.
+- Both rollback checkpoints verified: **Version 1: 60/60 hashes; Version 2: 67/67 hashes**. The user's reduced particle preference is preserved by migration.
+
+The new renderer uses procedural surface normals, lighting, bevels and shadows for a dimensional appearance. It does not claim physically simulated 3D objects. Phone installation, real microphone/tab sharing and connected-TV testing remain the separate checks below.
+
+## Version 2 — dance and flow
+
+- Current-source regression suite: **50 tests passed**. Includes constant-loudness bass attack detection, sustained-note non-retriggering, 120 BPM kick separation at 30 and 60 analysis updates per second, legacy-look migration, custom-effect round trips and rejection of invalid effect values.
+- All five new effect sliders changed rendered output in every scene (40 minimum/maximum comparisons). The full 144-configuration matrix and audio lifecycle checks passed again after adding the controls.
+- Production UI: keyboard slider changes (beat 200%, particles 0%) survived reload; the five-effect reset restored 100% without changing the user's 200% Motion amount. Settings had no horizontal document overflow at a 390px phone viewport. No browser warnings or errors were reported. Screenshot: `test-results/version-2-customization.jpg`.
+- Production TypeScript/Vite/PWA build passed, with all eight scenes and 24 brighter palettes cached. No new runtime dependencies, external assets or audio routes.
+- Browser matrix: **144 configurations passed** (8 scenes × 3 palettes × 3 moods × reduced motion on/off), without browser warnings or shader errors.
+- Every scene produced different rendered output for a beat-only change and for a melody/treble change. All eight froze pixel-for-pixel under visual pause.
+- Fifty scene changes retained one geometry, two render textures and nine shader programs. The second transition target is explicitly allocated so both compositor samplers remain valid even before the first transition.
+- Synthetic WAV, MP3, M4A, Ogg, FLAC and AAC browser decoding, and 20 demo/file source switches passed again.
+- Version 2 foreground soak: 120 seconds, 7,198 frames, mean 60.0 fps and p95 frame interval 16.8 ms, with two GPU textures and one AudioContext throughout. Scenes changed every two seconds and demo/file input every five seconds. This is a local two-minute synthetic check, not a physical-device or 60-minute certification.
+- Version 1 checkpoint: all **60 SHA-256 hashes verified unchanged** after the visual changes. See [VERSIONS.md](VERSIONS.md).
+- These remain local/synthetic browser checks. The physical-device and real microphone/tab-sharing checks listed below are still outstanding; the stronger effects do not imply new device certification.
+
+## Result
+
+The complete personal feature set is implemented locally. The production build and automated checks pass. This is a locally verified release candidate, not a deployed or physically certified Samsung/TV release.
+
+Versions 1–3 used only Codex's built-in browser. Version 4 used it first, then standalone Chrome for the frame-timing comparison described above. The original planning text was not edited (SHA-256: `4F7E1087D8766600146AA3D7D91E17B9853134EAA7BB668479598507E21AA024`).
+
+## Version 1 baseline checks
+
+| Check                           | Evidence/result                                                                                                                                                                                                                                                                                                                                     |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| TypeScript and production build | `npm run build` passed. Manifest, service worker, all eight scenes, icons and interface resources generated. 11 precached entries, approximately 789 KiB.                                                                                                                                                                                           |
+| Automated regression suite      | 39 tests across settings transfer, analysis and audio lifecycle passed. Includes capture races, no microphone output connection, audio-free sharing cleanup, permission denial, late permission after hide/stop, single playback route, file retries, queues and malformed imports.                                                                 |
+| Dependency advisories           | Installation audit after updating Vitest: 0 vulnerabilities. Production-only audit: 0 vulnerabilities.                                                                                                                                                                                                                                              |
+| Scene coverage                  | Browser verification rendered 144 configurations: eight scenes × three palettes × three moods × reduced motion on/off. All completed without WebGL errors; 144 distinct image outputs.                                                                                                                                                              |
+| Visual pause                    | Exact before/after rendered-pixel comparison passed across 30 updates with changed audio features.                                                                                                                                                                                                                                                  |
+| Scene lifecycle                 | 50 scene switches retained one geometry, two render textures and nine shader programs.                                                                                                                                                                                                                                                              |
+| Browser codec tests             | Actual HTML media/Web Audio decoding passed for generated WAV, MP3, M4A, Ogg, FLAC and AAC fixtures. These were synthetic tones, with output muted through the gain node. Analysis still detected audio, proving pre-volume analysis.                                                                                                               |
+| Source lifecycle                | 20 demo/file source switches retained one AudioContext and zero capture tracks. Real capture lifecycle is additionally covered by mocked stream tests.                                                                                                                                                                                              |
+| Sustained local run             | 120-second foreground run in the built-in browser: 7,199 frames, mean 60.0 fps, 95th-percentile frame interval 16.8 ms, two GPU textures throughout, one AudioContext. Switched scenes every two seconds and demo/file input every five seconds. This is a two-minute synthetic check, **not** the requested full 60-minute hardware test.          |
+| Offline reopening               | Stopped the preview server entirely and reloaded the production app. The page, saved look and all eight scene previews loaded. Selected new local WAV/MP3 files and played them while the server remained stopped.                                                                                                                                  |
+| Updates and persistence         | Saved “Quiet evening”, applied the explicit update/reload control, stopped the server and reopened offline. The look survived, with Demo selected rather than capture or file playback.                                                                                                                                                             |
+| Queue UI                        | Real browser file selection, WAV/MP3 playback, repeat selection and moving the currently playing track passed. A deliberately corrupt MP3 was labelled and left an actionable error; the app remained usable.                                                                                                                                       |
+| Rotation                        | Enabled a 30-second interval with two favourite scenes; confirmed rotation reached a favourite scene. “Stay here” stopped rotation. Restored three-minute interval and rotation off.                                                                                                                                                                |
+| Viewing controls                | Theatre controls hid during inactivity; reveal restored them. Browser fullscreen entered and exited successfully.                                                                                                                                                                                                                                   |
+| Responsive layouts              | Inspected 390 × 844 and 320 × 740 portrait layouts, 844 × 390 landscape, desktop and a 1920 × 1080 TV-sized viewport. No horizontal document overflow in the measured narrow, landscape or TV-sized layouts. Landscape settings panel stayed inside the viewport and scrolled independently. These are viewport checks, not physical-device claims. |
+| Accessibility refinements       | Explicit slider names verified in the final browser build. Escape closes panels even from text fields; Ctrl/Alt/Meta combinations do not trigger single-key app shortcuts. Focus is trapped in open panels and returned on close. Touch palette targets enlarged.                                                                                   |
+| Privacy design                  | Source inspection confirms no recording or audio-upload code; capture analysers have no speaker-output route. Offline file playback succeeded with the origin server stopped. Full live microphone/tab network inspection remains a real-browser verification item.                                                                                 |
+
+The build emits Vite's advisory for a JavaScript chunk larger than 500 KiB before compression. The main bundle is approximately 211 KiB gzipped and is precached. This is an advisory, not a failed build.
+
+## Remaining real-device checks
+
+These require the relevant physical devices and/or browser permission flows; they have **not** been reported as passed:
+
+1. Windows Chrome/Edge: start a real microphone, check no speaker echo, select another input, calibrate, unplug/revoke permission and verify Stop listening releases the browser's capture indicator.
+2. Windows Chrome/Edge tab sharing: share actual audio; cancel; select without Share audio; stop from browser chrome; verify silence/muting, track cleanup and network traffic. Browser/OS capture selection cannot be certified by mocked streams.
+3. Samsung Chrome and, where available, Samsung Internet: install over HTTPS, launch standalone and offline, test portrait/landscape/touch controls, interruptions and keep-awake behaviour. Check actual device thermals and low-power performance.
+4. A laptop/mini PC connected to the TV: test fullscreen, HDMI audio routing, readability from a sofa, long-session stability and the desired internal-resolution/quality setting.
+5. Run the full **60-minute** mixed-source session on the reference hardware, including at least 50 scene changes and 20 source changes. The development verifier supports a 60-minute synthetic foreground soak; real microphone/tab sources still need a manual session. Record browser versions, device model, power mode, frame times and any interruptions.
+6. Complete end-to-end JSON file download/import on the target browsers (merge and replace). Serialization, validation, conflict handling and storage behaviour are covered by the automated suite; the native file-picker/download variations need device checks.
+
+No hosting, public deployment, native Android app, accounts or remote control were added.
+
+## Local preview and evidence
+
+- Production preview: `http://127.0.0.1:4173` while the preview server is running. Previously cached sessions also reopen offline.
+- Development verification: `http://127.0.0.1:5173/?verify` while the development server is running.
+- Desktop screenshot: `test-results/music-wall-desktop.jpg`.
+- Usage and restart instructions: [README.md](README.md).

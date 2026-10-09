@@ -6,6 +6,24 @@ const ARCHIVE_KEY = "finger_hub_archived_v1";
 // Add future games/apps here; the grid renders from this list.
 const HUB_ITEMS = [
     {
+        "id": "musicwall",
+        "title": "Music Wall",
+        "description": "Ten living artworks for your music. Let Automatic lead, or make the colours and movement your own.",
+        "type": "app",
+        "href": "/FingerOfShame/MusicWall/",
+        "short": "MW",
+        "accent": "rose",
+        "status": "new",
+        "featured": true,
+        "tags": [
+            "music",
+            "visualiser",
+            "offline",
+            "relax"
+        ],
+        "cta": "Open"
+    },
+    {
         id: "surprisereveal",
         title: "Surprise Reveal",
         description: "Make a personal card, choose how it opens, and send a little surprise.",

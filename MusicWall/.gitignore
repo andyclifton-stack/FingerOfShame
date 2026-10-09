@@ -1,0 +1,8 @@
+node_modules/
+dist/
+test-results/
+*.local
+*.tsbuildinfo
+checkpoints/
+release/
+desktop.ini

@@ -48,6 +48,18 @@ jobs:
       - name: Build Fitness
         working-directory: Fitness
         run: npm run build
+      - name: Setup Node for Music Wall
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: MusicWall/package-lock.json
+      - name: Check and build Music Wall
+        working-directory: MusicWall
+        run: |
+          npm ci
+          npm test
+          npm run build
       - name: Assemble static site
         run: |
           mkdir -p _site
@@ -57,12 +69,15 @@ jobs:
             --exclude 'node_modules' \
             --exclude 'desktop.ini' \
             --exclude 'DartScore' \
+            --exclude 'MusicWall' \
             --exclude 'Fitness' \
             ./ _site/
           mkdir -p _site/DartScore
           cp -a DartScore/dist/. _site/DartScore/
           mkdir -p _site/Fitness
           cp -a Fitness/dist/. _site/Fitness/
+          mkdir -p _site/MusicWall
+          cp -a MusicWall/dist/. _site/MusicWall/
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
