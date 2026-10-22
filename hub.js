@@ -6,6 +6,19 @@ const ARCHIVE_KEY = "finger_hub_archived_v1";
 // Add future games/apps here; the grid renders from this list.
 const HUB_ITEMS = [
     {
+        id: "zacroom",
+        title: "Zachary’s Room",
+        description: "Save furniture finds, plan a measured room in 3D, and open Zachary’s Vision. Private, local and ready for offline use.",
+        type: "app",
+        href: "/FingerOfShame/ZacRoom/",
+        short: "ZR",
+        accent: "emerald",
+        status: "new",
+        featured: true,
+        tags: ["room", "design", "planning", "offline"],
+        cta: "Open"
+    },
+    {
         "id": "musicwall",
         "title": "Music Wall",
         "description": "Ten living artworks for your music. Let Automatic lead, or make the colours and movement your own.",
