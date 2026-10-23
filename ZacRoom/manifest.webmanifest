@@ -1,1 +1,32 @@
-{"name": "Zachary’s Room", "short_name": "Zac’s Room", "id": "./", "start_url": "./", "scope": "./", "display": "standalone", "background_color": "#f7f6f2", "theme_color": "#12695f", "icons": [{"src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}, {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"}, {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}]}
+{
+  "name": "Zachary’s Room",
+  "short_name": "Zac’s Room",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f6f2",
+  "theme_color": "#12695f",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "description": "Plan Zachary’s room, save furniture finds and arrange your designs in 2D and 3D.",
+  "prefer_related_applications": false
+}
